@@ -38,9 +38,9 @@ export default {
 
   methods: {
     addMap () {
-      console.log('[  ]-41',document.querySelector("#addInp") )
-      const addInp=document.querySelector("#addInp")
-      addInp&&(addInp.value="")
+      console.log('[  ]-41', document.querySelector("#addInp"))
+      const addInp = document.querySelector("#addInp")
+      addInp && (addInp.value = "")
       this.$confirm(`<div> 地图名：
         <input id="addInp" placeholder="请输入内容"></input>
         </div>`, '地图命名', {
@@ -49,10 +49,11 @@ export default {
         dangerouslyUseHTMLString: true,
         center: true
       }).then((e) => {
+        this.$router.push({ name: 'newMap', params: { mapName: '地图名' } })
         console.log('[  ]-69')
       }).catch((e) => {
-        const val=addInp.value;
-        console.log('[  ]-72',e,val)
+        const val = addInp.value;
+        console.log('[  ]-72', e, val)
       });
     },
     onSel (i) {
@@ -65,7 +66,6 @@ export default {
         dangerouslyUseHTMLString: true,
         center: true
       }).then(() => {
-
         console.log('[  ]-69',)
       }).catch(() => {
 
@@ -105,6 +105,9 @@ export default {
   padding: 20px 0 0 20px;
 
   .item {
+    display: flex;
+    align-items: center;
+    font-size: 40px;
     position: relative;
     width: 1660px;
     height: 158px;
@@ -116,6 +119,11 @@ export default {
         rgba(53, 92, 119, 0.14) 88%);
     backdrop-filter: blur(10.88px);
     box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
+
+    div:nth-child(2) {
+      position: absolute;
+      right: 240px;
+    }
 
     &:active {
       border: 5px solid;

@@ -292,8 +292,6 @@ export default {
             this.left = left;
             this.img2_left = img2_left;
           }
-          // left >= 0 ? (left = left) : (left += 30);
-          // this.left = left;
         }, 100);
       }
     },
@@ -342,11 +340,9 @@ export default {
       );
     },
     yy2(y) {
-      // return -y/0.05+500
       return 992-(y + 25) / 0.05;
     },
     xx2(x) {
-      // return x/0.05+500
       return (x + 25) / 0.05;
     },
     xx0(a) {
@@ -410,8 +406,6 @@ export default {
           if (
             this.left <=
             this.$refs.map.offsetWidth - this.$refs.img1.width
-            // ||
-            // this.img2_left >= this.$refs.img2.width - show_img_w
           ) {
             this.left = this.$refs.map.offsetWidth - this.$refs.img1.width;
             this.img2_left = this.$refs.img2.width - show_img_w;
@@ -426,7 +420,6 @@ export default {
           }
         }
       } catch (e) {
-        // if (e != '__break__') throw e;
       }
     },
     patrol(e) {

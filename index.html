@@ -17,21 +17,25 @@
   <script type="text/javascript">
     // const ros = new ROSLIB.Ros();
     // ros.connect('ws://127.0.0.1:9090');
+    /** 发送目标点*/
     // const TalkerPoint = new ROSLIB.Topic({
     //   ros: ros,
     //   name: '/goal_pose',
     //   messageType: 'geometry_msgs/msg/PointStamped'
     // });
+    /** 建图订阅 */
     // const robotPosition = new ROSLIB.Topic({
     //   ros: ros,
-    //   name: '/amcl_pose',
-    //   messageType: 'geometry_msgs/msg/PoseWithCovarianceStamped'
+    //   name: '/map_base64',
+    //   messageType: 'nav_msgs/msg/OccupancyGrid'
     // });
-    // const controlRobot = new ROSLIB.Topic({
+    /** 机器人在地图中位置*/
+    // const robotPosition = new ROSLIB.Topic({
     //   ros: ros,
-    //   name: '/cmd_vel',
-    //   messageType: 'geometry_msgs/msg/Twist'
+    //   name: '/base_link_pose',
+    //   messageType: 'geometry_msgs/msg/PoseStamped'
     // });
+
     // ros.on('connection', function () {
     //   console.log('rosOk!!!');
     // });

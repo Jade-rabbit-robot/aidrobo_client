@@ -17,7 +17,7 @@ import following from '@/views/utility/following'
 
 import Site from '@/views/site'
 import Map from '@/views/map/index'
-
+import NewMap from '@/views/map/newMap'
 Vue.use(Router)
 
 const originalPush = Router.prototype.push
@@ -55,6 +55,11 @@ export default new Router({
       //     component: point
       //   }
       // ]
+    },
+    {
+      path: '/newMap',
+      name: 'newMap',
+      component: NewMap,
     },
     {
       path: '/site',
