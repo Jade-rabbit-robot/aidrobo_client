@@ -5,7 +5,7 @@
       <p>无地图，请新建地图</p>
     </div>
     <div class="list">
-      <div class="item" v-for="i in 10" :key="i">
+      <div class="item" v-for="i in 10" :key="i" @click="onSel()">
         <div>xxxxxx</div>
         <div>2023.1.9 16:48</div>
         <div class="line"></div>
@@ -38,25 +38,28 @@ export default {
 
   methods: {
     addMap () {
-      console.log('[  ]-41', document.querySelector("#addInp"))
       const addInp = document.querySelector("#addInp")
       addInp && (addInp.value = "")
-      this.$confirm(`<div> 地图名：
-        <input id="addInp" placeholder="请输入内容"></input>
+      this.$confirm(`<div> 名称：
+        <input id="addInp" placeholder=" 请输入内容" style="height: 70px;"></input>
         </div>`, '地图命名', {
         confirmButtonText: '取消',
         cancelButtonText: '确定',
         dangerouslyUseHTMLString: true,
         center: true
       }).then((e) => {
-        this.$router.push({ name: 'newMap', params: { mapName: '地图名' } })
+
         console.log('[  ]-69')
       }).catch((e) => {
         const val = addInp.value;
+
+        this.$router.push({ name: 'newMap', params: { mapName: '地图名' } })
         console.log('[  ]-72', e, val)
       });
     },
     onSel (i) {
+      this.$router.push({ name: 'seeMap', params: { mapName: '地图名' } })
+
       console.log("[  ]-25", i);
     },
     onDel (i) {
@@ -119,7 +122,9 @@ export default {
         rgba(53, 92, 119, 0.14) 88%);
     backdrop-filter: blur(10.88px);
     box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
-
+    div:first-child{
+      margin-left: 16px;
+    }
     div:nth-child(2) {
       position: absolute;
       right: 240px;

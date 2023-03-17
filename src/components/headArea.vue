@@ -87,12 +87,7 @@ export default {
   opacity: 1;
   z-index: 10;
   color: #fff;
-  background: linear-gradient(
-    93deg,
-    rgba(71, 84, 141, 0.64) 8%,
-    rgba(53, 81, 119, 0.15) 86%,
-    rgba(53, 92, 119, 0.14) 88%
-  );
+  background: #495BAF;
   backdrop-filter: blur(10.88px);
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
 }

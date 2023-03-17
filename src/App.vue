@@ -104,10 +104,13 @@ export default {
   font-size: 50px;
   margin-bottom: 30px;
 }
-
+.el-message-box__headerbtn{
+  font-size: 50px;
+}
 .el-message-box__message {
   color: #fff;
   font-size: 35px;
+  margin-top: 50px;
 }
 
 .el-message-box__message div {

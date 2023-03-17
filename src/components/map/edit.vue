@@ -1,31 +1,54 @@
+<!-- jrf -->
 <template>
   <div class="map" ref="map" @touchmove="map_move()">
     <div class="fa_map_box1">
-      <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
-        @touchend="rubberend($event)" v-pinchstart="map_pinchstart"
-        v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <img id="img1" src="../../static2/img/map2.png" @load="init" ref="img1" />
-        <div class="robot" v-bind:style="{
-          transform:
-            'translate(' +
-            (robotXY.x * scale - 6) +
-            'px,' +
-            (robotXY.y * scale - 6) +
-            'px)',
-        }">
+      <div
+        class="map_box1"
+        ref="map_box1"
+        @touchstart="rubberstart($event)"
+        @touchmove="rubbermove($event)"
+        @touchend="rubberend($event)"
+        v-pinchstart="map_pinchstart"
+        v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }"
+      >
+        <img
+          id="img1"
+          src="../../static2/img/map2.png"
+          @load="init"
+          ref="img1"
+        />
+        <div
+          class="robot"
+          v-bind:style="{
+            transform:
+              'translate(' +
+              (robotXY.x * scale - 6) +
+              'px,' +
+              (robotXY.y * scale - 6) +
+              'px)',
+          }"
+        >
         </div>
-        <div class="charge" v-bind:style="{
-          marginTop: 316 * scale - 10 + 'px',
-          marginLeft: 483 * scale - 10 + 'px',
-        }"></div>
-        <div v-for="(item, index) in $store.state.patrol_chang_data" :key="index" class="map_point" v-bind:style="{
-          transform:
-            'translate(' +
-            (item.x * scale - 25) +
-            'px,' +
-            (item.y * scale + -70) +
-            'px)',
-        }">
+        <div
+          class="charge"
+          v-bind:style="{
+            marginTop: 316 * scale - 10 + 'px',
+            marginLeft: 483 * scale - 10 + 'px',
+          }"
+        ></div>
+        <div
+          v-for="(item, index) in $store.state.patrol_chang_data"
+          :key="index"
+          class="map_point"
+          v-bind:style="{
+            transform:
+              'translate(' +
+              (item.x * scale - 25) +
+              'px,' +
+              (item.y * scale + -70) +
+              'px)',
+          }"
+        >
           <img src="../../static2/img/point.png" width="50px" />
           <span class="pointNum">{{ index + 1 }}</span>
         </div>
@@ -35,15 +58,23 @@
       </div>
     </div>
     <div class="img2">
-      <div class="show_img" ref="show_img" v-bind:style="{
-        'margin-top': img2_top + 'px',
-        'margin-left': img2_left + 'px',
-      }"></div>
+      <div
+        class="show_img"
+        ref="show_img"
+        v-bind:style="{
+          'margin-top': img2_top + 'px',
+          'margin-left': img2_left + 'px',
+        }"
+      ></div>
       <img id="img2" src="../../static2/img/map2.png" ref="img2" />
     </div>
     <div class="map_tool">
-      <div v-for="(item, index) in items" :key="index" @touchstart="touchStart($event, index)"
-        @touchend="touchend($event)">
+      <div
+        v-for="(item, index) in items"
+        :key="index"
+        @touchstart="touchStart($event, index)"
+        @touchend="touchend($event)"
+      >
         <span :class="item.name" :style="item.cla"></span>
       </div>
     </div>
@@ -53,7 +84,7 @@
 <script type="text/ecmascript-6">
 import { mapState, mapMutations } from "vuex";
 export default {
-  data () {
+  data() {
     return {
       robotXY: { x: 0, y: 0 },
       scale: 1,
@@ -133,7 +164,7 @@ export default {
       "map_img_w"
     ])
   },
-  mounted () {
+  mounted() {
     this.robotXY = { x: this.xx2(0.5), y: this.yy2(-2) };
     this.$store.state.map_width = this.$refs.map.offsetWidth;
     robotPosition.subscribe(message => {
@@ -145,15 +176,15 @@ export default {
     });
   },
   methods: {
-    map_pinchstart () {
+    map_pinchstart() {
       alert(1);
     },
     ...mapMutations(["chang_data", "rubber_chang_data"]),
-    removeJob: function (arr, index) {
+    removeJob: function(arr, index) {
       arr.splice(index, 1);
     },
-    datadragEnd (evt) { },
-    touchStart (e, n) {
+    datadragEnd(evt) {},
+    touchStart(e, n) {
       this.$store.state.init_img_data = false;
       this.$refs.map_box1.style.transition = "none";
       e.currentTarget.classList.add("cli_box");
@@ -264,12 +295,12 @@ export default {
         }, 100);
       }
     },
-    touchend (e) {
+    touchend(e) {
       clearInterval(this.interval);
       this.interval = null;
       e.currentTarget.classList.remove("cli_box");
     },
-    init () {
+    init() {
       if (!this.init_img_data) {
         return false;
       }
@@ -288,7 +319,7 @@ export default {
       this.$refs.show_img.style.height =
         this.$refs.map.offsetHeight / 11 + "px";
     },
-    rubberstart (e) {
+    rubberstart(e) {
       let set_time = 0;
       this.$refs.map_box1.style.transition = "none";
       let ctx = this.operate_txc;
@@ -303,24 +334,24 @@ export default {
         );
       }
     },
-    xx_yy (a) {
+    xx_yy(a) {
       return Math.round(
         ((a / this.d_width) * this.m_width) / this.m_resolution
       );
     },
-    yy2 (y) {
-      return 992 - (y + 25) / 0.05;
+    yy2(y) {
+      return 992-(y + 25) / 0.05;
     },
-    xx2 (x) {
+    xx2(x) {
       return (x + 25) / 0.05;
     },
-    xx0 (a) {
+    xx0(a) {
       return Math.round(a * 0.05 - 25);
     },
-    yy0 (a) {
+    yy0(a) {
       return Math.round((992 - a) * 0.05 - 25);
     },
-    rubbermove (e) {
+    rubbermove(e) {
       let ctx = this.operate_txc;
       let r_x = Math.round((this.touch_data.pageX - this.left) / this.scale);
       let r_y = Math.round(
@@ -331,12 +362,12 @@ export default {
         ? (this.touch_data = e.touches[0])
         : (this.touch_data = this.touch_data);
     },
-    rubberend (e) {
+    rubberend(e) {
       if (this.mcode <= 1 && (this.tool == "point" || this.tool == "xld")) {
         this.patrol(e);
       }
     },
-    map_move () {
+    map_move() {
       try {
         if (this.tool == "") {
           let cT =
@@ -391,7 +422,7 @@ export default {
       } catch (e) {
       }
     },
-    patrol (e) {
+    patrol(e) {
       if (this.tool == "point") {
         this.patrol_arr_area = [];
       } else if (this.tool == "xld" && !this.$store.state.patrol_arr.length) {
@@ -421,14 +452,13 @@ export default {
 };
 </script>
 
-<style lang="less" scoped>
+<style>
 .map {
-  position: relative;
+  position: absolute;
   top: 0;
-  height: 1010px;
-  width: 1380px;
-  border-radius: 5px;
-  background: #526CAD;
+  height: 100%;
+  width: 75%;
+  background: #709080;
   overflow: hidden;
 }
 
@@ -583,13 +613,11 @@ export default {
 .tram9 {
   transform: translate(-60px, -60px);
 }
-
 .map_point {
   position: absolute;
   top: 0;
   left: 0;
 }
-
 .robot {
   position: absolute;
   width: 12px;
@@ -598,13 +626,14 @@ export default {
   top: 0;
   left: 0;
   z-index: 11;
-  background: linear-gradient(95deg,
-      rgba(71, 84, 141, 0.64) 9%,
-      rgba(53, 81, 119, 0.15) 86%,
-      rgba(53, 92, 119, 0.14) 88%);
-  box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
+  background: linear-gradient(
+    135deg,
+    rgb(255 172 85) 0%,
+    rgb(255 13 52 / 81%) 100%
+  );
+  box-shadow: -1px -2px 3px -5px rgb(249 249 249),
+    4px 4px 10px -5px rgb(0 0 0 / 30%);
 }
-
 .pointNum {
   display: inline-block;
   position: absolute;
@@ -613,7 +642,6 @@ export default {
   top: 14px;
   left: 20px;
 }
-
 .charge {
   width: 20px;
   height: 20px;
@@ -624,13 +652,11 @@ export default {
   border-radius: 50%;
   animation: mymove 3s infinite;
 }
-
 @keyframes mymove {
   0% {
     transform: scale(1);
     opacity: 1;
   }
-
   100% {
     transform: scale(2);
     opacity: 0.1;

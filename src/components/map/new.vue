@@ -3,7 +3,7 @@
     <div class="fa_map_box1">
       <div class="map_box1" ref="map_box1"
         v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <img id="img1" src="../../static2/img/map2.png" @load="init" ref="img1" />
+        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
         <div class="robot" v-bind:style="{
           transform:
             'translate(' +
@@ -25,7 +25,7 @@
             (item.y * scale + -70) +
             'px)',
         }">
-          <img src="../../static2/img/point.png" width="50px" />
+          <img src="../../../static2/img/point.png" width="50px" />
           <span class="pointNum">{{ index + 1 }}</span>
         </div>
         <div class="map_box2">

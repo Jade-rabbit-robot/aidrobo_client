@@ -18,6 +18,8 @@ import following from '@/views/utility/following'
 import Site from '@/views/site'
 import Map from '@/views/map/index'
 import NewMap from '@/views/map/newMap'
+import EditMap from '@/views/map/editMap'
+import SeeMap from '@/views/map/seeMap'
 Vue.use(Router)
 
 const originalPush = Router.prototype.push
@@ -60,6 +62,16 @@ export default new Router({
       path: '/newMap',
       name: 'newMap',
       component: NewMap,
+    },
+    {
+      path: '/editMap',
+      name: 'editMap',
+      component: EditMap,
+    },
+    {
+      path: '/seeMap',
+      name: 'seeMap',
+      component: SeeMap,
     },
     {
       path: '/site',

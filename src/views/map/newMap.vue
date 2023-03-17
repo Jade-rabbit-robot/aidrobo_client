@@ -4,14 +4,14 @@
     <div class="right">
       <p>遥控模式已打开请使用手App遥控机器人行走建图，完成扫描后点击完成扫描进入下一步</p>
       <p>注意：起始位置为起始点或充电桩，建图需完成回环后回到该位置</p>
-      <div class="over">完成扫描</div>
-      <div class="out">退出</div>
+      <div class="over" @click="onOver()">完成扫描</div>
+      <div class="out" @click="onOut()">退出</div>
     </div>
   </div>
 </template>
 
 <script>
-import ShowMap from "@/components/showMap";
+import ShowMap from "@/components/map/new";
 
 export default {
   components: {
@@ -20,6 +20,34 @@ export default {
   data () {
     return {
 
+    }
+  },
+  methods:{
+    onOver(){
+      this.$confirm(`<div>是否确认完成扫描，确认后将生成地图进入编辑</div><div>（无法返回）</div>`, '完成扫描', {
+        confirmButtonText: '取消',
+        cancelButtonText: '确定',
+        dangerouslyUseHTMLString: true,
+        center: true
+      }).then(() => {
+        console.log('[  ]-69',)
+      }).catch(() => {
+        this.$router.push({ name: 'editMap', params: { mapName: '地图名' } })
+        console.log('[  ]-72',)
+      });
+    },
+    onOut(){
+      this.$confirm(`<div>是否确认退出</div><div>（已扫描地图不会保存）</div>`, '退出扫描', {
+        confirmButtonText: '取消',
+        cancelButtonText: '确定',
+        dangerouslyUseHTMLString: true,
+        center: true
+      }).then(() => {
+        console.log('[  ]-69',)
+      }).catch(() => {
+        this.$router.go(-1)
+        console.log('[  ]-72',)
+      });
     }
   }
 
