@@ -19,35 +19,58 @@ export default {
   },
   data () {
     return {
-
+      mapName: this.$route.query.mapName
     }
   },
-  methods:{
-    onOver(){
+  mounted () {
+  },
+  methods: {
+    onOver () {
       this.$confirm(`<div>是否确认完成扫描，确认后将生成地图进入编辑</div><div>（无法返回）</div>`, '完成扫描', {
-        confirmButtonText: '取消',
-        cancelButtonText: '确定',
         dangerouslyUseHTMLString: true,
         center: true
       }).then(() => {
-        console.log('[  ]-69',)
-      }).catch(() => {
-        this.$router.push({ name: 'editMap', params: { mapName: '地图名' } })
-        console.log('[  ]-72',)
-      });
+        this.$router.push({ name: 'map' })
+        const date = Date.now()
+        const msg = new ROSLIB.ServiceRequest({
+          map_file_name: `/root/maps/${date}`
+        });
+        saveMap.callService(msg, (result) => {
+          console.log('[  saveMap OK]-61', result)
+        }, (result) => {
+          console.log('[  saveMap ERR]-61', result)
+        });
+
+        const msg2 = new ROSLIB.ServiceRequest(
+          {
+            map_name: this.mapName,
+            map_file: `/root/maps/${date}`
+          }
+        );
+        saveMapDb.callService(msg2, (result) => {
+          console.log('[  saveMapDb OK]-61', result)
+        }, (result) => {
+          console.log('[  saveMapDb ERR]-61', result)
+        });
+      })
     },
-    onOut(){
+    onOut () {
       this.$confirm(`<div>是否确认退出</div><div>（已扫描地图不会保存）</div>`, '退出扫描', {
-        confirmButtonText: '取消',
-        cancelButtonText: '确定',
         dangerouslyUseHTMLString: true,
         center: true
       }).then(() => {
-        console.log('[  ]-69',)
-      }).catch(() => {
-        this.$router.go(-1)
+        this.$router.push({ name: 'map' })
         console.log('[  ]-72',)
-      });
+        const msg = new ROSLIB.ServiceRequest({
+          trajectory_id: 0
+        });
+        finishMap.callService(msg, (result) => {
+          console.log('[  finishMap OK]-61', result)
+        }, (result) => {
+          console.log('[  finishMap ERR]-61', result)
+        });
+        console.log('[  ]-69',)
+      })
     }
   }
 

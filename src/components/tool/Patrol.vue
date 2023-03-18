@@ -57,12 +57,6 @@ export default {
         if(this.pointIndex== this.patrol_arr.length){
           this.pointIndex=0
         }
-        // if(this.pointIndex==5){
-        // this.pointIndex-=1
-        // }
-        // if(this.pointIndex==0||this.pointIndex<5){
-        // this.pointIndex+=1
-        // }
         this.goNext({ x: this.patrol_arr[this.pointIndex].x, y: this.patrol_arr[this.pointIndex].y });
       }
     },

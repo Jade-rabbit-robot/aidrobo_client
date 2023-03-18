@@ -339,12 +339,14 @@ export default {
         ((a / this.d_width) * this.m_width) / this.m_resolution
       );
     },
+    //地图转屏幕
     yy2(y) {
       return 992-(y + 25) / 0.05;
     },
     xx2(x) {
       return (x + 25) / 0.05;
     },
+    //屏幕转地图
     xx0(a) {
       return Math.round(a * 0.05 - 25);
     },
@@ -452,7 +454,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .map {
   position: absolute;
   top: 0;

@@ -27,6 +27,22 @@ export default {
       showTc: true
     };
   },
+  mounted () {
+    // 全局订阅机器人位置
+    robotPosition.subscribe(message => {
+      if (message.pose) {
+        const position = message.pose.position;
+        this.$store.state.robotPoint = { x: position.x, y: position.y };
+      }
+    })
+    // 获取当前地图id
+    getCurrentMapId.callService(null, (result) => {
+      this.$store.nowMapID = result.map_id
+      console.log('[  finishMap OK]-61', result)
+    }, (result) => {
+      console.log('[  finishMap ERR]-61', result)
+    });
+  }
 };
 </script>
 

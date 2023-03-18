@@ -38,8 +38,10 @@ const store = new Vuex.Store({
     map_img_w:0,//屏幕地图宽
     set_msg:null,//接收錯誤消息
     patrol_chang_data:[],
+    //
     showMsg:false,//控制msg提示框显示
-    showTc:false,//控制msg提示框显示
+    hasSave:true,//顶部路由=》页面保存提示控制
+    nowMapID:"3"
   },
   getters: {
     mcode: state => state.mcode,

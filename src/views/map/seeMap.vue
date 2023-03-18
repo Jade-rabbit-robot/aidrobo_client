@@ -1,24 +1,24 @@
 <template>
   <div class="newMapBox">
-    <ShowMap />
+    <ShowMap :showType="'see'" />
     <div class="right">
       <div class="titleBox">
         <p>地图名称：</p>
-        <p class="mapName">xxxxxx</p>
+        <p class="mapName">{{ $route.query.mapName }}</p>
       </div>
-      <div class="iconBtn" @click="onStop()">
+      <div class="iconBtn" @click="onUse()" v-if="!isUse">
         <img src="@/assets/img/seeMap/use.svg" />
         <p>使用地图</p>
       </div>
-      <div class="iconBtn" @click="onStop()">
+      <div class="iconBtn" v-else>
         <img src="@/assets/img/seeMap/now.svg" />
         <p>当前地图</p>
       </div>
-      <div class="iconBtn" @click="onStop()">
+      <div class="iconBtn" v-if="false">
         <img src="@/assets/img/seeMap/edit.svg" />
         <p>编辑地图</p>
       </div>
-      <div class="over" @click="onOver()">
+      <div class="over" @click="onDel()">
         <img src="@/assets/img/del.svg" />
         <p>删除地图</p>
       </div>
@@ -35,48 +35,80 @@ export default {
   },
   data () {
     return {
-      overText: '保存地图',
-      rubber: false,
-      stop: false,
+      isUse: false
+    }
+  },
+  created () {
+    if (this.$store.nowMapID === this.$route.query.id) {
+      this.isUse = true
     }
   },
   methods: {
-    onRubber () {
-      this.rubber = true;
-      this.overText = '完成'
-    },
-    onStop () {
-      this.stop = true
-      this.overText = '完成'
-    },
-    onOver () {
-      if (this.rubber || this.stop) {
-        this.rubber = false
-        this.stop = false
-        this.overText = '保存地图'
-        return
-      }
-      this.$confirm(`<div>是否确认完成扫描，确认后将生成地图进入编辑</div><div>（无法返回）</div>`, '完成扫描', {
-        confirmButtonText: '取消',
-        cancelButtonText: '确定',
-        dangerouslyUseHTMLString: true,
-        center: true
-      }).then(() => {
-        console.log('[  ]-69',)
-      }).catch(() => {
-        console.log('[  ]-72',)
+    onUse () {
+      // 设置使用地图
+      const msg = new ROSLIB.ServiceRequest({
+        id: this.$route.query.id*1
       });
+      setCurrentMapId.callService(msg, (result) => {
+        this.$store.nowMapID=this.$route.query.id
+        this.$message('设置成功');
+        console.log('[ setCurrentMapId OK]-61', result)
+      }, (result) => {
+        this.$message('设置失败');
+        console.log('[ setCurrentMapId ERR]-61', result)
+      });
+      // 状态控制
+      const modeMsg = new ROSLIB.ServiceRequest({
+        action: 'localization'
+      });
+      robotMode.callService(modeMsg, (result) => {
+        console.log('[ robotMode OK]-61', result)
+      }, (result) => {
+        console.log('[ robotMode ERR]-61', result)
+      });
+      // 重定位
+      const point = {
+        header: {
+          stamp: {
+            sec: 0,
+            nanosec: 0
+          },
+          frame_id: "map"
+        },
+        pose: {
+          position: {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0
+          },
+          orientation: {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            w: 1.0
+          }
+        }
+      };
+      var pose_msg = new ROSLIB.Message(point);
+      PoseStamped.publish(pose_msg);
     },
-    onOut () {
-      this.$confirm(`<div>是否确认退出</div><div>（请确认所做操作已保存）</div>`, '退出编辑', {
-        confirmButtonText: '取消',
-        cancelButtonText: '确定',
+    onDel () {
+      this.$confirm(`<div>是否确认删除地图</div><div>（本操作无法恢复）</div>`, '删除地图', {
         dangerouslyUseHTMLString: true,
         center: true
       }).then(() => {
-        console.log('[  ]-69',)
+        const msg = new ROSLIB.ServiceRequest({
+          id: this.$route.query.id*1,
+          data_type:'map'
+        });
+        deleteMap.callService(msg, (result) => {
+          this.$message('删除成功');
+          console.log('[ deleteMap OK]-61', result)
+        }, (result) => {
+          this.$message('删除失败');
+          console.log('[ deleteMap ERR]-61', result)
+        });
       }).catch(() => {
-        this.$router.push('/map')
         console.log('[  ]-72',)
       });
     }
@@ -155,4 +187,5 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-}</style>
+}
+</style>

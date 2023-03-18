@@ -1,35 +1,29 @@
 <template>
   <div class="map" ref="map">
     <div class="fa_map_box1">
-      <div class="map_box1" ref="map_box1"
-        v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
+      <div class="map_box1" ref="map_box1" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
+        <!-- <img id="img1" :src="'data:image/jpg;base64,' + mapData.src" @load="init" ref="img1" /> -->
+        <img id="img1"
+          src="data:image/jpg;base64,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"
+           ref="img1" />
         <div class="robot" v-bind:style="{
           transform:
             'translate(' +
-            (robotXY.x * scale - 6) +
+            (xx2(robotPoint.x) * scale - 2) +
             'px,' +
-            (robotXY.y * scale - 6) +
+            (yy2(robotPoint.y) * scale - 2) +
             'px)',
-        }">
+        }" v-if="showType != 'see'">
         </div>
         <div class="charge" v-bind:style="{
-          marginTop: 316 * scale - 10 + 'px',
-          marginLeft: 483 * scale - 10 + 'px',
-        }"></div>
-        <div v-for="(item, index) in $store.state.patrol_chang_data" :key="index" class="map_point" v-bind:style="{
           transform:
             'translate(' +
-            (item.x * scale - 25) +
+            (chargeXY.x * scale - 46) +
             'px,' +
-            (item.y * scale + -70) +
+            (chargeXY.y * scale - 124) +
             'px)',
-        }">
-          <img src="../../../static2/img/point.png" width="50px" />
-          <span class="pointNum">{{ index + 1 }}</span>
-        </div>
-        <div class="map_box2">
-          <canvas id="operate" ref="operate"></canvas>
+        }" v-else>
+          <img id="img1" src="@/assets/img/startPoint.svg" @load="init" ref="img1" />
         </div>
       </div>
     </div>
@@ -38,124 +32,71 @@
 
 <script type="text/ecmascript-6">
 import { mapState, mapMutations } from "vuex";
+import { changeStr } from "@/assets/common"
 export default {
+  props: ['showType'],
   data () {
     return {
-      robotXY: { x: 0, y: 0 },
+      mapData: {
+        src: "",
+        width: 0,
+        height: 0,
+        resolution: 0,
+        positionX: 0,
+        positionY: 0,
+      },
+      chargeXY: { x: 0, y: 0 },
       scale: 1,
       left: 0,
       top: 0,
-      img2_scale: 1,
-      img2_top: 0,
-      img2_left: 0,
-      imgsrc: null,
-      d_width: null,
-      d_height: null,
-      operate_txc: null,
-      interval: null, //全局控制定时器
-      touch_data: null, //触摸点
-      patrol_arr_area: [],
-      items: [
-        {
-          name: "icon-zoom-in",
-          cla: "",
-          clan: "tram7"
-        },
-        {
-          name: "icon-updown",
-          cla: "transform: rotate(270deg);",
-          clan: "tram2"
-        },
-        {
-          name: "icon-zoom-out",
-          cla: "",
-          clan: "tram9"
-        },
-        {
-          name: "icon-updown",
-          cla: "transform: rotate(180deg);",
-          clan: "tram4"
-        },
-        {
-          name: "icon-updown",
-          cla: "transform: rotate(90deg);",
-          clan: "tram8"
-        },
-        {
-          name: "icon-updown",
-          cla: "",
-          clan: "tram6"
-        }
-      ],
-      screen_w:
-        window.innerWidth ||
-        document.documentElement.clientWidth ||
-        document.body.clientWidth,
-      yEnd: 0,
-      xEnd: 0
     };
   },
   computed: {
     ...mapState([
       "robotPoint",
-      "mcode",
-      "rubber_data1",
-      "rubber_data2",
-      "head_h",
-      "rubber_size",
-      "go_rubber",
-      "tool",
-      "mapSrc",
-      "init_img_data",
-      "patrol_arr",
-      "m_width",
-      "m_height",
-      "m_resolution",
-      "_map_name",
-      "zero",
-      "stop_chang_data",
-      "stop_point",
-      "charge_po",
-      "map_img_w"
     ])
   },
   mounted () {
-    this.robotXY = { x: this.xx2(0.5), y: this.yy2(-2) };
     this.$store.state.map_width = this.$refs.map.offsetWidth;
+    this.getMap()
+    this.init()
   },
   methods: {
-    ...mapMutations(["chang_data", "rubber_chang_data"]),
-    init () {
-      if (!this.init_img_data) {
-        return false;
+    getMap () {
+      if (this.showType === 'see') {
+        const msg = new ROSLIB.ServiceRequest({
+          id: this.$route.query.id * 1
+        });
+        getMapImage.callService(msg, (res) => {
+          console.log('[ getMapImage OK]-61', res)
+          if (res.success) {
+            this.mapData = changeStr(res.map)
+            this.chargeXY = { x: this.xx2(0), y: this.yy2(0) }
+          }
+        }, (result) => {
+          console.log('[ getMapImage ERR]-61', result)
+        });
+      } else {
+        robotMap.subscribe(res => {
+          this.mapData = changeStr(res.map)
+        })
       }
-      this.top = this.left = this.img2_top = this.img2_left = 0;
-      this.scale = 1;
-      this.$refs.operate.style.transform = "scale(" + this.scale + ")";
-      let img1 = document.getElementById("img1");
-      let operate = document.getElementById("operate");
-      this.$store.state.x_can = operate;
-      this.operate_txc = operate.getContext("2d");
-      // 获取的图片进行等比适配
-      this.$store.state.map_img_w = this.d_width = operate.width = img1.width;
-      this.d_height = operate.height = img1.height;
     },
-    xx_yy (a) {
-      return Math.round(
-        ((a / this.d_width) * this.m_width) / this.m_resolution
-      );
+    init () {
+      let img1 = document.getElementById("img1");
+      // const sc = 1380 / 87
+      // console.log('[ sc ]-87', sc)
+      // if (sc >= 5) {
+      //   this.scale = sc
+      //   img1.width=this.scale *87
+      //   img1.height=this.scale *89
+      // }
     },
     yy2 (y) {
-      return 992 - (y + 25) / 0.05;
+      return this.mapData.height - (y - this.mapData.positionY) / this.mapData.resolution;
     },
     xx2 (x) {
-      return (x + 25) / 0.05;
-    },
-    xx0 (a) {
-      return Math.round(a * 0.05 - 25);
-    },
-    yy0 (a) {
-      return Math.round((992 - a) * 0.05 - 25);
+      return (x - this.mapData.positionX) / this.mapData.resolution;
     },
   }
 };
@@ -169,7 +110,7 @@ export default {
   width: 1380px;
   border-radius: 5px;
   background: #526CAD;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .map_box1 {
@@ -179,196 +120,24 @@ export default {
   z-index: 0;
 }
 
-.loc_robot {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.map_box2 {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-}
-
-.rubber_sel {
-  position: absolute;
-  width: 150px;
-  height: 50px;
-  text-align: center;
-  line-height: 50px;
-  border: 1px solid #948f8f;
-  background: #409eff;
-  color: #fff;
-  border-radius: 11px;
-  margin-left: 50px;
-  margin-top: 30px;
-}
-
-.rubber_sel2 {
-  background: #d9dbdb;
-  color: #000;
-}
-
-#operate {
-  transform-origin: left top;
-}
-
-#operate2 {
-  position: absolute;
-  top: 20px;
-  left: 80px;
-  z-index: 20;
-}
-
-
-.show_img {
-  background: #615555;
-  opacity: 0.5;
-  border: 1px solid;
-  position: absolute;
-  margin-top: 0px;
-  margin-left: 0px;
-  transform-origin: left top;
-}
-
-.patrol_list {
-  margin-left: 5%;
-  margin-top: 1%;
-  font-size: 12px;
-  width: 83%;
-}
-
-.list-complete-item {
-  width: 75px;
-  display: inline-block;
-  height: 25px;
-  line-height: 25px;
-  margin-left: 3px;
-  margin-top: 3px;
-  position: relative;
-}
-
-.map_tool {
-  position: fixed;
-  width: 170px;
-  height: 120px;
-  left: 20px;
-  bottom: 20px;
-  z-index: 5;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: space-between;
-  justify-content: space-between;
-}
-
-.map_tool div {
-  height: 50px;
-  width: 50px;
-  font-size: 30px;
-  background: rgba(26, 26, 26, 0.6);
-  color: #505050;
-  box-shadow: 1px 1px 11px #415d5d;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 6px;
-  transition: transform 0.1s linear;
-}
-
-.cli_box {
-  box-shadow: inset 1px 1px 11px #436c6c !important;
-}
-
-.tram1 {
-  transform: translate(60px, 60px);
-}
-
-.tram2 {
-  transform: translate(0px, 60px);
-}
-
-.tram3 {
-  transform: translate(-60px, 60px);
-}
-
-.tram4 {
-  transform: translate(60px, 0px);
-}
-
-.tram5 {
-  z-index: 2;
-  background: #709080 !important;
-  transform: rotate(90deg);
-}
-
-.tram6 {
-  transform: translate(-60px, 0px);
-}
-
-.tram7 {
-  transform: translate(60px, -60px);
-}
-
-.tram8 {
-  transform: translate(0px, -60px);
-}
-
-.tram9 {
-  transform: translate(-60px, -60px);
-}
-
-.map_point {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
 .robot {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   top: 0;
   left: 0;
   z-index: 11;
-  background: linear-gradient(95deg,
-      rgba(71, 84, 141, 0.64) 9%,
-      rgba(53, 81, 119, 0.15) 86%,
-      rgba(53, 92, 119, 0.14) 88%);
+  background: #ff9b44;
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
 }
 
-.pointNum {
-  display: inline-block;
-  position: absolute;
-  font-size: 1.5rem;
-  color: #fff;
-  top: 14px;
-  left: 20px;
-}
 
 .charge {
-  width: 20px;
-  height: 20px;
-  background: #ccc;
+  width: 92px;
+  height: 124px;
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: 50%;
-  animation: mymove 3s infinite;
-}
-
-@keyframes mymove {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-
-  100% {
-    transform: scale(2);
-    opacity: 0.1;
-  }
 }
 </style>

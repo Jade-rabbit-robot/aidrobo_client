@@ -22,10 +22,10 @@ import EditMap from '@/views/map/editMap'
 import SeeMap from '@/views/map/seeMap'
 Vue.use(Router)
 
-const originalPush = Router.prototype.push
-Router.prototype.push = function push (location) {
-  return originalPush.call(this, location).catch(err => err)
-}
+// const originalPush = Router.prototype.push
+// Router.prototype.push = function push (location) {
+//   return originalPush.call(this, location).catch(err => err)
+// }
 export default new Router({
   routes: [
     {
@@ -34,6 +34,7 @@ export default new Router({
     },
     {
       path: '/map',
+      name:'map',
       component: Map,
       // children: [
       //   {

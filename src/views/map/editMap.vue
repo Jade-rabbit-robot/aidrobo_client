@@ -55,8 +55,6 @@ export default {
         return
       }
       this.$confirm(`<div>是否确认完成扫描，确认后将生成地图进入编辑</div><div>（无法返回）</div>`, '完成扫描', {
-        confirmButtonText: '取消',
-        cancelButtonText: '确定',
         dangerouslyUseHTMLString: true,
         center: true
       }).then(() => {
@@ -67,8 +65,6 @@ export default {
     },
     onOut () {
       this.$confirm(`<div>是否确认退出</div><div>（请确认所做操作已保存）</div>`, '退出编辑', {
-        confirmButtonText: '取消',
-        cancelButtonText: '确定',
         dangerouslyUseHTMLString: true,
         center: true
       }).then(() => {
@@ -90,8 +86,8 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
-  align-items: center;
-  justify-content: space-evenly;
+  margin-top: 30px;
+    margin-left: 30px;
 }
 
 .right {
@@ -107,6 +103,7 @@ export default {
   align-items: center;
   justify-content: space-evenly;
   height: 1010px;
+  margin-left: 30px;
 
   .titleBox {
     margin-bottom: 80px;

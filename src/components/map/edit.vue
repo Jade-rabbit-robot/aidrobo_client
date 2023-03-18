@@ -167,13 +167,6 @@ export default {
   mounted() {
     this.robotXY = { x: this.xx2(0.5), y: this.yy2(-2) };
     this.$store.state.map_width = this.$refs.map.offsetWidth;
-    robotPosition.subscribe(message => {
-      if (message.pose) {
-        const position = message.pose.pose.position;
-        this.robotXY = { x: this.xx2(position.x), y: this.yy2(position.y) };
-        this.$store.state.robotPoint = { x: position.x, y: position.y };
-      }
-    });
   },
   methods: {
     map_pinchstart() {
@@ -452,7 +445,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .map {
   position: absolute;
   top: 0;

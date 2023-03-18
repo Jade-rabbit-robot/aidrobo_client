@@ -1,15 +1,16 @@
 <template>
   <div class="map">
-    <div class="empty" v-if="!data">
+    <div class="empty" v-if="!data.length">
       <img src="@/assets/img/empty.svg" />
       <p>无地图，请新建地图</p>
     </div>
-    <div class="list">
-      <div class="item" v-for="i in 10" :key="i" @click="onSel()">
-        <div>xxxxxx</div>
-        <div>2023.1.9 16:48</div>
+    <div class="list" v-else>
+      <div class="item" v-for="(e, i) in data" :key="i" @click="onSel(e)">
+        <div>{{ e.name }}</div>
+        <div v-show="e.id == $store.state.nowMapID">当前地图</div>
+        <div>{{ new Date(e.create_timestamp * 1000).toLocaleString() }}</div>
         <div class="line"></div>
-        <img src="@/assets/img/del.svg" @click="onDel(i)" />
+        <img src="@/assets/img/del.svg" @click="onDel(e)" />
       </div>
     </div>
     <div class="addBtn" @click="addMap">
@@ -31,11 +32,22 @@ export default {
     return {
       showAdd: false,
       showDel: false,
-      data: "null",
+      data: JSON.parse("[{\"id\": 3, \"name\": \"2333\", \"create_timestamp\": 1679757095.7625146}, {\"id\": 4, \"name\": \"213\", \"create_timestamp\": 1679758335.2195086}, {\"id\": 5, \"name\": \"weqe\", \"create_timestamp\": 1679758845.1666846}, {\"id\": 6, \"name\": \"121212\", \"create_timestamp\": 1679759120.9032001}, {\"id\": 7, \"name\": \"3333\", \"create_timestamp\": 1679759168.1970856}, {\"id\": 8, \"name\": \"1254\", \"create_timestamp\": 1679759227.5015793}]"),
       isSel: null
     };
   },
+  mounted () {
+    getMapList.callService(null, (result) => {
+      try {
+        this.data = JSON.parse(result.map_list)
+      } catch (error) {
 
+      }
+      console.log('[  finishMap OK]-61', result)
+    }, (result) => {
+      console.log('[  finishMap ERR]-61', result)
+    });
+  },
   methods: {
     addMap () {
       const addInp = document.querySelector("#addInp")
@@ -43,35 +55,42 @@ export default {
       this.$confirm(`<div> 名称：
         <input id="addInp" placeholder=" 请输入内容" style="height: 70px;"></input>
         </div>`, '地图命名', {
-        confirmButtonText: '取消',
-        cancelButtonText: '确定',
         dangerouslyUseHTMLString: true,
         center: true
       }).then((e) => {
-
-        console.log('[  ]-69')
-      }).catch((e) => {
-        const val = addInp.value;
-
-        this.$router.push({ name: 'newMap', params: { mapName: '地图名' } })
-        console.log('[  ]-72', e, val)
+        const addInp = document.querySelector("#addInp")
+        const mapName = addInp.value;
+        this.$router.push({ name: 'newMap', query: { mapName } })
+        // 状态机
+        const msg = new ROSLIB.ServiceRequest({
+          action: 'mapping'
+        });
+        robotMode.callService(msg, (result) => {
+          console.log('[ robotMode OK]-61', result)
+        }, (result) => {
+          console.log('[ robotMode ERR]-61', result)
+        });
       });
     },
-    onSel (i) {
-      this.$router.push({ name: 'seeMap', params: { mapName: '地图名' } })
-
-      console.log("[  ]-25", i);
+    onSel (e) {
+      this.$router.push({ name: 'seeMap', query: { mapName: e.name, id: e.id } })
     },
-    onDel (i) {
-      this.$confirm(`<div> 地图名：xxxx</div><div>（本操作无法恢复）</div>`, '删除地图', {
-        confirmButtonText: '取消',
-        cancelButtonText: '确定',
+    onDel (e) {
+      this.$confirm(`<div> 地图名：${e.name}</div><div>（本操作无法恢复）</div>`, '删除地图', {
         dangerouslyUseHTMLString: true,
         center: true
       }).then(() => {
-        console.log('[  ]-69',)
+        const msg = new ROSLIB.ServiceRequest({
+          id: this.$route.query.id * 1
+        });
+        deleteMap.callService(msg, (result) => {
+          this.$message('删除成功');
+          console.log('[ deleteMap OK]-61', result)
+        }, (result) => {
+          this.$message('删除失败');
+          console.log('[ deleteMap ERR]-61', result)
+        });
       }).catch(() => {
-
         console.log('[  ]-72',)
       });
     }
@@ -122,10 +141,21 @@ export default {
         rgba(53, 92, 119, 0.14) 88%);
     backdrop-filter: blur(10.88px);
     box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
-    div:first-child{
+
+    div:first-child {
       margin-left: 16px;
     }
     div:nth-child(2) {
+      width: 165px;
+      height: 58px;
+      border-radius: 6px;
+      background: #C061FF;
+      text-align: center;
+      line-height: 58px;
+      margin-left: 2rem;
+    }
+
+    div:nth-child(3) {
       position: absolute;
       right: 240px;
     }
