@@ -8,11 +8,11 @@
       </div>
       <div class="titleBox" v-if="$store.state.patrol_arr.length">
         <p>选择位置点:</p>
-        <p class="mapName">({{ $store.state.patrol_arr[0].x||'-' }},{{ $store.state.patrol_arr[0].y||'-' }})</p>
+        <p class="mapName">({{ ($store.state.patrol_arr[0].x).toFixed(2) }},{{ ($store.state.patrol_arr[0].y).toFixed(2) }})</p>
       </div>
       <div class="titleBox">
         <p>机器人当前位置:</p>
-        <p class="mapName">({{$store.state.robotPoint.x}},{{$store.state.robotPoint.y}})</p>
+        <p class="mapName">({{($store.state.robotPoint.x).toFixed(2)}},{{($store.state.robotPoint.y).toFixed(2)}})</p>
       </div>
       <div class="goPoint" @click="onBegin()">{{ text }}</div>
     </div>
