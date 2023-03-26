@@ -5,8 +5,8 @@
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)"
         v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
-        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
+        <img id="img1" :src="mapData.src" @load="init" ref="img1" />
+        <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
         <div class="robot" v-bind:style="{
           transform:
             'translate(' +
@@ -16,10 +16,10 @@
             'px)',
         }">
         </div>
-        <div class="charge" v-bind:style="{
+        <!-- <div class="charge" v-bind:style="{
           marginTop: 316 * scale - 10 + 'px',
           marginLeft: 483 * scale - 10 + 'px',
-        }"></div>
+        }"></div> -->
         <div v-for="(item, index) in $store.state.patrol_chang_data" :key="index" class="map_point" v-bind:style="{
           transform:
             'translate(' +
@@ -28,7 +28,7 @@
             (item.y * scale + -70) +
             'px)',
         }">
-          <img :src="mapData.src" width="50px" />
+          <img src="../../../static2/img/point.png" width="50px" />
           <span class="pointNum">{{ index + 1 }}</span>
         </div>
         <div class="map_box2">
@@ -41,7 +41,7 @@
         'margin-top': img2_top + 'px',
         'margin-left': img2_left + 'px',
       }"></div>
-      <img id="img2" src="../../../static2/img/map2.png" ref="img2" />
+      <img id="img2" :src="mapData.src" ref="img2" />
     </div>
     <div class="map_tool">
       <div v-for="(item, index) in items" :key="index" @touchstart="touchStart($event, index)"

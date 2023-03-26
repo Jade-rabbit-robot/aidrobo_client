@@ -68,6 +68,7 @@ export default {
         const msg = new ROSLIB.Message(point);
         TalkerPoint.publish(msg);
       } else {
+        console.log('stop')
         const msg = new ROSLIB.Message();
         TalkerPoint.publish(msg);
       }
