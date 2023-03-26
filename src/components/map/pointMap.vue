@@ -5,7 +5,7 @@
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)"
         v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
+        <img id="img1" :src="'data:image/jpg;base64,' + mapData.src" @load="init" ref="img1" />
         <div class="robot" v-bind:style="{
           transform:
             'translate(' +
@@ -143,12 +143,14 @@ export default {
   },
   mounted () {
     this.$store.state.map_width = this.$refs.map.offsetWidth;
+    this.getMap()
   },
   methods: {
     getMap () {
       const msg = new ROSLIB.ServiceRequest({
-        id: this.$store.nowMapID * 1
+        id: this.$store.state.nowMapID * 1
       });
+      console.log('getMapImage',msg)
       getMapImage.callService(msg, (res) => {
         console.log('[ getMapImage OK]-61', res)
         if (res.success) {
@@ -404,8 +406,9 @@ export default {
         y: circleY
       });
       const xx_yy = this.patrol_arr_area.map(e => {
-        return { x: imgToMap({mapData:this.mapData,x:e.x}), y: imgToMap({mapData:this.mapData,x:e.y}) };
+        return { x: imgToMap({mapData:this.mapData,x:e.x}), y: imgToMap({mapData:this.mapData,y:e.y}) };
       });
+      console.log('xx_yy',xx_yy)
       this.$store.state.patrol_arr = xx_yy;
       this.$store.state.patrol_chang_data = this.patrol_arr_area;
     }

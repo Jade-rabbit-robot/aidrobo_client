@@ -23,10 +23,13 @@ export const mapToImg = ({ mapData, y, x }) => {
   }
 }
 export const imgToMap = ({ mapData, y, x }) => {
+  console.log(' mapData, y, x', mapData)
+  console.log('y',  y)
+  console.log(' x',  x)
   if (y) {
-    return Math.round((mapData.height - y) * mapData.resolution + mapData.positionY);
+    return(mapData.height - y) * mapData.resolution + mapData.positionY;
   }
   if (x) {
-    return  Math.round(x * mapData.resolution + 25);
+    return  x * mapData.resolution +  mapData.positionX;
   }
 }

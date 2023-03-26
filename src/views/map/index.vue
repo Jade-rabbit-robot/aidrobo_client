@@ -6,7 +6,7 @@
     </div>
     <div class="list" v-else>
       <div class="item" v-for="(e, i) in data" :key="i" @click="onSel(e)">
-        <div>{{ e.name }}</div>
+        <div>{{ e.name }}</div>{{  $store.state.nowMapID }}
         <div v-show="e.id == $store.state.nowMapID">当前地图</div>
         <div>{{ new Date(e.create_timestamp * 1000).toLocaleString() }}</div>
         <div class="line"></div>
@@ -32,7 +32,7 @@ export default {
     return {
       showAdd: false,
       showDel: false,
-      data: JSON.parse("[{\"id\": 3, \"name\": \"2333\", \"create_timestamp\": 1679757095.7625146}, {\"id\": 4, \"name\": \"213\", \"create_timestamp\": 1679758335.2195086}, {\"id\": 5, \"name\": \"weqe\", \"create_timestamp\": 1679758845.1666846}, {\"id\": 6, \"name\": \"121212\", \"create_timestamp\": 1679759120.9032001}, {\"id\": 7, \"name\": \"3333\", \"create_timestamp\": 1679759168.1970856}, {\"id\": 8, \"name\": \"1254\", \"create_timestamp\": 1679759227.5015793}]"),
+      data:[],
       isSel: null
     };
   },
@@ -81,7 +81,8 @@ export default {
         center: true
       }).then(() => {
         const msg = new ROSLIB.ServiceRequest({
-          id: this.$route.query.id * 1
+          id: this.$route.query.id * 1,
+          data_type:'map'
         });
         deleteMap.callService(msg, (result) => {
           this.$message('删除成功');

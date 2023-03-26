@@ -1,5 +1,5 @@
 const ros = new ROSLIB.Ros();
-ros.connect('ws://127.0.0.1:9090');
+ros.connect('ws://192.168.2.220:9090');
 /** 模式切换 */
 const robotMode = new ROSLIB.Service({
   ros: ros,
@@ -88,7 +88,7 @@ const PoseStamped = new ROSLIB.Topic({
 /** 发送位置点*/
 const TalkerPoint = new ROSLIB.Topic({
   ros: ros,
-  name: '/follow_waypoints',
+  name: '/patrol_path',
   messageType: 'nav_msgs/msg/Path'
 });
 ros.on('connection', function () {

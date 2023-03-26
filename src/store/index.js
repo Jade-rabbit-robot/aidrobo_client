@@ -41,7 +41,7 @@ const store = new Vuex.Store({
     //
     showMsg:false,//控制msg提示框显示
     hasSave:true,//顶部路由=》页面保存提示控制
-    nowMapID:"3"
+    nowMapID:""
   },
   getters: {
     mcode: state => state.mcode,

@@ -41,7 +41,7 @@ export default {
         this.text='开始前往'
       }else if(this.text==='开始前往'){
         this.text='停止'
-        const point = {
+        const point ={poses:[ {
         header: {
           stamp: {
             sec: 0,
@@ -62,7 +62,8 @@ export default {
             w: 1.0
           }
         }
-      };
+      }]};
+      console.log('point===>',this.$store.state.patrol_arr[0].x,'+++'+this.$store.state.patrol_arr[0].y)
       const msg = new ROSLIB.Message(point);
       TalkerPoint.publish(msg);
       }else{
