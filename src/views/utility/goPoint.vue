@@ -70,7 +70,7 @@ export default {
       } else {
         console.log('stop')
         const msg = new ROSLIB.Message();
-        TalkerPoint.publish(msg);
+        stopPatrol.publish(msg);
       }
     },
   }
