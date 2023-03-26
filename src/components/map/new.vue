@@ -78,7 +78,7 @@ export default {
         });
       } else {
         robotMap.subscribe(res => {
-          this.mapData = changeStr(res.map)
+          this.mapData = changeStr(res)
           this.init()
         })
       }
