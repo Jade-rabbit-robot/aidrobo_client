@@ -6,9 +6,9 @@
         <p>选择位置点</p>
         <p>请点击想前往的位置</p>
       </div>
-      <div class="titleBox">
+      <div class="titleBox" v-if="$store.state.patrol_arr.length">
         <p>选择位置点:</p>
-        <p class="mapName">({{ $store.state.patrol_arr[0].x }},{{ $store.state.patrol_arr[0].y }})</p>
+        <p class="mapName">({{ $store.state.patrol_arr[0].x||'-' }},{{ $store.state.patrol_arr[0].y||'-' }})</p>
       </div>
       <div class="titleBox">
         <p>机器人当前位置:</p>
@@ -28,7 +28,7 @@ export default {
   },
   data () {
     return {
-      text: '点击位置点',
+      text: '选择位置',
     }
   },
   mounted () {

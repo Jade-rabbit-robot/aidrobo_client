@@ -19,7 +19,7 @@
           marginTop: 316 * scale - 10 + 'px',
           marginLeft: 483 * scale - 10 + 'px',
             }"></div> -->
-        <div v-for="(item, index) in $store.state.patrol_arr" :key="index" class="map_point" v-bind:style="{
+        <div v-for="(item, index) in patrol_arr_area" :key="index" class="map_point" v-bind:style="{
           transform:
             'translate(' +
             (item.x * scale - 25) +
@@ -143,6 +143,7 @@ export default {
   },
   watch: {
     robotPoint: function (n) {
+      console.log('===',n)
       this.robotXY = { x: mapToImg({ mapData: this.mapData, x: n.x }), y: mapToImg({ mapData: this.mapData, y: n.y }) }
     }
   },
