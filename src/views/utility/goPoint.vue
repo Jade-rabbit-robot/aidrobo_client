@@ -8,11 +8,11 @@
       </div>
       <div class="titleBox">
         <p>选择位置点:</p>
-        <p class="mapName">(2855,2349)</p>
+        <p class="mapName">({{ $store.state.patrol_arr[0].x }},{{ $store.state.patrol_arr[0].y }})</p>
       </div>
       <div class="titleBox">
         <p>机器人当前位置:</p>
-        <p class="mapName">(2855,2349)</p>
+        <p class="mapName">({{$store.state.robotPoint.x}},{{$store.state.robotPoint.y}})</p>
       </div>
       <div class="goPoint" @click="onBegin()">{{ text }}</div>
     </div>
@@ -33,14 +33,18 @@ export default {
   },
   mounted () {
     this.$store.state.hasSave = false;
+    this.$store.state.patrol_arr=[]
   },
   methods: {
     onBegin () {
-      if (this.text === '点击位置点') {
+      if (this.text === '选择位置') {
         this.$store.state.tool = 'point'
-        this.text = '开始前往'
-      } else if (this.text === '开始前往') {
-        this.text = '停止'
+        this.text = '前往位置'
+      } else if (this.text === '前往位置') {
+        if (!this.$store.state.patrol_arr.length) {
+          return false;
+        }
+        this.text = '关闭任务'
         const point = {
           poses: [{
             header: {
@@ -71,6 +75,8 @@ export default {
         console.log('stop')
         const msg = new ROSLIB.Message();
         stopPatrol.publish(msg);
+        this.$router.push({ name: 'utility' })
+
       }
     },
   }

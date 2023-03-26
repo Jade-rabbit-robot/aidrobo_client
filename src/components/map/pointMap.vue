@@ -3,8 +3,7 @@
   <div class="map" ref="map" @touchmove="map_move()">
     <div class="fa_map_box1">
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
-        @touchend="rubberend($event)"
-        v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
+        @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
         <img id="img1" :src="mapData.src" @load="init" ref="img1" />
         <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
         <div class="robot" v-bind:style="{
@@ -16,11 +15,11 @@
             'px)',
         }">
         </div>
-        <!-- <div class="charge" v-bind:style="{
+      <!-- <div class="charge" v-bind:style="{
           marginTop: 316 * scale - 10 + 'px',
           marginLeft: 483 * scale - 10 + 'px',
-        }"></div> -->
-        <div v-for="(item, index) in $store.state.patrol_chang_data" :key="index" class="map_point" v-bind:style="{
+            }"></div> -->
+        <div v-for="(item, index) in $store.state.patrol_arr" :key="index" class="map_point" v-bind:style="{
           transform:
             'translate(' +
             (item.x * scale - 25) +
@@ -54,7 +53,7 @@
 
 <script type="text/ecmascript-6">
 import { mapState, mapMutations } from "vuex";
-import { changeStr,mapToImg,imgToMap } from "@/assets/common"
+import { changeStr, mapToImg, imgToMap } from "@/assets/common"
 
 export default {
   data () {
@@ -142,9 +141,9 @@ export default {
       "map_img_w"
     ])
   },
-  watch:{
-    robotPoint:function(n){
-      this.robotXY={ x: mapToImg({mapData:this.mapData,x:n.x}), y: mapToImg({mapData:this.mapData,y:n.y}) }
+  watch: {
+    robotPoint: function (n) {
+      this.robotXY = { x: mapToImg({ mapData: this.mapData, x: n.x }), y: mapToImg({ mapData: this.mapData, y: n.y }) }
     }
   },
   mounted () {
@@ -156,7 +155,7 @@ export default {
       const msg = new ROSLIB.ServiceRequest({
         id: this.$store.state.nowMapID * 1
       });
-      console.log('getMapImage',msg)
+      console.log('getMapImage', msg)
       getMapImage.callService(msg, (res) => {
         console.log('[ getMapImage OK]-61', res)
         if (res.success) {
@@ -293,6 +292,12 @@ export default {
       this.scale = 1;
       this.$refs.operate.style.transform = "scale(" + this.scale + ")";
       let img1 = document.getElementById("img1");
+
+      const sc = 1380 / this.mapData.width
+      sc > 1 && (this.scale = sc)
+      img1.width = this.scale * this.mapData.width
+      img1.height = this.scale * this.mapData. height
+
       let operate = document.getElementById("operate");
       this.$store.state.x_can = operate;
       this.operate_txc = operate.getContext("2d");
@@ -397,26 +402,26 @@ export default {
       }
     },
     patrol (e) {
-      if (this.patrol_arr_area.length >= 1) {
-        return;
+      if (this.tool == "point") {
+        if (this.$store.state.patrol_arr.length >= 1) {
+          return;
+        }
       }
       let circleX = Math.round(
-        (this.touch_data.pageX -30- this.left) / this.scale
+        (this.touch_data.pageX - 30 - this.left) / this.scale
       );
       let circleY = Math.round(
         (this.touch_data.pageY - 150 - this.top) / this.scale
       );
-      console.log('[  ]-407', circleX,circleY)
       this.patrol_arr_area.push({
         x: circleX,
         y: circleY
       });
       const xx_yy = this.patrol_arr_area.map(e => {
-        return { x: imgToMap({mapData:this.mapData,x:e.x}), y: imgToMap({mapData:this.mapData,y:e.y}) };
+        return { x: imgToMap({ mapData: this.mapData, x: e.x }), y: imgToMap({ mapData: this.mapData, y: e.y }) };
       });
-      console.log('xx_yy',xx_yy)
+      console.log('xx_yy', xx_yy)
       this.$store.state.patrol_arr = xx_yy;
-      this.$store.state.patrol_chang_data = this.patrol_arr_area;
     }
   }
 };

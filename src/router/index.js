@@ -80,6 +80,7 @@ export default new Router({
     },
     {
       path: '/utility',
+      name: 'utility',
       component: Utility,
     },
     {
