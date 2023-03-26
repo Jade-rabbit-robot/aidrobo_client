@@ -6,7 +6,7 @@ export const changeStr = function (res) {
     return decoder.decode(uint8Array);
   }
   return {
-    src: uint(data),
+    src: 'data:image/jpg;base64,'+uint(data),
     width,
     height,
     resolution,

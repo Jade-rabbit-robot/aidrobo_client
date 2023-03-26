@@ -14,7 +14,7 @@
         <p>机器人当前位置:</p>
         <p class="mapName">(2855,2349)</p>
       </div>
-      <div class="goPoint" @click="onBegin()">{{text}}</div>
+      <div class="goPoint" @click="onBegin()">{{ text }}</div>
     </div>
   </div>
 </template>
@@ -28,46 +28,48 @@ export default {
   },
   data () {
     return {
-      text:'点击位置点',
+      text: '点击位置点',
     }
   },
   mounted () {
     this.$store.state.hasSave = false;
   },
   methods: {
-    onBegin(){
-      if(this.text==='点击位置点'){
-        this.$store.state.tool='point'
-        this.text='开始前往'
-      }else if(this.text==='开始前往'){
-        this.text='停止'
-        const point ={poses:[ {
-        header: {
-          stamp: {
-            sec: 0,
-            nanosec: 0
-          },
-          frame_id: "map"
-        },
-        pose: {
-          position: {
-            x: this.$store.state.patrol_arr[0].x,
-            y: this.$store.state.patrol_arr[0].y,
-            z: 0.0
-          },
-          orientation: {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-            w: 1.0
-          }
-        }
-      }]};
-      console.log('point===>',this.$store.state.patrol_arr[0].x,'+++'+this.$store.state.patrol_arr[0].y)
-      const msg = new ROSLIB.Message(point);
-      TalkerPoint.publish(msg);
-      }else{
-
+    onBegin () {
+      if (this.text === '点击位置点') {
+        this.$store.state.tool = 'point'
+        this.text = '开始前往'
+      } else if (this.text === '开始前往') {
+        this.text = '停止'
+        const point = {
+          poses: [{
+            header: {
+              stamp: {
+                sec: 0,
+                nanosec: 0
+              },
+              frame_id: "map"
+            },
+            pose: {
+              position: {
+                x: this.$store.state.patrol_arr[0].x,
+                y: this.$store.state.patrol_arr[0].y,
+                z: 0.0
+              },
+              orientation: {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                w: 1.0
+              }
+            }
+          }]
+        };
+        const msg = new ROSLIB.Message(point);
+        TalkerPoint.publish(msg);
+      } else {
+        const msg = new ROSLIB.Message();
+        TalkerPoint.publish(msg);
       }
     },
   }
@@ -83,7 +85,7 @@ export default {
   height: 100%;
   position: relative;
   margin-top: 30px;
-    margin-left: 30px;
+  margin-left: 30px;
 }
 
 .right {
@@ -109,6 +111,7 @@ export default {
     padding: 0px 40px;
   }
 }
+
 .titleBox {
   display: flex;
   flex-direction: column;
@@ -127,6 +130,7 @@ export default {
     justify-content: space-around;
   }
 }
+
 .goPoint {
   width: 300px;
   height: 120px;
@@ -138,7 +142,8 @@ export default {
   justify-content: center;
   box-shadow: 0px 2px 10px 0px rgba(1, 29, 90, 0.72);
 }
-.readyBtn{
-  background: linear-gradient(110deg, rgba(55,89,238,0.64) 11%, rgba(30,157,244,0.37) 89%) !important;
+
+.readyBtn {
+  background: linear-gradient(110deg, rgba(55, 89, 238, 0.64) 11%, rgba(30, 157, 244, 0.37) 89%) !important;
 }
 </style>

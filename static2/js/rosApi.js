@@ -91,6 +91,12 @@ const TalkerPoint = new ROSLIB.Topic({
   name: '/patrol_path',
   messageType: 'nav_msgs/msg/Path'
 });
+/** 停止 */
+const stopPatrol = new ROSLIB.Topic({
+  ros: ros,
+  name: '/stop_patrol',
+  messageType: 'std_msgs/Empty'
+});
 ros.on('connection', function () {
   console.log('rosOk!!!');
 });

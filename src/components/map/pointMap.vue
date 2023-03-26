@@ -5,7 +5,8 @@
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)"
         v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <img id="img1" :src="'data:image/jpg;base64,' + mapData.src" @load="init" ref="img1" />
+        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
+        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
         <div class="robot" v-bind:style="{
           transform:
             'translate(' +
@@ -27,7 +28,7 @@
             (item.y * scale + -70) +
             'px)',
         }">
-          <img src="../../../static2/img/point.png" width="50px" />
+          <img :src="mapData.src" width="50px" />
           <span class="pointNum">{{ index + 1 }}</span>
         </div>
         <div class="map_box2">
@@ -140,6 +141,11 @@ export default {
       "charge_po",
       "map_img_w"
     ])
+  },
+  watch:{
+    robotPoint:function(n){
+      this.robotXY={ x: mapToImg({mapData:this.mapData,x:n.x}), y: mapToImg({mapData:this.mapData,y:n.y}) }
+    }
   },
   mounted () {
     this.$store.state.map_width = this.$refs.map.offsetWidth;
