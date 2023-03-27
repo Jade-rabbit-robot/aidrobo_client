@@ -9,9 +9,9 @@
         <div class="robot" v-bind:style="{
           transform:
             'translate(' +
-            (robotXY.x * scale - 6) +
+            (robotXY.x * scale - 15) +
             'px,' +
-            (robotXY.y * scale - 6) +
+            (robotXY.y * scale - 15) +
             'px)',
         }">
         </div>
@@ -404,9 +404,7 @@ export default {
     },
     patrol (e) {
       if (this.tool == "point") {
-        if (this.$store.state.patrol_arr.length >= 1) {
-          return;
-        }
+        this.patrol_arr_area=[]
       }
       let circleX = Math.round(
         (this.touch_data.pageX - 30 - this.left) / this.scale
@@ -421,7 +419,6 @@ export default {
       const xx_yy = this.patrol_arr_area.map(e => {
         return { x: imgToMap({ mapData: this.mapData, x: e.x }), y: imgToMap({ mapData: this.mapData, y: e.y }) };
       });
-      console.log('xx_yy', xx_yy)
       this.$store.state.patrol_arr = xx_yy;
     }
   }
@@ -599,8 +596,8 @@ export default {
 
 .robot {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   top: 0;
   left: 0;

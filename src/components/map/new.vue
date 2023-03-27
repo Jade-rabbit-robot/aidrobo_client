@@ -9,9 +9,9 @@
         <div class="robot" v-bind:style="{
           transform:
             'translate(' +
-            (xx2(robotPoint.x) * scale - 2) +
+            (xx2(robotPoint.x) * scale - 15) +
             'px,' +
-            (yy2(robotPoint.y) * scale - 2) +
+            (yy2(robotPoint.y) * scale - 15) +
             'px)',
         }" v-if="showType != 'see'">
         </div>
@@ -120,8 +120,8 @@ export default {
 
 .robot {
   position: absolute;
-  width: 4px;
-  height: 4px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   top: 0;
   left: 0;
