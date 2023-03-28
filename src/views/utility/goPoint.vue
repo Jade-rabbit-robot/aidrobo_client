@@ -44,7 +44,15 @@ export default {
         if (!this.$store.state.patrol_arr.length) {
           return false;
         }
-        this.text = '关闭任务'
+        // 状态机
+        const type = new ROSLIB.ServiceRequest({
+          action: 'patrol'
+        });
+        robotMode.callService(type, (result) => {
+          console.log('[ robotMode OK]-61', result)
+        }, (result) => {
+          console.log('[ robotMode ERR]-61', result)
+        });
         const point = {
           poses: [{
             header: {
@@ -71,12 +79,12 @@ export default {
         };
         const msg = new ROSLIB.Message(point);
         TalkerPoint.publish(msg);
+        this.text = '关闭任务'
       } else {
         console.log('stop')
         const msg = new ROSLIB.Message();
         stopPatrol.publish(msg);
         this.$router.push({ name: 'utility' })
-
       }
     },
   }

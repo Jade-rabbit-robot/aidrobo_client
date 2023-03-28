@@ -15,57 +15,6 @@
 </head>
 
 <body>
-  <!-- <script type="text/javascript">
-    const ros = new ROSLIB.Ros();
-    ros.connect('ws://127.0.0.1:9090');
-    /** 模式切换{active:'mapping / patrol / remote_control' } */
-    const robotMode = new ROSLIB.Service({
-      ros: ros,
-      name: '/mode_set',
-      serviceType: 'std_msg/string'
-    });
-    /** 发送目标点*/
-    const TalkerPoint = new ROSLIB.Topic({
-      ros: ros,
-      name: '/goal_pose',
-      messageType: 'geometry_msgs/msg/PointStamped'
-    });
-    /** 建图订阅 */
-    const robotMap = new ROSLIB.Topic({
-      ros: ros,
-      name: '/map_base64',
-      messageType: 'nav_msgs/msg/OccupancyGrid'
-    });
-    /** 建图结束 */
-    const finishMap = new ROSLIB.Service({
-      ros: ros,
-      name: '/finish_trajectory',
-      serviceType: 'cartographer_ros_msgs/srv/FinishTrajectory'
-    });
-    /** 保存建图文件 */
-    const saveMapFile = new ROSLIB.Service({
-      ros: ros,
-      name: '/write_state',
-      serviceType: 'cartographer_ros_msgs/srv/WriteState'
-    });
-    /** 保存建图db */
-    const saveMapDb = new ROSLIB.Service({
-      ros: ros,
-      name: '/add_map',
-      serviceType: 'jade_rabbit_msgs/srv/MapOperation'
-    });
-    /** 机器人在地图中位置*/
-    const robotPosition = new ROSLIB.Topic({
-      ros: ros,
-      name: '/base_link_pose',
-      messageType: 'geometry_msgs/msg/PoseStamped'
-    });
-
-    ros.on('connection', function () {
-      console.log('rosOk!!!');
-    });
-
-  </script> -->
   <div id="app"></div>
   <!-- built files will be auto injected -->
 </body>

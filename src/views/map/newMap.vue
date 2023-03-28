@@ -30,28 +30,33 @@ export default {
         dangerouslyUseHTMLString: true,
         center: true
       }).then(() => {
-        this.$router.push({ name: 'map' })
         const date = Date.now()
         const msg = new ROSLIB.ServiceRequest({
           map_file_name: `/root/maps/${date}`
         });
         saveMap.callService(msg, (result) => {
-          console.log('[  saveMap OK]-61', result)
+          if (result.success) {
+            const msg2 = new ROSLIB.ServiceRequest(
+              {
+                map_name: this.mapName,
+                map_file: `/root/maps/${date}`
+              }
+            );
+            saveMapDb.callService(msg2, (result) => {
+              console.log('[  saveMapDb OK]-61', result)
+            }, (result) => {
+              console.log('[  saveMapDb ERR]-61', result)
+            });
+            this.$router.push({ name: 'map' })
+          } else {
+            this.$message('保存失败');
+          }
         }, (result) => {
           console.log('[  saveMap ERR]-61', result)
         });
 
-        const msg2 = new ROSLIB.ServiceRequest(
-          {
-            map_name: this.mapName,
-            map_file: `/root/maps/${date}`
-          }
-        );
-        saveMapDb.callService(msg2, (result) => {
-          console.log('[  saveMapDb OK]-61', result)
-        }, (result) => {
-          console.log('[  saveMapDb ERR]-61', result)
-        });
+
+
       })
     },
     onOut () {

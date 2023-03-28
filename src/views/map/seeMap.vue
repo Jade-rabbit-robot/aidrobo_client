@@ -102,10 +102,13 @@ export default {
           data_type:'map'
         });
         deleteMap.callService(msg, (result) => {
-          this.$message('删除成功');
+          if(result.success){
+            this.$message('删除成功');
+          }else{
+            this.$message('删除失败');
+          }
           console.log('[ deleteMap OK]-61', result)
         }, (result) => {
-          this.$message('删除失败');
           console.log('[ deleteMap ERR]-61', result)
         });
       }).catch(() => {
