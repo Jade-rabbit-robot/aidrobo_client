@@ -32,7 +32,7 @@ export default {
   data () {
     return {
       text: '选择位置',
-      hasHistory:false,
+      hasHistory: false,
     }
   },
   mounted () {
@@ -46,7 +46,7 @@ export default {
   },
   methods: {
     addPoint (data) {
-      const data_=data.map((e)=>{
+      const data_ = data.map((e) => {
         return { x: e.x, y: e.y, z: 0 }
       })
       const msg2 = new ROSLIB.ServiceRequest(
@@ -64,13 +64,16 @@ export default {
       });
     },
     updatePoint (data) {
+      const data_ = data.map((e) => {
+        return { x: e.x, y: e.y, z: 0 }
+      })
       const msg2 = new ROSLIB.ServiceRequest(
         {
           id: 1,
           data: JSON.stringify({
             map_id: this.$store.state.nowMapID,
             frame_id: 'xxx',
-            point_list: JSON.stringify([{ x: 3, y: 4, z: 0 }, { x: 1.11, y: 1, z: 0 }])
+            point_list: JSON.stringify(data_)
           }),
           data_type: 'waypoint'
         }
@@ -115,10 +118,14 @@ export default {
         this.$store.state.tool = 'patrol'
         this.text = '开始巡逻'
       } else if (this.text === '开始巡逻') {
-        if (!this.$store.state.patrol_arr.length<2) {
+        if (!this.$store.state.patrol_arr.length < 2) {
           return false;
         }
-        this.addPoint(this.$store.state.patrol_arr)
+        if(this.hasHistory){
+          this.updatePoint(this.$store.state.patrol_arr)
+        }else{
+          this.addPoint(this.$store.state.patrol_arr)
+        }
         // 状态机
         const type = new ROSLIB.ServiceRequest({
           action: 'patrol'
@@ -159,12 +166,27 @@ export default {
         }, (result) => {
           console.log('[ robotMode ERR]-61', result)
         });
-        this.text = '停止巡逻'
-      } else if (this.text === '停止巡逻') {
-        const msg = new ROSLIB.Message();
-        stopPatrol.publish(msg);
-        this.text = '开始巡逻'
-
+        this.text = '暂停巡逻'
+      } else if (this.text === '暂停巡逻') {
+        const type = new ROSLIB.ServiceRequest({
+          cmd: 'pause'
+        });
+        patrolState.callService(type, (res) => {
+          console.log('[ patrol_control ok]-61', res)
+        }, (res) => {
+          console.log('[ patrol_control ERR]-61', res)
+        });
+        this.text = '恢复巡逻'
+      } else if (this.text === '恢复巡逻') {
+        const type = new ROSLIB.ServiceRequest({
+          cmd: 'resume'
+        });
+        patrolState.callService(type, (res) => {
+          console.log('[ patrol_control ok]-61', res)
+        }, (res) => {
+          console.log('[ patrol_control ERR]-61', res)
+        });
+        this.text = '暂停巡逻'
       }
     },
   }

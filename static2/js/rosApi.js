@@ -97,7 +97,7 @@ const OperationAdd = new ROSLIB.Service({
   name: '/add_waypoint',
   serviceType: 'aid_robot_msgs/srv/OperationAdd'
 });
-/** genx巡逻 */
+/** 更新巡逻点 */
 const OperationUpdate = new ROSLIB.Service({
   ros: ros,
   name: '/update_waypoint',
@@ -116,9 +116,13 @@ const stopPatrol = new ROSLIB.Topic({
   messageType: 'std_msgs/Empty'
 });
 
-/** 暂停巡逻 */
+/** 运动状态控制 */
+const patrolState = new ROSLIB.Service({
+  ros: ros,
+  name: '/patrol_control',
+  serviceType: 'aid_robot_msgs/srv/PatrolControl'
+});
 
-/** 恢复巡逻 */
 
 ros.on('connection', function () {
   console.log('rosOk!!!');

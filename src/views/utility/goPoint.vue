@@ -87,9 +87,14 @@ export default {
         });
 
       } else {
-        console.log('stop')
-        const msg = new ROSLIB.Message();
-        stopPatrol.publish(msg);
+        const type = new ROSLIB.ServiceRequest({
+          cmd: 'cancel'
+        });
+        patrolState.callService(type,(res)=>{
+          console.log('[ patrol_control ok]-61', res)
+        },(res)=>{
+          console.log('[ patrol_control ERR]-61', res)
+        });
         this.$router.push({ name: 'utility' })
       }
     },
