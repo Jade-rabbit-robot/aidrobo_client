@@ -8,13 +8,15 @@
       </div>
       <div class="titleBox" v-if="$store.state.patrol_arr.length">
         <p>选择位置点:</p>
-        <p class="mapName">({{ ($store.state.patrol_arr[0].x).toFixed(2) }},{{ ($store.state.patrol_arr[0].y).toFixed(2) }})</p>
+        <p class="mapName">({{ ($store.state.patrol_arr[0].x).toFixed(2) }},{{ ($store.state.patrol_arr[0].y).toFixed(2)
+        }})</p>
       </div>
       <div class="titleBox">
         <p>机器人当前位置:</p>
-        <p class="mapName">({{($store.state.robotPoint.x).toFixed(2)}},{{($store.state.robotPoint.y).toFixed(2)}})</p>
+        <p class="mapName">({{ ($store.state.robotPoint.x).toFixed(2) }},{{ ($store.state.robotPoint.y).toFixed(2) }})</p>
       </div>
-      <div class="goPoint" @click="onBegin()">{{ text }}</div>
+      <div class="goPoint" @click="onBegin()" v-loading="!text">{{ text }}</div>
+      <!-- <div class="goPoint">{{ text }}</div> -->
     </div>
   </div>
 </template>
@@ -33,7 +35,7 @@ export default {
   },
   mounted () {
     this.$store.state.hasSave = false;
-    this.$store.state.patrol_arr=[]
+    this.$store.state.patrol_arr = []
   },
   methods: {
     onBegin () {
@@ -41,6 +43,7 @@ export default {
         this.$store.state.tool = 'point'
         this.text = '前往位置'
       } else if (this.text === '前往位置') {
+        this.text = ''
         if (!this.$store.state.patrol_arr.length) {
           return false;
         }
@@ -49,37 +52,40 @@ export default {
           action: 'patrol'
         });
         robotMode.callService(type, (result) => {
+          if (result.success) {
+            const point = {
+              poses: [{
+                header: {
+                  stamp: {
+                    sec: 0,
+                    nanosec: 0
+                  },
+                  frame_id: "map"
+                },
+                pose: {
+                  position: {
+                    x: this.$store.state.patrol_arr[0].x,
+                    y: this.$store.state.patrol_arr[0].y,
+                    z: 0.0
+                  },
+                  orientation: {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                    w: 1.0
+                  }
+                }
+              }]
+            };
+            const msg = new ROSLIB.Message(point);
+            TalkerPoint.publish(msg);
+            this.text = '关闭任务'
+          }
           console.log('[ robotMode OK]-61', result)
         }, (result) => {
           console.log('[ robotMode ERR]-61', result)
         });
-        const point = {
-          poses: [{
-            header: {
-              stamp: {
-                sec: 0,
-                nanosec: 0
-              },
-              frame_id: "map"
-            },
-            pose: {
-              position: {
-                x: this.$store.state.patrol_arr[0].x,
-                y: this.$store.state.patrol_arr[0].y,
-                z: 0.0
-              },
-              orientation: {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-                w: 1.0
-              }
-            }
-          }]
-        };
-        const msg = new ROSLIB.Message(point);
-        TalkerPoint.publish(msg);
-        this.text = '关闭任务'
+
       } else {
         console.log('stop')
         const msg = new ROSLIB.Message();

@@ -7,8 +7,8 @@
       <div class="home home2" @click="routerFun()">
         <img src="@/assets/img/back.svg" />
       </div>
-      <div class="rowR" @click="$store.state.showMsg = true">
-        <div class="show"></div>
+      <div class="rowR">
+        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()"></div>
         <div class="title">阿加犀办公室大办公室</div>
         <div class="electric"></div>
         <div class="Tool" @click="showTool = !showTool">
@@ -37,9 +37,9 @@
         </div>
       </div>
     </div>
-    <Message>
+    <!-- <Message>
       <div @click="$store.state.showMsg = false">12312312</div>
-    </Message>
+    </Message> -->
   </div>
 </template>
 
@@ -61,11 +61,25 @@ export default {
     return {
       showTc: false,
       showTool: false,
+      set:null,
       luminance: 20,
       voice: 0
     };
   },
   methods: {
+    routerStart(){
+      let num=0;
+      this.set=setInterval(()=>{
+        num+=1
+        if(num>=3){
+          clearInterval(this.set)
+          console.log('[ 跳转至页面 ]-76')
+        }
+      },1000)
+    },
+    routerEnd(){
+      clearInterval(this.set)
+    },
     routerFun (path) {
       if (this.$router.history.current.path === '/utility/goPoint') {
         if (!this.hasSave) {
@@ -90,6 +104,7 @@ export default {
       }
     },
     add (type, fun) {
+      this.$store.state.showMsg = true
       this[type] < 100 && (this[type] += 1);
     },
     minus (type, fun) {

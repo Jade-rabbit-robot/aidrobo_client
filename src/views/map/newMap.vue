@@ -67,9 +67,9 @@ export default {
         this.$router.push({ name: 'map' })
         console.log('[  ]-72',)
         const msg = new ROSLIB.ServiceRequest({
-          trajectory_id: 0
+          action: 'idle'
         });
-        finishMap.callService(msg, (result) => {
+        robotMode.callService(msg, (result) => {
           console.log('[  finishMap OK]-61', result)
         }, (result) => {
           console.log('[  finishMap ERR]-61', result)

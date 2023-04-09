@@ -1,5 +1,5 @@
 const ros = new ROSLIB.Ros();
-ros.connect('ws://192.168.2.220:9090');
+ros.connect('ws://192.168.110.147:9090');
 /** 模式切换 */
 const robotMode = new ROSLIB.Service({
   ros: ros,
@@ -85,6 +85,24 @@ const PoseStamped = new ROSLIB.Topic({
   name: '/goal_pose',
   messageType: 'geometry_msgs/msg/PoseStamped'
 });
+/** 获取巡逻点列表 */
+const getMapLinkedDataList = new ROSLIB.Service({
+  ros: ros,
+  name: '/get_map_waypoint_list',
+  serviceType: 'aid_robot_msgs/srv/MapLinkedDataList'
+});
+/** 新增巡逻 */
+const OperationAdd = new ROSLIB.Service({
+  ros: ros,
+  name: '/add_waypoint',
+  serviceType: 'aid_robot_msgs/srv/OperationAdd'
+});
+/** genx巡逻 */
+const OperationUpdate = new ROSLIB.Service({
+  ros: ros,
+  name: '/update_waypoint',
+  serviceType: 'aid_robot_msgs/srv/OperationUpdate'
+});
 /** 发送位置点*/
 const TalkerPoint = new ROSLIB.Topic({
   ros: ros,
@@ -97,6 +115,11 @@ const stopPatrol = new ROSLIB.Topic({
   name: '/stop_patrol',
   messageType: 'std_msgs/Empty'
 });
+
+/** 暂停巡逻 */
+
+/** 恢复巡逻 */
+
 ros.on('connection', function () {
   console.log('rosOk!!!');
 });

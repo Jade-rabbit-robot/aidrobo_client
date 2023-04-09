@@ -11,7 +11,7 @@ const store = new Vuex.Store({
     stop_point: 0, //禁行区计数点
     head_h: 0, //工具区域
     zero: 0, //不规则区域点计数
-    patrol_arr: [],//巡逻点
+
     tool: '',//选取的工具
     x_can: null, //canvas
     _map_name: '', //地图名字
@@ -41,7 +41,9 @@ const store = new Vuex.Store({
     //
     showMsg:false,//控制msg提示框显示
     hasSave:true,//顶部路由=》页面保存提示控制
-    nowMapID:""
+    nowMapID:"",
+    patrol_arr_area:[],//图像坐标巡逻点
+    patrol_arr: [],//地图坐标巡逻点
   },
   getters: {
     mcode: state => state.mcode,

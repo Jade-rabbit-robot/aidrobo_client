@@ -4,8 +4,8 @@
     <div class="fa_map_box1">
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <img id="img1" :src="mapData.src" @load="init" ref="img1" />
-        <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
+        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
+        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
         <div class="robot" v-bind:style="{
           transform:
             'translate(' +
@@ -60,8 +60,8 @@ export default {
     return {
       mapData: {
         src: "",
-        width: 0,
-        height: 0,
+        width: 1930,
+        height: 3909,
         resolution: 0,
         positionX: 0,
         positionY: 0,
@@ -79,7 +79,6 @@ export default {
       operate_txc: null,
       interval: null, //全局控制定时器
       touch_data: null, //触摸点
-      patrol_arr_area: [],
       items: [
         {
           name: "icon-zoom-in",
@@ -129,6 +128,7 @@ export default {
       "tool",
       "mapSrc",
       "init_img_data",
+      "patrol_arr_area",
       "patrol_arr",
       "m_width",
       "m_height",
@@ -143,7 +143,6 @@ export default {
   },
   watch: {
     robotPoint: function (n) {
-      console.log('===',n)
       this.robotXY = { x: mapToImg({ mapData: this.mapData, x: n.x }), y: mapToImg({ mapData: this.mapData, y: n.y }) }
     }
   },
@@ -343,7 +342,7 @@ export default {
         : (this.touch_data = this.touch_data);
     },
     rubberend (e) {
-      if (this.mcode <= 1 && (this.tool == "point" || this.tool == "xld")) {
+      if (this.mcode <= 1 && (this.tool == "point" || this.tool == "patrol")) {
         this.patrol(e);
       }
     },
@@ -403,8 +402,9 @@ export default {
       }
     },
     patrol (e) {
+      console.log('[  ]-406', this.tool)
       if (this.tool == "point") {
-        this.patrol_arr_area=[]
+        this.$store.state.patrol_arr_area=[]
       }
       let circleX = Math.round(
         (this.touch_data.pageX - 30 - this.left) / this.scale
@@ -412,10 +412,11 @@ export default {
       let circleY = Math.round(
         (this.touch_data.pageY - 150 - this.top) / this.scale
       );
-      this.patrol_arr_area.push({
+      this.$store.state.patrol_arr_area.push({
         x: circleX,
         y: circleY
       });
+      console.log('[  ]-419',this.patrol_arr_area )
       const xx_yy = this.patrol_arr_area.map(e => {
         return { x: imgToMap({ mapData: this.mapData, x: e.x }), y: imgToMap({ mapData: this.mapData, y: e.y }) };
       });
@@ -611,11 +612,11 @@ export default {
 
 .pointNum {
   display: inline-block;
-  position: absolute;
-  font-size: 1.5rem;
-  color: #fff;
-  top: 14px;
-  left: 20px;
+    position: absolute;
+    font-size: 1.5rem;
+    color: #000;
+    top: 12px;
+    left: 12px;
 }
 
 .charge {

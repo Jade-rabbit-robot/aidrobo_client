@@ -28,6 +28,7 @@ export default {
     };
   },
   mounted () {
+    this.$store.state.tool = ''
     // 全局订阅机器人位置
     robotPosition.subscribe(message => {
       if (message.pose) {
