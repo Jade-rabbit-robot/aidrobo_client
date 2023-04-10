@@ -115,15 +115,12 @@ const stopPatrol = new ROSLIB.Topic({
   name: '/stop_patrol',
   messageType: 'std_msgs/Empty'
 });
-
 /** 运动状态控制 */
 const patrolState = new ROSLIB.Service({
   ros: ros,
   name: '/patrol_control',
   serviceType: 'aid_robot_msgs/srv/PatrolControl'
 });
-
-
 ros.on('connection', function () {
   console.log('rosOk!!!');
 });

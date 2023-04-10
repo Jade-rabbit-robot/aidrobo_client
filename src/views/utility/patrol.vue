@@ -118,12 +118,14 @@ export default {
         this.$store.state.tool = 'patrol'
         this.text = '开始巡逻'
       } else if (this.text === '开始巡逻') {
-        if (!this.$store.state.patrol_arr.length < 2) {
+        console.log('[  ]-121', )
+        if (this.$store.state.patrol_arr.length < 2) {
           return false;
         }
-        if(this.hasHistory){
+        console.log('[  ]-125', )
+        if (this.hasHistory) {
           this.updatePoint(this.$store.state.patrol_arr)
-        }else{
+        } else {
           this.addPoint(this.$store.state.patrol_arr)
         }
         // 状态机
@@ -133,36 +135,36 @@ export default {
         robotMode.callService(type, (result) => {
           console.log('[ robotMode OK]-61', result)
           if (result.success) {
+            const point = { poses: [] }
+            this.$store.state.patrol_arr.map(e => {
+              point.poses.push(
+                {
+                  header: {
+                    stamp: {
+                      sec: 0,
+                      nanosec: 0
+                    },
+                    frame_id: "map"
+                  },
+                  pose: {
+                    position: {
+                      x: e.x,
+                      y: e.y,
+                      z: 0.0
+                    },
+                    orientation: {
+                      x: 0.0,
+                      y: 0.0,
+                      z: 0.0,
+                      w: 1.0
+                    }
+                  }
+                }
+              )
+            })
             const msg = new ROSLIB.Message(point);
             TalkerPoint.publish(msg);
           }
-          const point = { poses: [] }
-          this.$store.state.patrol_arr.map(e => {
-            poses.push(
-              {
-                header: {
-                  stamp: {
-                    sec: 0,
-                    nanosec: 0
-                  },
-                  frame_id: "map"
-                },
-                pose: {
-                  position: {
-                    x: e.x,
-                    y: e.y,
-                    z: 0.0
-                  },
-                  orientation: {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0
-                  }
-                }
-              }
-            )
-          })
         }, (result) => {
           console.log('[ robotMode ERR]-61', result)
         });
