@@ -53,7 +53,7 @@ export default {
         {
           map_id: this.$store.state.nowMapID,
           data: JSON.stringify(data_),
-          frame_id: 'xxx',
+          frame_id: 'map',
           data_type: 'waypoint'
         }
       );
@@ -72,7 +72,7 @@ export default {
           id: 1,
           data: JSON.stringify({
             map_id: this.$store.state.nowMapID,
-            frame_id: 'xxx',
+            frame_id: 'map',
             point_list: JSON.stringify(data_)
           }),
           data_type: 'waypoint'
