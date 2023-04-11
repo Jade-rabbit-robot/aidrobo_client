@@ -43,6 +43,19 @@ export default {
       this.getPoint()
     } catch (error) {
     }
+    // 状态机
+    const type = new ROSLIB.ServiceRequest({
+      action: 'patrol'
+    });
+    robotMode.callService(type, (result) => {
+      console.log('[ robotMode OK]-61', result)
+      if (!result.success) {
+        this.$message('状态切换失败');
+      }
+    }, (result) => {
+      this.$message('状态切换失败');
+      console.log('[ robotMode ERR]-61', result)
+    });
   },
   methods: {
     addPoint (data) {
@@ -118,56 +131,43 @@ export default {
         this.$store.state.tool = 'patrol'
         this.text = '开始巡逻'
       } else if (this.text === '开始巡逻') {
-        console.log('[  ]-121', )
         if (this.$store.state.patrol_arr.length < 2) {
           return false;
         }
-        console.log('[  ]-125', )
         if (this.hasHistory) {
           this.updatePoint(this.$store.state.patrol_arr)
         } else {
           this.addPoint(this.$store.state.patrol_arr)
         }
-        // 状态机
-        const type = new ROSLIB.ServiceRequest({
-          action: 'patrol'
-        });
-        robotMode.callService(type, (result) => {
-          console.log('[ robotMode OK]-61', result)
-          if (result.success) {
-            const point = { poses: [] }
-            this.$store.state.patrol_arr.map(e => {
-              point.poses.push(
-                {
-                  header: {
-                    stamp: {
-                      sec: 0,
-                      nanosec: 0
-                    },
-                    frame_id: "map"
-                  },
-                  pose: {
-                    position: {
-                      x: e.x,
-                      y: e.y,
-                      z: 0.0
-                    },
-                    orientation: {
-                      x: 0.0,
-                      y: 0.0,
-                      z: 0.0,
-                      w: 1.0
-                    }
-                  }
+        const point = { poses: [] }
+        this.$store.state.patrol_arr.map(e => {
+          point.poses.push(
+            {
+              header: {
+                stamp: {
+                  sec: 0,
+                  nanosec: 0
+                },
+                frame_id: "map"
+              },
+              pose: {
+                position: {
+                  x: e.x,
+                  y: e.y,
+                  z: 0.0
+                },
+                orientation: {
+                  x: 0.0,
+                  y: 0.0,
+                  z: 0.0,
+                  w: 1.0
                 }
-              )
-            })
-            const msg = new ROSLIB.Message(point);
-            TalkerPoint.publish(msg);
-          }
-        }, (result) => {
-          console.log('[ robotMode ERR]-61', result)
-        });
+              }
+            }
+          )
+        })
+        const msg = new ROSLIB.Message(point);
+        TalkerPoint.publish(msg);
         this.text = '暂停巡逻'
       } else if (this.text === '暂停巡逻') {
         const type = new ROSLIB.ServiceRequest({

@@ -36,6 +36,21 @@ export default {
   mounted () {
     this.$store.state.hasSave = false;
     this.$store.state.patrol_arr = []
+    // 状态机
+    const type = new ROSLIB.ServiceRequest({
+      action: 'patrol'
+    });
+    robotMode.callService(type, (result) => {
+      if (!result.success) {
+        this.$message('状态切换失败');
+        this.text = ''
+      }
+      console.log('[ robotMode OK]-61', result)
+    }, (result) => {
+      this.$message('状态切换失败');
+      this.text = ''
+      console.log('[ robotMode ERR]-61', result)
+    });
   },
   methods: {
     onBegin () {
@@ -43,56 +58,43 @@ export default {
         this.$store.state.tool = 'point'
         this.text = '前往位置'
       } else if (this.text === '前往位置') {
-        this.text = ''
         if (!this.$store.state.patrol_arr.length) {
           return false;
         }
-        // 状态机
-        const type = new ROSLIB.ServiceRequest({
-          action: 'patrol'
-        });
-        robotMode.callService(type, (result) => {
-          if (result.success) {
-            const point = {
-              poses: [{
-                header: {
-                  stamp: {
-                    sec: 0,
-                    nanosec: 0
-                  },
-                  frame_id: "map"
-                },
-                pose: {
-                  position: {
-                    x: this.$store.state.patrol_arr[0].x,
-                    y: this.$store.state.patrol_arr[0].y,
-                    z: 0.0
-                  },
-                  orientation: {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0
-                  }
-                }
-              }]
-            };
-            const msg = new ROSLIB.Message(point);
-            TalkerPoint.publish(msg);
-            this.text = '关闭任务'
-          }
-          console.log('[ robotMode OK]-61', result)
-        }, (result) => {
-          console.log('[ robotMode ERR]-61', result)
-        });
-
+        const point = {
+          poses: [{
+            header: {
+              stamp: {
+                sec: 0,
+                nanosec: 0
+              },
+              frame_id: "map"
+            },
+            pose: {
+              position: {
+                x: this.$store.state.patrol_arr[0].x,
+                y: this.$store.state.patrol_arr[0].y,
+                z: 0.0
+              },
+              orientation: {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                w: 1.0
+              }
+            }
+          }]
+        };
+        const msg = new ROSLIB.Message(point);
+        TalkerPoint.publish(msg);
+        this.text = '关闭任务'
       } else {
         const type = new ROSLIB.ServiceRequest({
           cmd: 'cancel'
         });
-        patrolState.callService(type,(res)=>{
+        patrolState.callService(type, (res) => {
           console.log('[ patrol_control ok]-61', res)
-        },(res)=>{
+        }, (res) => {
           console.log('[ patrol_control ERR]-61', res)
         });
         this.$router.push({ name: 'utility' })

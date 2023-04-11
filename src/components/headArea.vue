@@ -1,6 +1,6 @@
 <template>
   <div class="headBox">
-    <div class="toolRow">
+å    <div class="toolRow">
       <div class="home" @click="routerFun('/')">
         <img src="@/assets/img/homeico.svg" />
       </div>
@@ -8,7 +8,7 @@
         <img src="@/assets/img/back.svg" />
       </div>
       <div class="rowR">
-        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()"></div>
+        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()">{{$store.state.cmd}}</div>
         <div class="title">阿加犀办公室大办公室</div>
         <div class="electric"></div>
         <div class="Tool" @click="showTool = !showTool">
