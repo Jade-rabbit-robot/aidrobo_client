@@ -49,7 +49,7 @@ export default {
     });
     robotMode.callService(type, (result) => {
       console.log('[ robotMode OK]-61', result)
-      if (!result.success) {
+      if (result.message!=='ok') {
         this.$message('状态切换失败');
       }
     }, (result) => {

@@ -41,7 +41,7 @@ export default {
       action: 'patrol'
     });
     robotMode.callService(type, (result) => {
-      if (!result.success) {
+      if (result.message!=='ok') {
         this.$message('状态切换失败');
         this.text = ''
       }

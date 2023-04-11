@@ -1,6 +1,6 @@
 <template>
   <div class="headBox">
-å    <div class="toolRow">
+    <div class="toolRow">
       <div class="home" @click="routerFun('/')">
         <img src="@/assets/img/homeico.svg" />
       </div>
