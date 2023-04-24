@@ -16,7 +16,9 @@
         <p>设置</p>
       </div>
     </router-link>
-
+    <div class="logo">
+      <img src="@/assets/img/logo.png" width="500px"/>
+    </div>
   </div>
 </template>
 
@@ -74,5 +76,10 @@ export default {
       rgba(53, 92, 119, 0.14) 95%);
   backdrop-filter: blur(10.88px);
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
+}
+.logo {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
 }
 </style>
