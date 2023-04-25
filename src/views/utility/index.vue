@@ -1,14 +1,44 @@
 <template>
   <div class="main">
-    <div class="box">
-      <div v-for="(item, i) in imgSrc" :key="i">
-        <router-link :to="item.link||'#'" class="link">
-          <img :src="item.src" />
-          <p>{{ item.text }}</p>
-        </router-link>
+    <el-carousel
+      indicator-position="none"
+      arrow="never"
+      :autoplay="false"
+      ref="carousel"
+      class="box"
+      height="930px"
+    >
+      <el-carousel-item
+        v-for="(page, pageIndex) in pages"
+        :key="`page-${pageIndex}`"
+      >
+        <div class="page-container">
+          <div class="link-item" v-for="(item, i) in page" :key="i">
+            <router-link :to="item.link || '#'" class="link">
+              <img :src="item.src" />
+              <p>{{ item.text }}</p>
+            </router-link>
+          </div>
+        </div>
+        <router-view />
+      </el-carousel-item>
+
+      <!-- 翻页键 -->
+      <div v-if="pages.length > 1">
+        <div
+          :class="['left', { disabled: pageIndex === 0 }]"
+          @click="changePage('left', pageIndex === 0)"
+        >
+          <img src="@/assets/img/back.svg" />
+        </div>
+        <div
+          :class="['right', { disabled: pageIndex === pages.length - 1 }]"
+          @click="changePage('right', pageIndex === pages.length - 1)"
+        >
+          <img src="@/assets/img/back.svg" />
+        </div>
       </div>
-      <router-view />
-    </div>
+    </el-carousel>
   </div>
 </template>
 
@@ -25,24 +55,56 @@ export default {
         { src: require("@/assets/img/uti/uti6.svg"), text: '特征跟随', link: "/utility/following" },
         { src: require("@/assets/img/uti/uti7.svg"), text: '识物分类' },
         { src: require("@/assets/img/uti/uti8.svg"), text: '资源看板' },
+        { src: require("@/assets/img/uti/uti8.svg"), text: "手势识别" },
       ],
       data: null,
-      isSel: null
+      isSel: null,
+      pageIndex: 0,
     };
   },
-}
+  computed: {
+    pages() {
+      let limit = 8; // 一页的条数
+      let res = [];
+      this.imgSrc.forEach((item, i) => {
+        let page = Math.floor(i / limit);
+        if (!res[page]) {
+          res[page] = [];
+        }
+        res[page].push(item);
+      });
+      return res;
+    },
+  },
+  methods: {
+    changePage(direction, disabled) {
+      if (disabled) return;
+      switch (direction) {
+        case "left":
+          this.pageIndex--;
+          break;
+        case "right":
+          this.pageIndex++;
+          break;
+      }
+      this.$refs.carousel.setActiveItem(this.pageIndex);
+    },
+  },
+};
 </script>
 
 <style lang="less" scoped>
 .box {
-  display: flex;
-  flex-wrap: wrap;
   color: #fff;
-  height: 740px;
-  align-content: space-between;
-  margin-top: 150px;
-
-  & div {
+  position: relative;
+  .page-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 150px 0 0 0;
+    height: 744px;
+    align-content: space-between;
+  }
+  & .link-item {
     width: 330px;
     height: 330px;
     border-radius: 20px;
@@ -50,7 +112,6 @@ export default {
     backdrop-filter: blur(10.88px);
     box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
     margin-left: 120px;
-
 
     .link {
       display: flex;
@@ -70,7 +131,35 @@ export default {
         color: #fff;
       }
     }
-
+  }
+  .left,
+  .right {
+    position: absolute;
+    z-index: 3;
+    top: 480px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    opacity: 1;
+    background: #b04cf3;
+    backdrop-filter: blur(10px);
+    &.disabled {
+      background: #7284c8;
+    }
+    img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-70%, -50%);
+      color: red;
+    }
+  }
+  .left {
+    left: 40px;
+  }
+  .right {
+    right: 40px;
+    transform: rotate(180deg);
   }
 }
 </style>
