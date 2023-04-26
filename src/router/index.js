@@ -14,6 +14,8 @@ import patrol from '@/views/utility/patrol'
 import charge from '@/views/utility/charge'
 import telecontrol from '@/views/utility/telecontrol'
 import following from '@/views/utility/following'
+import gesture from '@/views/utility/gesture'
+import objectRecognition from '@/views/utility/objectRecognition'
 
 import Site from '@/views/site'
 import Map from '@/views/map/index'
@@ -106,6 +108,14 @@ export default new Router({
     {
       path: '/utility/following',
       component: following,
+    },
+    {
+      path: '/utility/gesture',
+      component: gesture,
+    },
+    {
+      path: '/utility/object-recognition',
+      component: objectRecognition,
     },
   ]
 })

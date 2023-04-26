@@ -13,8 +13,8 @@
         :key="`page-${pageIndex}`"
       >
         <div class="page-container">
-          <div class="link-item" v-for="(item, i) in page" :key="i">
-            <router-link :to="item.link || '#'" class="link">
+          <div @click="goPage(item)" class="link-item" v-for="(item, i) in page" :key="i">
+            <router-link to="" class="link">
               <img :src="item.src" />
               <p>{{ item.text }}</p>
             </router-link>
@@ -43,6 +43,8 @@
 </template>
 
 <script>
+import fullscreenLoading from "../../components/fullscreenLoading.js";
+
 export default {
   data () {
     return {
@@ -53,9 +55,9 @@ export default {
         { src: require("@/assets/img/uti/uti4.svg"), text: '返回原点/充电', link: "/utility/charge" },
         { src: require("@/assets/img/uti/uti5.svg"), text: '遥控模式', link: "/utility/telecontrol" },
         { src: require("@/assets/img/uti/uti6.svg"), text: '特征跟随', link: "/utility/following" },
-        { src: require("@/assets/img/uti/uti7.svg"), text: '识物分类' },
+        { src: require("@/assets/img/uti/uti9.svg"), text: "手势识别", link: "/utility/gesture" },
+        { src: require("@/assets/img/uti/uti7.svg"), text: '物品识别', link: "/utility/object-recognition"},
         { src: require("@/assets/img/uti/uti8.svg"), text: '资源看板' },
-        { src: require("@/assets/img/uti/uti8.svg"), text: "手势识别" },
       ],
       data: null,
       isSel: null,
@@ -89,6 +91,24 @@ export default {
       }
       this.$refs.carousel.setActiveItem(this.pageIndex);
     },
+    async goPage(item) {
+      try {
+        if(item.link === '/utility/following') {
+          const loading = fullscreenLoading();
+          await new Promise((resolve, reject) => {
+            setTimeout(() => {
+              loading.close();
+              resolve();
+            }, 1000)
+          })
+        }
+
+        this.$router.push(item.link || '#');
+      } catch (e) {
+        e = e || 'Failed Error!';
+        this.$message.error(e.message || e);
+      }
+    }
   },
 };
 </script>

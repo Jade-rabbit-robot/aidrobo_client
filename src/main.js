@@ -4,6 +4,7 @@ import store from './store'
 import ElementUI from 'element-ui';
 import Sortable from 'sortablejs';
 import axios from 'axios';
+import "@/assets/global.less"
 
 // Vue.use(iView);
 Vue.prototype.$http = axios
