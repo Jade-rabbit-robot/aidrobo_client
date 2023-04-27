@@ -112,8 +112,6 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
-  margin-top: 30px;
-  margin-left: 30px;
 }
 
 .right {
@@ -131,6 +129,7 @@ export default {
   height: 1010px;
   line-height: 50px;
   margin-left: 30px;
+  margin-top: 30px;
 
   &>p {
     text-align: center;

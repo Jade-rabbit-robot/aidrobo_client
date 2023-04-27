@@ -1,6 +1,6 @@
 <template>
   <div class="newMapBox">
-    <ShowMap />
+    <ShowMap class="map"/>
     <div class="right">
       <div v-show="rubber && !stop" class="titleBox">
         <p><img src="@/assets/img/editMap/rubber.svg" />橡皮擦</p>
@@ -26,7 +26,6 @@
 
 <script>
 import ShowMap from "@/components/map/new";
-
 export default {
   components: {
     ShowMap
@@ -38,7 +37,104 @@ export default {
       stop: false,
     }
   },
+  mounted () {
+    this.$store.state.hasSave = false;
+    this.$store.state.patrol_arr = [];
+    this.$store.state.patrol_arr_area = [];
+    try {
+      this.getForbidden()
+    } catch (error) {
+    }
+    // 状态机
+    const type = new ROSLIB.ServiceRequest({
+      action: 'mapping'
+    });
+    robotMode.callService(type, (result) => {
+      console.log('[ robotMode OK]-61', result)
+      if (result.message !== 'ok') {
+        this.$message('状态切换失败');
+      }
+    }, (result) => {
+      this.$message('状态切换失败');
+      console.log('[ robotMode ERR]-61', result)
+    });
+  },
   methods: {
+    getForbidden () {
+      const msg2 = new ROSLIB.ServiceRequest(
+        {
+          map_id: this.$store.state.nowMapID,
+          data_type: 'forbidden'
+        }
+      );
+      ForbiddenAdd.callService(msg2, (result) => {
+        if (result.success) {
+          let msg = []
+          try {
+            msg = JSON.parse(result.message)
+            console.log('[ msg ]-75', msg)
+            this.hasHistory = true
+          } catch (error) {
+            this.$message('获取禁行线失败');
+          }
+        } else {
+          this.$message('获取禁行线失败');
+        }
+        console.log('[  getForbidden OK]-61', result)
+      }, (result) => {
+        console.log('[  getForbidden ERR]-61', result)
+      });
+    },
+    addForbidden (data) {
+      // const data_ = data.map((e) => {
+      //   return { x: e.x, y: e.y, z: 0 }
+      // })
+      const data_ = [{
+        start: { x: 1.0, y: 2.0, z: 0.0 },
+        end: { x: 1.0, y: 2.0, z: 0.0 }
+      }, {
+        start: { x: 1.0, y: 2.0, z: 0.0 },
+        end: { x: 1.0, y: 2.0, z: 0.0 }
+      }]
+      const msg2 = new ROSLIB.ServiceRequest(
+        {
+          map_id: this.$store.state.nowMapID,
+          data: JSON.stringify(data_),
+          frame_id: 'map',
+          data_type: 'forbidden'
+        }
+      );
+      ForbiddenAdd.callService(msg2, (result) => {
+        console.log('[  addForbidden OK]-61', result)
+      }, (result) => {
+        console.log('[  addForbidden ERR]-61', result)
+      });
+    },
+    updateForbidden (data) {
+      const data_ = [{
+        start: { x: 1.0, y: 2.0, z: 0.0 },
+        end: { x: 1.0, y: 2.0, z: 0.0 }
+      }, {
+        start: { x: 1.0, y: 2.0, z: 0.0 },
+        end: { x: 1.0, y: 2.0, z: 0.0 }
+      }]
+      const msg2 = new ROSLIB.ServiceRequest(
+        {
+          id: 1,
+          data: JSON.stringify({
+            map_id: this.$store.state.nowMapID,
+            frame_id: 'map',
+            point_list: JSON.stringify(data_)
+          }),
+          data_type: 'forbidden'
+        }
+      );
+      ForbiddenUpdate.callService(msg2, (result) => {
+        console.log('[  updateForbidden OK]-61', result)
+      }, (result) => {
+        console.log('[  updateForbidden ERR]-61', result)
+      });
+    },
     onRubber () {
       this.rubber = true;
       this.overText = '完成'
@@ -48,7 +144,7 @@ export default {
       this.overText = '完成'
     },
     onOver () {
-      if (this.rubber||this.stop) {
+      if (this.rubber || this.stop) {
         this.rubber = false
         this.stop = false
         this.overText = '保存地图'
@@ -86,10 +182,11 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
-  margin-top: 30px;
-    margin-left: 30px;
 }
-
+.map{
+  margin-left: 30px;
+  margin-top: 30px;
+}
 .right {
   width: 434px;
   height: 1010px;
@@ -104,7 +201,7 @@ export default {
   justify-content: space-evenly;
   height: 1010px;
   margin-left: 30px;
-
+margin-top:30px;
   .titleBox {
     margin-bottom: 80px;
     height: 500px;

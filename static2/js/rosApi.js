@@ -104,6 +104,20 @@ const OperationUpdate = new ROSLIB.Service({
   name: '/update_waypoint',
   serviceType: 'aid_robot_msgs/srv/OperationUpdate'
 });
+/** 新增禁行线 */
+const ForbiddenAdd = new ROSLIB.Service({
+  ros: ros,
+  name: '/add_forbidden',
+  serviceType: 'aid_robot_msgs/srv/OperationAdd'
+});
+/** 更新禁行线 */
+const ForbiddenUpdate = new ROSLIB.Service({
+  ros: ros,
+  name: '/update_forbidden',
+  serviceType: 'aid_robot_msgs/srv/OperationUpdate'
+});
+
+
 /** 发送位置点*/
 const TalkerPoint = new ROSLIB.Topic({
   ros: ros,

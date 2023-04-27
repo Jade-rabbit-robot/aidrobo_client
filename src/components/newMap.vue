@@ -170,6 +170,7 @@ export default {
   border-radius: 5px;
   background: #526CAD;
   overflow: hidden;
+
 }
 
 .map_box1 {

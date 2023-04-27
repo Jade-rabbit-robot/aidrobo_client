@@ -42,6 +42,7 @@ export default {
     try {
       this.getPoint()
     } catch (error) {
+      console.log('[ error ]-45', error)
     }
     // 状态机
     const type = new ROSLIB.ServiceRequest({
@@ -98,6 +99,12 @@ export default {
       });
     },
     getPoint () {
+      const msg2 = new ROSLIB.ServiceRequest(
+        {
+          map_id: this.$store.state.nowMapID,
+          data_type: 'waypoint'
+        }
+      );
       getMapLinkedDataList.callService(msg2, (result) => {
         if (result.success) {
           let msg = []
@@ -203,8 +210,6 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
-  margin-top: 30px;
-  margin-left: 30px;
 }
 
 .right {
@@ -221,6 +226,7 @@ export default {
   height: 1010px;
   line-height: 50px;
   margin-left: 30px;
+  margin-top: 30px;
   justify-content: space-between;
   padding: 20px;
   box-sizing: border-box;
