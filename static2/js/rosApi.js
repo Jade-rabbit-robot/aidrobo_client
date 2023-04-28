@@ -104,6 +104,12 @@ const OperationUpdate = new ROSLIB.Service({
   name: '/update_waypoint',
   serviceType: 'aid_robot_msgs/srv/OperationUpdate'
 });
+/** 获取禁行线 */
+const ForbiddenGet = new ROSLIB.Service({
+  ros: ros,
+  name: '/get_forbidden',
+  serviceType: 'aid_robot_msgs/srv/ForbiddenGet'
+});
 /** 新增禁行线 */
 const ForbiddenAdd = new ROSLIB.Service({
   ros: ros,

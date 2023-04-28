@@ -64,10 +64,9 @@ export default {
       const msg2 = new ROSLIB.ServiceRequest(
         {
           map_id: this.$store.state.nowMapID,
-          data_type: 'forbidden'
         }
       );
-      ForbiddenAdd.callService(msg2, (result) => {
+      ForbiddenGet.callService(msg2, (result) => {
         if (result.success) {
           let msg = []
           try {
@@ -112,11 +111,11 @@ export default {
     },
     updateForbidden (data) {
       const data_ = [{
-        start: { x: 1.0, y: 2.0, z: 0.0 },
+        start: { x: 11.0, y: 2.0, z: 0.0 },
         end: { x: 1.0, y: 2.0, z: 0.0 }
       }, {
         start: { x: 1.0, y: 2.0, z: 0.0 },
-        end: { x: 1.0, y: 2.0, z: 0.0 }
+        end: { x: 1.0, y: 22.0, z: 0.0 }
       }]
       const msg2 = new ROSLIB.ServiceRequest(
         {
