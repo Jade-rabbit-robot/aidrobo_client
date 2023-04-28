@@ -44,6 +44,11 @@
 
 <script>
 import fullscreenLoading from "../../components/fullscreenLoading.js";
+const CMD = {
+  '/utility/following': 'follow',
+  '/utility/gesture': 'hand',
+  '/utility/object-recognition': 'object'
+}
 
 export default {
   data () {
@@ -92,22 +97,40 @@ export default {
       this.$refs.carousel.setActiveItem(this.pageIndex);
     },
     async goPage(item) {
+      let loading;
       try {
-        if(item.link === '/utility/following') {
-          const loading = fullscreenLoading();
-          await new Promise((resolve, reject) => {
-            setTimeout(() => {
-              loading.close();
-              resolve();
-            }, 1000)
-          })
+        let link = undefined;
+        // 进入某些页面前，先运行一些特定逻辑
+        if(Object.keys(CMD).includes(item.link)) {
+          loading = fullscreenLoading();
+          const rgbSize = await this.startCamera(CMD[item.link]);
+          if(!rgbSize.success || !rgbSize.message) {
+            throw '';
+          }
+          const {w, h} = JSON.parse(rgbSize.message);
+          loading.close();
+          link = `${item.link}?w=${w}&h=${h}`
         }
 
-        this.$router.push(item.link || '#');
+        this.$router.push(link || item.link || '#');
       } catch (e) {
         e = e || 'Failed Error!';
         this.$message.error(e.message || e);
+        loading && loading.close();
       }
+
+    },
+    async startCamera(cmd) {
+      return new Promise((resolve, reject) => {
+        const params = new ROSLIB.ServiceRequest({cmd});
+        startCamera.callService(params, (res) => {
+          console.log('[ cam_start ok]-61', res)
+          resolve(res)
+        }, (res) => {
+          console.log('[ cam_start ERR]-61', res)
+          reject(res)
+        });
+      })
     }
   },
 };

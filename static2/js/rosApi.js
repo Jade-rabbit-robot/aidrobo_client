@@ -1,5 +1,6 @@
 const ros = new ROSLIB.Ros();
-ros.connect('ws://127.0.0.1:9090');
+// ros.connect('ws://127.0.0.1:9090');
+ros.connect('ws://192.168.110.204:9090');
 /** 模式切换 */
 const robotMode = new ROSLIB.Service({
   ros: ros,
@@ -120,6 +121,37 @@ const patrolState = new ROSLIB.Service({
   ros: ros,
   name: '/patrol_control',
   serviceType: 'aid_robot_msgs/srv/PatrolControl'
+});
+
+/** 页面初始化摄像头 */
+const startCamera = new ROSLIB.Service({
+  ros: ros,
+  name: '/cam_start',
+  serviceType: 'aid_robot_msgs/srv/AICmd'
+});
+/** 页面停止摄像头 */
+const stopCamera = new ROSLIB.Service({
+  ros: ros,
+  name: '/cam_stop',
+  serviceType: 'aid_robot_msgs/srv/AICmd'
+});
+/** 获取人物识别状态 */
+const getFollowStatus = new ROSLIB.Topic({
+  ros: ros,
+  name: '/follow_status',
+  messageType: 'std_msgs/msg/Bool'
+})
+/** 特征跟随-开始跟随 */
+const startFollow = new ROSLIB.Service({
+  ros: ros,
+  name: '/follow_start',
+  serviceType: 'aid_robot_msgs/srv/AICmd'
+});
+/** 特征跟随-停止跟随 */
+const stopFollow = new ROSLIB.Service({
+  ros: ros,
+  name: '/follow_stop',
+  serviceType: 'aid_robot_msgs/srv/AICmd'
 });
 ros.on('connection', function () {
   console.log('rosOk!!!');

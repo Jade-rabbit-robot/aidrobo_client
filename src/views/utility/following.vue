@@ -12,9 +12,9 @@
           <img src="@/assets/img/forbid.svg" />
           <span>跟踪丢失</span>
         </div>
-        <div :class="['action', { readyBtn: !loading }]" @click="followAction">
-          {{ isStart ? "停止跟随" : "开始跟随" }}
-        </div>
+
+        <div v-if="isStart" class="action danger-status" @click="stopFollow">停止跟随</div>
+        <div v-else :class="['action', { readyBtn: personStatus }]" @click="startFollow(personStatus)">开始跟随</div>
       </div>
     </div>
   </div>
@@ -34,8 +34,10 @@ const TEXT = {
 export default {
   data() {
     return {
-      isStart: false,
+      isStart: false, // 是否开启了跟随
       loading: false,
+      personStatus: false, // 人物识别状态 false: 没有跟随； true: 跟随中
+      lost: false,
     };
   },
   computed: {
@@ -45,38 +47,79 @@ export default {
   },
   mounted() {
     this.initVideo();
+    getFollowStatus.subscribe(res => {
+      console.log('personStatus:', res.data)
+      this.personStatus = res.data;
+
+      if(this.lost && this.personStatus) {
+        // 取消 ‘跟踪丢失’ 的提示
+        this.setLost(false)
+      }
+      if(this.isStart && !this.personStatus) {
+        // ‘跟踪丢失’ 的提示
+        this.setLost(true)
+      }
+    })
   },
   beforeDestroy() {
+    stopCamera.callService(null, (res) => {
+      console.log('[ cam_stop ok]-61', res)
+    }, (res) => {
+      console.log('[ cam_stop ERR]-61', res)
+    });
+    getFollowStatus.unsubscribe(res => {
+      console.log('unsubscribe:', res);
+    })
     if (window.aidShowBridge && window.aidShowBridge.close) {
       window.aidShowBridge.close();
     }
   },
   methods: {
-    // 开始/停止 跟随
-    followAction() {
-      if(this.loading) return;
-      this.isStart = !this.isStart;
-      this.loading = true;
-      this.messageShow(true);
-      setTimeout(() => {
-        this.loading = false;
-        this.messageShow(false);
-      },1000)
-    },
     initVideo() {
+      const rgbWidth = this.$route.query.w;
+      const rgbHeight = this.$route.query.h;
       const video = document.getElementById('video')
       const top = video.getBoundingClientRect().top
       const left = video.getBoundingClientRect().left
       const width = video.getBoundingClientRect().width
       const height = video.getBoundingClientRect().height
-      // TODO: 0 0 rgb size
       if (window.aidShowBridge && window.aidShowBridge.setSurfaceLocation) {
-        window.aidShowBridge.setSurfaceLocation(left, top, width, height, 0, 0, 1920);
+        window.aidShowBridge.setSurfaceLocation(left, top, width, height, Number(rgbWidth), Number(rgbHeight), 1920);
       }
     },
-    messageShow(show) {
+    startFollow(ready) {
+      if(!ready || this.loading) return;
+      this.loading = true;
+      startFollow.callService(null, (res) => {
+        console.log('[ follow_start ok]-61', res);
+        this.isStart = true;
+        this.loading = false;
+      }, (res) => {
+        console.log('[ follow_start ERR]-61', res);
+        this.loading = false;
+      });
+    },
+    stopFollow() {
+      if(this.loading) return;
+      this.loading = true;
+      stopFollow.callService(null, (res) => {
+        console.log('[ follow_stop ok]-61', res);
+        this.isStart = false;
+        this.loading = false;
+      }, (res) => {
+        console.log('[ follow_stop ERR]-61', res);
+        this.loading = false;
+      });
+    },
+    setLost(lost) {
+      if(this.lost === lost) {
+        // 状态没变
+        return;
+      }
+      this.lost = lost;
       this.$refs.message.classList.remove('hide');
-      if(!show)  {
+
+      if(!lost)  {
         this.$refs.message.classList.add('hide');
       }
     }
@@ -188,5 +231,8 @@ export default {
     rgba(55, 89, 238, 0.64) 11%,
     rgba(30, 157, 244, 0.37) 89%
   ) !important;
+}
+.danger-status {
+  background: #D94040 !important;
 }
 </style>
