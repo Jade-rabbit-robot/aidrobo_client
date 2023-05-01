@@ -25,7 +25,7 @@
 </template>
 
 <script>
-import ShowMap from "@/components/map/new";
+import ShowMap from "@/components/map/edit";
 export default {
   components: {
     ShowMap
@@ -182,10 +182,6 @@ export default {
   height: 100%;
   position: relative;
 }
-.map{
-  margin-left: 30px;
-  margin-top: 30px;
-}
 .right {
   width: 434px;
   height: 1010px;
@@ -199,8 +195,9 @@ export default {
   align-items: center;
   justify-content: space-evenly;
   height: 1010px;
+  line-height: 50px;
   margin-left: 30px;
-margin-top:30px;
+  margin-top: 30px;
   .titleBox {
     margin-bottom: 80px;
     height: 500px;

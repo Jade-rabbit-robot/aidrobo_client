@@ -2,22 +2,31 @@
   <div class="newMapBox">
     <ShowMap />
     <div class="right point">
-      <div class="rText" v-if="!$store.state.patrol_arr.length">
-        <p>选择位置点</p>
-        <p>请点击按钮，依次在地图中点击想巡逻的位置点</p>
-      </div>
-      <div class="titleBox" v-else>
-        <p>选择位置点:</p>
-        <div class="mapNameB">
-          <p v-for="(e, i) in $store.state.patrol_arr" :key="i" class="mapName" @click="onDelOne(i)">({{ (e.x).toFixed(2)
-          }},{{
+      <div class="step1" v-if="step == 1">
+        <div class="rText" v-if="!$store.state.patrol_arr.length">
+          <p>选择位置点</p>
+          <p>请依次在地图中点击想巡逻的位置点</p>
+        </div>
+        <div class="titleBox" v-else>
+          <p>选择位置点:</p>
+          <div class="mapNameB">
+            <p v-for="(e, i) in $store.state.patrol_arr" :key="i" class="mapName" @click="onDelOne(i)">({{
+              (e.x).toFixed(2)
+            }},{{
   (e.y).toFixed(2)
 }})</p>
+          </div>
         </div>
+        <div class="goPoint" :class="{ goPointSure: $store.state.patrol_arr.length }" @click="onSave()">保存路线</div>
       </div>
-      <div class="goPoint delList" @click="onDelList()" v-if="$store.state.patrol_arr.length">清除路线</div>
-
-      <div class="goPoint" @click="onBegin()">{{ text }}</div>
+      <div class="step2" v-if="step == 2">
+        <div>
+          <div class="goPoint stop" @click="step = 1">查看路线</div>
+          <div class="goPoint delList" @click="onDelList()">清除路线</div>
+        </div>
+        <div class="goPoint action" @click="onBegin()" v-if="action">开启巡逻</div>
+        <div class="goPoint stop" @click="onStop()" v-else>关闭巡逻</div>
+      </div>
     </div>
   </div>
 </template>
@@ -33,6 +42,8 @@ export default {
     return {
       text: '选择位置',
       hasHistory: false,
+      step: 2,
+      action: true
     }
   },
   mounted () {
@@ -50,7 +61,7 @@ export default {
     });
     robotMode.callService(type, (result) => {
       console.log('[ robotMode OK]-61', result)
-      if (result.message!=='ok') {
+      if (result.message !== 'ok') {
         this.$message('状态切换失败');
       }
     }, (result) => {
@@ -113,6 +124,7 @@ export default {
             this.$store.state.patrol_arr = JSON.parse(msg[0].point_list);
             this.text = '开始巡逻'
             this.hasHistory = true
+            this.step =2
           } catch (error) {
             this.$message('获取巡逻点失败');
           }
@@ -133,7 +145,59 @@ export default {
       this.$store.state.patrol_arr = []
       this.$store.state.patrol_arr_area = []
     },
+    onSave () {
+      if (!this.$store.state.patrol_arr.length) {
+        return false
+      }
+      if (this.hasHistory) {
+        this.updatePoint(this.$store.state.patrol_arr)
+      } else {
+        this.addPoint(this.$store.state.patrol_arr)
+      }
+      this.step = 2
+    },
     onBegin () {
+      const point = { poses: [] }
+      this.$store.state.patrol_arr.map(e => {
+        point.poses.push(
+          {
+            header: {
+              stamp: {
+                sec: 0,
+                nanosec: 0
+              },
+              frame_id: "map"
+            },
+            pose: {
+              position: {
+                x: e.x,
+                y: e.y,
+                z: 0.0
+              },
+              orientation: {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                w: 1.0
+              }
+            }
+          }
+        )
+      })
+      const msg = new ROSLIB.Message(point);
+      TalkerPoint.publish(msg);
+    },
+    onStop(){
+      const type = new ROSLIB.ServiceRequest({
+          cmd: 'pause'
+        });
+        patrolState.callService(type, (res) => {
+          console.log('[ patrol_control ok]-61', res)
+        }, (res) => {
+          console.log('[ patrol_control ERR]-61', res)
+        });
+    },
+    onBegin2 () {
       if (this.text === '选择位置') {
         this.$store.state.tool = 'patrol'
         this.text = '开始巡逻'
@@ -244,6 +308,14 @@ export default {
     line-height: 50px;
     padding: 0px 40px;
   }
+
+  &>div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+  }
 }
 
 .titleBox {
@@ -284,9 +356,25 @@ export default {
   box-shadow: 0px 2px 10px 0px rgba(1, 29, 90, 0.72);
 }
 
+.goPointSure {
+  background: #B04CF3;
+}
+
 .delList {
-  position: absolute;
-  bottom: 160px;
+  background: #D94040;
+  margin-top: 30px;
+}
+
+.action {
+  width: 300px;
+  height: 120px;
+  background: linear-gradient(110deg, rgba(55, 89, 238, 0.64) 11%, rgba(30, 157, 244, 0.37) 89%);
+}
+
+.stop {
+  width: 300px;
+  height: 120px;
+  background: linear-gradient(110deg, #596AB5 11%, rgba(66, 82, 146, 0.53) 89%);
 }
 
 .readyBtn {

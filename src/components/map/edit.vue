@@ -2,90 +2,124 @@
 <template>
   <div class="map" ref="map" @touchmove="map_move()">
     <div class="fa_map_box1">
-      <div
-        class="map_box1"
-        ref="map_box1"
-        @touchstart="rubberstart($event)"
-        @touchmove="rubbermove($event)"
-        @touchend="rubberend($event)"
-        v-pinchstart="map_pinchstart"
-        v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }"
-      >
-        <img
-          id="img1"
-          src="../../static2/img/map2.png"
-          @load="init"
-          ref="img1"
-        />
-        <div
-          class="robot"
-          v-bind:style="{
-            transform:
-              'translate(' +
-              (robotXY.x * scale - 6) +
-              'px,' +
-              (robotXY.y * scale - 6) +
-              'px)',
-          }"
-        >
-        </div>
-        <div
-          class="charge"
-          v-bind:style="{
-            marginTop: 316 * scale - 10 + 'px',
-            marginLeft: 483 * scale - 10 + 'px',
-          }"
-        ></div>
-        <div
-          v-for="(item, index) in $store.state.patrol_chang_data"
-          :key="index"
-          class="map_point"
-          v-bind:style="{
-            transform:
-              'translate(' +
-              (item.x * scale - 25) +
-              'px,' +
-              (item.y * scale + -70) +
-              'px)',
-          }"
-        >
-          <img src="../../static2/img/point.png" width="50px" />
-          <span class="pointNum">{{ index + 1 }}</span>
-        </div>
+      <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
+        @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
+        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
+        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
         <div class="map_box2">
           <canvas id="operate" ref="operate"></canvas>
         </div>
       </div>
     </div>
     <div class="img2">
-      <div
-        class="show_img"
-        ref="show_img"
-        v-bind:style="{
+      <div class="show_img" ref="show_img" v-bind:style="{
           'margin-top': img2_top + 'px',
           'margin-left': img2_left + 'px',
-        }"
-      ></div>
-      <img id="img2" src="../../static2/img/map2.png" ref="img2" />
+        }"></div>
+      <img id="img2" :src="mapData.src" ref="img2" />
     </div>
     <div class="map_tool">
-      <div
-        v-for="(item, index) in items"
-        :key="index"
-        @touchstart="touchStart($event, index)"
-        @touchend="touchend($event)"
-      >
+      <div v-for="(item, index) in items" :key="index" @touchstart="touchStart($event, index)"
+        @touchend="touchend($event)">
         <span :class="item.name" :style="item.cla"></span>
       </div>
+    </div>
+    <div class="recover">
+      <img src="@/assets/img/editMap/revocation.png" @click="revocation()"/>
+      <img src="@/assets/img/editMap/recover.png" @click="recover()"/>
     </div>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
 import { mapState, mapMutations } from "vuex";
+import { changeStr, mapToImg, imgToMap } from "@/assets/common"
+
 export default {
-  data() {
+  data () {
     return {
+      mapData: {
+        src: "",
+        width: 1930,
+        height: 3909,
+        resolution: 0,
+        positionX: 0,
+        positionY: 0,
+      },
+      recoverArr: [],
+      stop_chang_data: [],//禁行区的点
+      linearCurveArr: [
+        [
+          {
+            "x": 409,
+            "y": 218
+          },
+          {
+            "x": 467,
+            "y": 495
+          }
+        ],
+        [
+          {
+            "x": 543,
+            "y": 512
+          },
+          {
+            "x": 635,
+            "y": 574
+          }
+        ],
+        [
+          {
+            "x": 575,
+            "y": 636
+          },
+          {
+            "x": 452,
+            "y": 682
+          }
+        ],
+        [
+          {
+            "x": 659,
+            "y": 776
+          },
+          {
+            "x": 816,
+            "y": 714
+          }
+        ],
+        [
+          {
+            "x": 529,
+            "y": 83
+          },
+          {
+            "x": 539,
+            "y": 265
+          }
+        ],
+        [
+          {
+            "x": 454,
+            "y": 909
+          },
+          {
+            "x": 566,
+            "y": 1019
+          }
+        ],
+        [
+          {
+            "x": 664,
+            "y": 880
+          },
+          {
+            "x": 647,
+            "y": 1029
+          }
+        ]
+      ], //二次贝塞尔曲线点
       robotXY: { x: 0, y: 0 },
       scale: 1,
       left: 0,
@@ -99,7 +133,6 @@ export default {
       operate_txc: null,
       interval: null, //全局控制定时器
       touch_data: null, //触摸点
-      patrol_arr_area: [],
       items: [
         {
           name: "icon-zoom-in",
@@ -132,10 +165,7 @@ export default {
           clan: "tram6"
         }
       ],
-      screen_w:
-        window.innerWidth ||
-        document.documentElement.clientWidth ||
-        document.body.clientWidth,
+      screen_w: 1380,
       yEnd: 0,
       xEnd: 0
     };
@@ -152,32 +182,43 @@ export default {
       "tool",
       "mapSrc",
       "init_img_data",
+      "patrol_arr_area",
       "patrol_arr",
       "m_width",
       "m_height",
       "m_resolution",
       "_map_name",
       "zero",
-      "stop_chang_data",
       "stop_point",
       "charge_po",
-      "map_img_w"
     ])
   },
-  mounted() {
-    this.robotXY = { x: this.xx2(0.5), y: this.yy2(-2) };
+  watch: {
+    robotPoint: function (n) {
+      this.robotXY = { x: mapToImg({ mapData: this.mapData, x: n.x }), y: mapToImg({ mapData: this.mapData, y: n.y }) }
+    }
+  },
+  mounted () {
     this.$store.state.map_width = this.$refs.map.offsetWidth;
+    this.getMap()
   },
   methods: {
-    map_pinchstart() {
-      alert(1);
+    getMap () {
+      const msg = new ROSLIB.ServiceRequest({
+        id: this.$store.state.nowMapID * 1
+      });
+      getMapImage.callService(msg, (res) => {
+        console.log('[ getMapImage OK]-61', res)
+        if (res.success) {
+          this.mapData = changeStr(res.map)
+        }
+      }, (result) => {
+        console.log('[ getMapImage ERR]-61', result)
+      });
+
     },
-    ...mapMutations(["chang_data", "rubber_chang_data"]),
-    removeJob: function(arr, index) {
-      arr.splice(index, 1);
-    },
-    datadragEnd(evt) {},
-    touchStart(e, n) {
+    touchStart (e, n) {
+      console.log('[ e, n ]-154', e, n)
       this.$store.state.init_img_data = false;
       this.$refs.map_box1.style.transition = "none";
       e.currentTarget.classList.add("cli_box");
@@ -205,7 +246,6 @@ export default {
           this.$refs.show_img.style.height =
             (this.$refs.img2.height * this.$refs.map.offsetHeight) / img_h +
             "px";
-
           this.top = top = s_h * img_h;
           this.left = left = s_w * img_w;
         }
@@ -288,12 +328,13 @@ export default {
         }, 100);
       }
     },
-    touchend(e) {
+    touchend (e) {
       clearInterval(this.interval);
       this.interval = null;
       e.currentTarget.classList.remove("cli_box");
     },
-    init() {
+    init () {
+      console.log('[ this.mapData ]-271', this.mapData)
       if (!this.init_img_data) {
         return false;
       }
@@ -301,18 +342,27 @@ export default {
       this.scale = 1;
       this.$refs.operate.style.transform = "scale(" + this.scale + ")";
       let img1 = document.getElementById("img1");
+
+      const sc = 1380 / this.mapData.width
+      sc > 1 && (this.scale = sc)
+      img1.width = this.scale * this.mapData.width
+      // img1.height = this.scale * this.mapData.height
+
       let operate = document.getElementById("operate");
       this.$store.state.x_can = operate;
       this.operate_txc = operate.getContext("2d");
       // 获取的图片进行等比适配
-      this.$store.state.map_img_w = this.d_width = operate.width = img1.width;
-      this.d_height = operate.height = img1.height;
+      this.d_width = operate.width = img1.width;
+      this.d_height = operate.height = this.scale * this.mapData.height;
       this.$refs.img2.width = img1.width / 11;
       this.$refs.show_img.style.width = this.$refs.map.offsetWidth / 11 + "px";
       this.$refs.show_img.style.height =
         this.$refs.map.offsetHeight / 11 + "px";
+
+      //斤新鲜会天
+      this.initBarrier()
     },
-    rubberstart(e) {
+    rubberstart (e) {
       let set_time = 0;
       this.$refs.map_box1.style.transition = "none";
       let ctx = this.operate_txc;
@@ -327,24 +377,7 @@ export default {
         );
       }
     },
-    xx_yy(a) {
-      return Math.round(
-        ((a / this.d_width) * this.m_width) / this.m_resolution
-      );
-    },
-    yy2(y) {
-      return 992-(y + 25) / 0.05;
-    },
-    xx2(x) {
-      return (x + 25) / 0.05;
-    },
-    xx0(a) {
-      return Math.round(a * 0.05 - 25);
-    },
-    yy0(a) {
-      return Math.round((992 - a) * 0.05 - 25);
-    },
-    rubbermove(e) {
+    rubbermove (e) {
       let ctx = this.operate_txc;
       let r_x = Math.round((this.touch_data.pageX - this.left) / this.scale);
       let r_y = Math.round(
@@ -355,12 +388,10 @@ export default {
         ? (this.touch_data = e.touches[0])
         : (this.touch_data = this.touch_data);
     },
-    rubberend(e) {
-      if (this.mcode <= 1 && (this.tool == "point" || this.tool == "xld")) {
-        this.patrol(e);
-      }
+    rubberend (e) {
+      this.barrier()
     },
-    map_move() {
+    map_move () {
       try {
         if (this.tool == "") {
           let cT =
@@ -415,44 +446,88 @@ export default {
       } catch (e) {
       }
     },
-    patrol(e) {
-      if (this.tool == "point") {
-        this.patrol_arr_area = [];
-      } else if (this.tool == "xld" && !this.$store.state.patrol_arr.length) {
-        this.patrol_arr_area = this.$store.state.patrol_arr;
-      }
-      if (this.patrol_arr_area.length >= 6) {
-        return;
-      }
+    //<撤销
+    revocation () {
+      const del = this.linearCurveArr.splice(-1, 1)
+      console.log('[ del ]-452', del)
+      this.recoverArr.push(del[0])
+      console.log('[  ]-453', this.recoverArr)
+      this.initBarrier()
+    },
+    //恢复>
+    recover (e) {
+      console.log('[ recover ]-458', )
+      const del = this.recoverArr.splice(-1, 1)
+      this.linearCurveArr.push(del[0])
+      console.log('[  ]-461', this.linearCurveArr)
+      this.initBarrier()
+
+    },
+    initBarrier () {
+      console.log('[ this.linearCurveArr ]-453', this.linearCurveArr)
+      let ctx = this.operate_txc;
+      ctx.clearRect(0, 0, this.d_width, this.d_height);
+
+      this.linearCurveArr.map((e) => {
+        ctx.save();
+        ctx.beginPath();
+        this.$store.state.stop_point = 0;
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = "1";
+        ctx.moveTo(e[0].x, e[0].y);
+        ctx.lineTo(e[1].x, e[1].y);
+        ctx.stroke();
+        ctx.restore();
+      })
+    },
+    barrier () {
+      let ctx = this.operate_txc;
       let circleX = Math.round(
-        (this.touch_data.pageX - this.left) / this.scale
+        (this.touch_data.pageX - 30 - this.left) / this.scale
       );
-      let circleY = Math.round(
-        (this.touch_data.pageY - this.head_h - this.top) / this.scale
-      );
-      this.patrol_arr_area.push({
+      let circleY = Math.round((this.touch_data.pageY - 150 - this.top) / this.scale);
+      console.log('[  ]-431',)
+      ctx.save();
+      ctx.beginPath();
+      ctx.fillStyle = "red";
+      ctx.arc(circleX, circleY, 2, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.restore();
+      this.stop_chang_data.push({
         x: circleX,
         y: circleY
       });
-      console.log("[  ]-460", this.patrol_arr_area);
-      const xx_yy = this.patrol_arr_area.map(e => {
-        return { x: this.xx0(e.x), y: this.yy0(e.y) };
-      });
-      this.$store.state.patrol_arr = xx_yy;
-      this.$store.state.patrol_chang_data = this.patrol_arr_area;
-    }
+      if (this.stop_chang_data.length >= 2) {
+        ctx.save();
+        ctx.beginPath();
+        this.$store.state.stop_point = 0;
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = "1";
+        ctx.moveTo(this.stop_chang_data[0].x, this.stop_chang_data[0].y);
+        ctx.lineTo(circleX, circleY);
+        ctx.stroke();
+        ctx.restore();
+        this.linearCurveArr.push(this.stop_chang_data)
+
+        this.stop_chang_data = [];
+        console.log('[  this.linearCurveArr ]-430', this.linearCurveArr)
+      }
+    },
   }
 };
 </script>
 
 <style scoped>
 .map {
-  position: absolute;
+  position: relative;
   top: 0;
-  height: 100%;
-  width: 75%;
-  background: #709080;
+  height: 1010px;
+  width: 1380px;
+  border-radius: 5px;
+  background: #526CAD;
   overflow: hidden;
+  margin-top: 30px;
+  margin-left: 30px;
 }
 
 .map_box1 {
@@ -606,53 +681,11 @@ export default {
 .tram9 {
   transform: translate(-60px, -60px);
 }
-.map_point {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-.robot {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  top: 0;
-  left: 0;
-  z-index: 11;
-  background: linear-gradient(
-    135deg,
-    rgb(255 172 85) 0%,
-    rgb(255 13 52 / 81%) 100%
-  );
-  box-shadow: -1px -2px 3px -5px rgb(249 249 249),
-    4px 4px 10px -5px rgb(0 0 0 / 30%);
-}
-.pointNum {
-  display: inline-block;
-  position: absolute;
-  font-size: 1.5rem;
-  color: #fff;
-  top: 14px;
-  left: 20px;
-}
-.charge {
-  width: 20px;
-  height: 20px;
-  background: #ccc;
-  position: absolute;
-  top: 0;
-  left: 0;
-  border-radius: 50%;
-  animation: mymove 3s infinite;
-}
-@keyframes mymove {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(2);
-    opacity: 0.1;
-  }
+
+
+.recover{
+  position: fixed;
+    bottom: 50px;
+    left: 1150px;
 }
 </style>

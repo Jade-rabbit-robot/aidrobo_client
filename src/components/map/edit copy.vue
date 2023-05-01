@@ -2,28 +2,54 @@
 <template>
   <div class="map" ref="map" @touchmove="map_move()">
     <div class="fa_map_box1">
-      <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
-        @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
-        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
-        <div class="robot" v-bind:style="{
+      <div
+        class="map_box1"
+        ref="map_box1"
+        @touchstart="rubberstart($event)"
+        @touchmove="rubbermove($event)"
+        @touchend="rubberend($event)"
+        v-pinchstart="map_pinchstart"
+        v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }"
+      >
+        <img
+          id="img1"
+          src="../../static2/img/map2.png"
+          @load="init"
+          ref="img1"
+        />
+        <div
+          class="robot"
+          v-bind:style="{
             transform:
               'translate(' +
-              (robotXY.x * scale - 15) +
+              (robotXY.x * scale - 6) +
               'px,' +
-              (robotXY.y * scale - 15) +
+              (robotXY.y * scale - 6) +
               'px)',
-          }">
+          }"
+        >
         </div>
-        <div v-for="(item, index) in patrol_arr_area" :key="index" class="map_point" v-bind:style="{
+        <div
+          class="charge"
+          v-bind:style="{
+            marginTop: 316 * scale - 10 + 'px',
+            marginLeft: 483 * scale - 10 + 'px',
+          }"
+        ></div>
+        <div
+          v-for="(item, index) in $store.state.patrol_chang_data"
+          :key="index"
+          class="map_point"
+          v-bind:style="{
             transform:
               'translate(' +
               (item.x * scale - 25) +
               'px,' +
               (item.y * scale + -70) +
               'px)',
-          }">
-          <img src="../../../static2/img/point.png" width="50px" />
+          }"
+        >
+          <img src="../../static2/img/point.png" width="50px" />
           <span class="pointNum">{{ index + 1 }}</span>
         </div>
         <div class="map_box2">
@@ -32,40 +58,34 @@
       </div>
     </div>
     <div class="img2">
-      <div class="show_img" ref="show_img" v-bind:style="{
+      <div
+        class="show_img"
+        ref="show_img"
+        v-bind:style="{
           'margin-top': img2_top + 'px',
           'margin-left': img2_left + 'px',
-        }"></div>
-      <img id="img2" :src="mapData.src" ref="img2" />
+        }"
+      ></div>
+      <img id="img2" src="../../static2/img/map2.png" ref="img2" />
     </div>
     <div class="map_tool">
-      <div v-for="(item, index) in items" :key="index" @touchstart="touchStart($event, index)"
-        @touchend="touchend($event)">
+      <div
+        v-for="(item, index) in items"
+        :key="index"
+        @touchstart="touchStart($event, index)"
+        @touchend="touchend($event)"
+      >
         <span :class="item.name" :style="item.cla"></span>
       </div>
-    </div>
-    <div class="recover">
-      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool=='patrol'"/>
-      <img src="@/assets/img/seeMap/disActive.png" @click="changeTool('patrol')" v-else/>
     </div>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
 import { mapState, mapMutations } from "vuex";
-import { changeStr, mapToImg, imgToMap } from "@/assets/common"
-
 export default {
-  data () {
+  data() {
     return {
-      mapData: {
-        src: "",
-        width: 1930,
-        height: 3909,
-        resolution: 0,
-        positionX: 0,
-        positionY: 0,
-      },
       robotXY: { x: 0, y: 0 },
       scale: 1,
       left: 0,
@@ -79,6 +99,7 @@ export default {
       operate_txc: null,
       interval: null, //全局控制定时器
       touch_data: null, //触摸点
+      patrol_arr_area: [],
       items: [
         {
           name: "icon-zoom-in",
@@ -111,7 +132,10 @@ export default {
           clan: "tram6"
         }
       ],
-      screen_w: 1380,
+      screen_w:
+        window.innerWidth ||
+        document.documentElement.clientWidth ||
+        document.body.clientWidth,
       yEnd: 0,
       xEnd: 0
     };
@@ -128,7 +152,6 @@ export default {
       "tool",
       "mapSrc",
       "init_img_data",
-      "patrol_arr_area",
       "patrol_arr",
       "m_width",
       "m_height",
@@ -141,37 +164,20 @@ export default {
       "map_img_w"
     ])
   },
-  watch: {
-    robotPoint: function (n) {
-      this.robotXY = { x: mapToImg({ mapData: this.mapData, x: n.x }), y: mapToImg({ mapData: this.mapData, y: n.y }) }
-    }
-  },
-  mounted () {
+  mounted() {
+    this.robotXY = { x: this.xx2(0.5), y: this.yy2(-2) };
     this.$store.state.map_width = this.$refs.map.offsetWidth;
-    this.getMap()
   },
   methods: {
-    changeTool(type){
-      console.log('[  ]-155', type)
-      this.$store.state.tool=type
+    map_pinchstart() {
+      alert(1);
     },
-    getMap () {
-      const msg = new ROSLIB.ServiceRequest({
-        id: this.$store.state.nowMapID * 1
-      });
-      console.log('getMapImage', msg)
-      getMapImage.callService(msg, (res) => {
-        console.log('[ getMapImage OK]-61', res)
-        if (res.success) {
-          this.mapData = changeStr(res.map)
-          // this.chargeXY = { x: this.xx2(0), y: this.yy2(0) }
-        }
-      }, (result) => {
-        console.log('[ getMapImage ERR]-61', result)
-      });
-
+    ...mapMutations(["chang_data", "rubber_chang_data"]),
+    removeJob: function(arr, index) {
+      arr.splice(index, 1);
     },
-    touchStart (e, n) {
+    datadragEnd(evt) {},
+    touchStart(e, n) {
       this.$store.state.init_img_data = false;
       this.$refs.map_box1.style.transition = "none";
       e.currentTarget.classList.add("cli_box");
@@ -218,7 +224,6 @@ export default {
           }
         }, 100);
       } else if (n == 2) {
-        console.log('[  ]-222', this.screen_w, img_w)
         if (img_w > this.screen_w) {
           this.$refs.map_box1.style.transition = "transform 1s";
           this.scale > 1 ? (this.scale -= 0.1) : (this.scale = 1);
@@ -283,12 +288,12 @@ export default {
         }, 100);
       }
     },
-    touchend (e) {
+    touchend(e) {
       clearInterval(this.interval);
       this.interval = null;
       e.currentTarget.classList.remove("cli_box");
     },
-    init () {
+    init() {
       if (!this.init_img_data) {
         return false;
       }
@@ -296,12 +301,6 @@ export default {
       this.scale = 1;
       this.$refs.operate.style.transform = "scale(" + this.scale + ")";
       let img1 = document.getElementById("img1");
-
-      const sc = 1380 / this.mapData.width
-      sc > 1 && (this.scale = sc)
-      img1.width = this.scale * this.mapData.width
-
-
       let operate = document.getElementById("operate");
       this.$store.state.x_can = operate;
       this.operate_txc = operate.getContext("2d");
@@ -313,7 +312,7 @@ export default {
       this.$refs.show_img.style.height =
         this.$refs.map.offsetHeight / 11 + "px";
     },
-    rubberstart (e) {
+    rubberstart(e) {
       let set_time = 0;
       this.$refs.map_box1.style.transition = "none";
       let ctx = this.operate_txc;
@@ -328,13 +327,24 @@ export default {
         );
       }
     },
-    yy2 (y) {
-      return this.mapData.height - (y - this.mapData.positionY) / this.mapData.resolution;
+    xx_yy(a) {
+      return Math.round(
+        ((a / this.d_width) * this.m_width) / this.m_resolution
+      );
     },
-    xx2 (x) {
-      return (x - this.mapData.positionX) / this.mapData.resolution;
+    yy2(y) {
+      return 992-(y + 25) / 0.05;
     },
-    rubbermove (e) {
+    xx2(x) {
+      return (x + 25) / 0.05;
+    },
+    xx0(a) {
+      return Math.round(a * 0.05 - 25);
+    },
+    yy0(a) {
+      return Math.round((992 - a) * 0.05 - 25);
+    },
+    rubbermove(e) {
       let ctx = this.operate_txc;
       let r_x = Math.round((this.touch_data.pageX - this.left) / this.scale);
       let r_y = Math.round(
@@ -345,12 +355,12 @@ export default {
         ? (this.touch_data = e.touches[0])
         : (this.touch_data = this.touch_data);
     },
-    rubberend (e) {
-      if (this.mcode <= 1 && (this.tool == "point" || this.tool == "patrol")) {
+    rubberend(e) {
+      if (this.mcode <= 1 && (this.tool == "point" || this.tool == "xld")) {
         this.patrol(e);
       }
     },
-    map_move () {
+    map_move() {
       try {
         if (this.tool == "") {
           let cT =
@@ -405,40 +415,44 @@ export default {
       } catch (e) {
       }
     },
-    patrol (e) {
+    patrol(e) {
       if (this.tool == "point") {
-        this.$store.state.patrol_arr_area = []
+        this.patrol_arr_area = [];
+      } else if (this.tool == "xld" && !this.$store.state.patrol_arr.length) {
+        this.patrol_arr_area = this.$store.state.patrol_arr;
+      }
+      if (this.patrol_arr_area.length >= 6) {
+        return;
       }
       let circleX = Math.round(
-        (this.touch_data.pageX -30 - this.left) / this.scale
+        (this.touch_data.pageX - this.left) / this.scale
       );
       let circleY = Math.round(
-        (this.touch_data.pageY -150- this.top) / this.scale
+        (this.touch_data.pageY - this.head_h - this.top) / this.scale
       );
-      this.$store.state.patrol_arr_area.push({
+      this.patrol_arr_area.push({
         x: circleX,
         y: circleY
       });
+      console.log("[  ]-460", this.patrol_arr_area);
       const xx_yy = this.patrol_arr_area.map(e => {
-        return { x: imgToMap({ mapData: this.mapData, x: e.x }), y: imgToMap({ mapData: this.mapData, y: e.y }) };
+        return { x: this.xx0(e.x), y: this.yy0(e.y) };
       });
       this.$store.state.patrol_arr = xx_yy;
-    },
+      this.$store.state.patrol_chang_data = this.patrol_arr_area;
+    }
   }
 };
 </script>
 
 <style scoped>
 .map {
-  position: relative;
+  position: absolute;
   top: 0;
-  height: 1010px;
-  width: 1380px;
-  border-radius: 5px;
-  background: #526CAD;
+  height: 100%;
+  width: 75%;
+  background: #709080;
   overflow: hidden;
-  margin-top: 30px;
-  margin-left: 30px;
 }
 
 .map_box1 {
@@ -592,39 +606,35 @@ export default {
 .tram9 {
   transform: translate(-60px, -60px);
 }
-
 .map_point {
   position: absolute;
   top: 0;
   left: 0;
 }
-
 .robot {
   position: absolute;
-  width: 30px;
-  height: 30px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   top: 0;
   left: 0;
   z-index: 11;
-  background: linear-gradient(135deg,
-      rgb(255 172 85) 0%,
-      rgb(255 13 52 / 81%) 100%);
+  background: linear-gradient(
+    135deg,
+    rgb(255 172 85) 0%,
+    rgb(255 13 52 / 81%) 100%
+  );
   box-shadow: -1px -2px 3px -5px rgb(249 249 249),
     4px 4px 10px -5px rgb(0 0 0 / 30%);
 }
-
 .pointNum {
   display: inline-block;
   position: absolute;
   font-size: 1.5rem;
-  color: #000;
-  top: 10px;
-  left: 0;
-  width: 50px;
-  text-align: center;
+  color: #fff;
+  top: 14px;
+  left: 20px;
 }
-
 .charge {
   width: 20px;
   height: 20px;
@@ -635,21 +645,14 @@ export default {
   border-radius: 50%;
   animation: mymove 3s infinite;
 }
-
 @keyframes mymove {
   0% {
     transform: scale(1);
     opacity: 1;
   }
-
   100% {
     transform: scale(2);
     opacity: 0.1;
   }
-}
-.recover{
-  position: fixed;
-    bottom: 50px;
-    left: 1150px;
 }
 </style>

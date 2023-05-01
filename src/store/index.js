@@ -7,7 +7,6 @@ const store = new Vuex.Store({
     rubber_data1: false, //不规则区域
     rubber_data2: false, //选择橡皮檫
     rubber_size: 20, //橡皮檫大小
-    stop_chang_data:[],//禁行区的点
     stop_point: 0, //禁行区计数点
     head_h: 0, //工具区域
     zero: 0, //不规则区域点计数
