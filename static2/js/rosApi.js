@@ -122,10 +122,10 @@ const ForbiddenUpdate = new ROSLIB.Service({
   name: '/update_forbidden',
   serviceType: 'aid_robot_msgs/srv/OperationUpdate'
 });
-/** 更新禁行线 */
+/** 东方禁行线 */
 const DrawPicture = new ROSLIB.Service({
   ros: ros,
-  name: '/draw_no_go_lines',
+  name: '/aid_draw_forbidden_line',
   serviceType: 'aid_robot_msgs/srv/DrawPicture'
 });
 
@@ -147,6 +147,9 @@ const patrolState = new ROSLIB.Service({
   name: '/patrol_control',
   serviceType: 'aid_robot_msgs/srv/PatrolControl'
 });
+
+
+
 
 /** 页面初始化摄像头 */
 const startCamera = new ROSLIB.Service({

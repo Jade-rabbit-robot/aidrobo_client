@@ -25,8 +25,8 @@
       </div>
     </div>
     <div class="recover">
-      <img src="@/assets/img/editMap/revocation.png" @click="revocation()"/>
-      <img src="@/assets/img/editMap/recover.png" @click="recover()"/>
+      <img src="@/assets/img/editMap/revocation.png" @click="revocation()" />
+      <img src="@/assets/img/editMap/recover.png" @click="recover()" />
     </div>
   </div>
 </template>
@@ -38,88 +38,8 @@ import { changeStr, mapToImg, imgToMap } from "@/assets/common"
 export default {
   data () {
     return {
-      mapData: {
-        src: "",
-        width: 1930,
-        height: 3909,
-        resolution: 0,
-        positionX: 0,
-        positionY: 0,
-      },
       recoverArr: [],
       stop_chang_data: [],//禁行区的点
-      linearCurveArr: [
-        [
-          {
-            "x": 409,
-            "y": 218
-          },
-          {
-            "x": 467,
-            "y": 495
-          }
-        ],
-        [
-          {
-            "x": 543,
-            "y": 512
-          },
-          {
-            "x": 635,
-            "y": 574
-          }
-        ],
-        [
-          {
-            "x": 575,
-            "y": 636
-          },
-          {
-            "x": 452,
-            "y": 682
-          }
-        ],
-        [
-          {
-            "x": 659,
-            "y": 776
-          },
-          {
-            "x": 816,
-            "y": 714
-          }
-        ],
-        [
-          {
-            "x": 529,
-            "y": 83
-          },
-          {
-            "x": 539,
-            "y": 265
-          }
-        ],
-        [
-          {
-            "x": 454,
-            "y": 909
-          },
-          {
-            "x": 566,
-            "y": 1019
-          }
-        ],
-        [
-          {
-            "x": 664,
-            "y": 880
-          },
-          {
-            "x": 647,
-            "y": 1029
-          }
-        ]
-      ], //二次贝塞尔曲线点
       robotXY: { x: 0, y: 0 },
       scale: 1,
       left: 0,
@@ -172,7 +92,10 @@ export default {
   },
   computed: {
     ...mapState([
+      "linearCurveArr",
+      "linearCurveArrP",
       "robotPoint",
+      "mapData",
       "mcode",
       "rubber_data1",
       "rubber_data2",
@@ -210,7 +133,7 @@ export default {
       getMapImage.callService(msg, (res) => {
         console.log('[ getMapImage OK]-61', res)
         if (res.success) {
-          this.mapData = changeStr(res.map)
+          this.$store.state.mapData = changeStr(res.map)
         }
       }, (result) => {
         console.log('[ getMapImage ERR]-61', result)
@@ -334,7 +257,6 @@ export default {
       e.currentTarget.classList.remove("cli_box");
     },
     init () {
-      console.log('[ this.mapData ]-271', this.mapData)
       if (!this.init_img_data) {
         return false;
       }
@@ -346,7 +268,6 @@ export default {
       const sc = 1380 / this.mapData.width
       sc > 1 && (this.scale = sc)
       img1.width = this.scale * this.mapData.width
-      // img1.height = this.scale * this.mapData.height
 
       let operate = document.getElementById("operate");
       this.$store.state.x_can = operate;
@@ -389,7 +310,9 @@ export default {
         : (this.touch_data = this.touch_data);
     },
     rubberend (e) {
-      this.barrier()
+      if (this.tool == "stop") {
+        this.barrier()
+      }
     },
     map_move () {
       try {
@@ -456,7 +379,7 @@ export default {
     },
     //恢复>
     recover (e) {
-      console.log('[ recover ]-458', )
+      console.log('[ recover ]-458',)
       const del = this.recoverArr.splice(-1, 1)
       this.linearCurveArr.push(del[0])
       console.log('[  ]-461', this.linearCurveArr)
@@ -508,9 +431,13 @@ export default {
         ctx.stroke();
         ctx.restore();
         this.linearCurveArr.push(this.stop_chang_data)
-
+        this.linearCurveArrP = this.linearCurveArr.map(e => {
+          return {
+            start: { x: imgToMap({ mapData: this.mapData, x: e[0].x }), y: imgToMap({ mapData: this.mapData, y: e[0].y }), z: 0.0 },
+            end: { x:imgToMap({ mapData: this.mapData, x: e[1].x }),  y:imgToMap({ mapData: this.mapData, y: e[1].y }),  z: 0.0 }
+          }
+        })
         this.stop_chang_data = [];
-        console.log('[  this.linearCurveArr ]-430', this.linearCurveArr)
       }
     },
   }
@@ -683,9 +610,9 @@ export default {
 }
 
 
-.recover{
+.recover {
   position: fixed;
-    bottom: 50px;
-    left: 1150px;
+  bottom: 50px;
+  left: 1150px;
 }
 </style>

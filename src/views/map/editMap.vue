@@ -1,6 +1,6 @@
 <template>
   <div class="newMapBox">
-    <ShowMap class="map"/>
+    <ShowMap class="map" />
     <div class="right">
       <div v-show="rubber && !stop" class="titleBox">
         <p><img src="@/assets/img/editMap/rubber.svg" />橡皮擦</p>
@@ -26,6 +26,9 @@
 
 <script>
 import ShowMap from "@/components/map/edit";
+import { mapState, mapMutations } from "vuex";
+import { imgToMap } from "@/assets/common"
+
 export default {
   components: {
     ShowMap
@@ -37,12 +40,19 @@ export default {
       stop: false,
     }
   },
+  computed: {
+    ...mapState([
+      "linearCurveArr",
+      "linearCurveArrP",
+      "mapData",
+    ])
+  },
   mounted () {
     this.$store.state.hasSave = false;
     this.$store.state.patrol_arr = [];
     this.$store.state.patrol_arr_area = [];
     try {
-      this.DrawPicture()
+      this.getForbidden()
     } catch (error) {
     }
     // 状态机
@@ -60,21 +70,21 @@ export default {
     });
   },
   methods: {
-    DrawPicture(){
+    DrawPicture (data) {
       const msg2 = new ROSLIB.ServiceRequest(
         {
-          frame_id:"map",
-          type:"line",
-          data:[{
-        start: { x: 11.0, y: 2.0, z: 0.0 },
-        end: { x: 1.0, y: 2.0, z: 0.0 }
-      }, {
-        start: { x: 1.0, y: 2.0, z: 0.0 },
-        end: { x: 1.0, y: 22.0, z: 0.0 }
-      }]
-        }
+          frame_id: "map",
+          type: "line",
+          data
       );
-      DrawPicture.callService(msg2, (result) => {},(result) => {})
+      DrawPicture.callService(msg2, (result) => {
+        if (result.success) {
+          console.log('[ msg ]-75', result)
+        }
+        console.log('[  DrawPicture OK]-61', result)
+      }, (result) => {
+        console.log('[  DrawPicture ERR]-61', result)
+      });
     },
     getForbidden () {
       const msg2 = new ROSLIB.ServiceRequest(
@@ -101,16 +111,14 @@ export default {
       });
     },
     addForbidden (data) {
-      // const data_ = data.map((e) => {
-      //   return { x: e.x, y: e.y, z: 0 }
-      // })
-      const data_ = [{
-        start: { x: 1.0, y: 2.0, z: 0.0 },
-        end: { x: 1.0, y: 2.0, z: 0.0 }
-      }, {
-        start: { x: 1.0, y: 2.0, z: 0.0 },
-        end: { x: 1.0, y: 2.0, z: 0.0 }
-      }]
+      const data_ = data
+      // const data_ = [{
+      //   start: { x: 1.0, y: 2.0, z: 0.0 },
+      //   end: { x: 1.0, y: 2.0, z: 0.0 }
+      // }, {
+      //   start: { x: 1.0, y: 2.0, z: 0.0 },
+      //   end: { x: 1.0, y: 2.0, z: 0.0 }
+      // }]
       const msg2 = new ROSLIB.ServiceRequest(
         {
           map_id: this.$store.state.nowMapID,
@@ -126,13 +134,14 @@ export default {
       });
     },
     updateForbidden (data) {
-      const data_ = [{
-        start: { x: 11.0, y: 2.0, z: 0.0 },
-        end: { x: 1.0, y: 2.0, z: 0.0 }
-      }, {
-        start: { x: 1.0, y: 2.0, z: 0.0 },
-        end: { x: 1.0, y: 22.0, z: 0.0 }
-      }]
+      const data_ = data
+      // [{
+      //   start: { x: 11.0, y: 2.0, z: 0.0 },
+      //   end: { x: 1.0, y: 2.0, z: 0.0 }
+      // }, {
+      //   start: { x: 1.0, y: 2.0, z: 0.0 },
+      //   end: { x: 1.0, y: 22.0, z: 0.0 }
+      // }]
       const msg2 = new ROSLIB.ServiceRequest(
         {
           id: 1,
@@ -155,11 +164,23 @@ export default {
       this.overText = '完成'
     },
     onStop () {
+      console.log('[  ]-158',)
+      this.$store.state.tool = 'stop'
       this.stop = true
       this.overText = '完成'
     },
     onOver () {
       if (this.rubber || this.stop) {
+        //禁行线
+        if (this.stop) {
+          // const line= this.linearCurveArr
+          if (this.hasHistory) {
+            this.updateForbidden(this.linearCurveArrP)
+          } else {
+            this.addForbidden(this.linearCurveArrP)
+          }
+          this.DrawPicture(this.linearCurveArrP)
+        }
         this.rubber = false
         this.stop = false
         this.overText = '保存地图'
@@ -198,6 +219,7 @@ export default {
   height: 100%;
   position: relative;
 }
+
 .right {
   width: 434px;
   height: 1010px;
@@ -214,6 +236,7 @@ export default {
   line-height: 50px;
   margin-left: 30px;
   margin-top: 30px;
+
   .titleBox {
     margin-bottom: 80px;
     height: 500px;

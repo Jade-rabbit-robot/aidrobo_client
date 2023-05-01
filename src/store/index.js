@@ -38,6 +38,16 @@ const store = new Vuex.Store({
     set_msg:null,//接收錯誤消息
     patrol_chang_data:[],
     //
+    linearCurveArr:[],//禁行线点位
+    linearCurveArrP:[],//禁行线点位
+    mapData:{
+      src: "",
+      width: 1930,
+      height: 3909,
+      resolution: 0,
+      positionX: 0,
+      positionY: 0,
+    },//地图数据
     showMsg:false,//控制msg提示框显示
     hasSave:true,//顶部路由=》页面保存提示控制
     nowMapID:"",
