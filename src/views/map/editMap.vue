@@ -42,7 +42,7 @@ export default {
     this.$store.state.patrol_arr = [];
     this.$store.state.patrol_arr_area = [];
     try {
-      this.getForbidden()
+      this.DrawPicture()
     } catch (error) {
     }
     // 状态机
@@ -60,6 +60,22 @@ export default {
     });
   },
   methods: {
+    DrawPicture(){
+      const msg2 = new ROSLIB.ServiceRequest(
+        {
+          frame_id:"map",
+          type:"line",
+          data:[{
+        start: { x: 11.0, y: 2.0, z: 0.0 },
+        end: { x: 1.0, y: 2.0, z: 0.0 }
+      }, {
+        start: { x: 1.0, y: 2.0, z: 0.0 },
+        end: { x: 1.0, y: 22.0, z: 0.0 }
+      }]
+        }
+      );
+      DrawPicture.callService(msg2, (result) => {},(result) => {})
+    },
     getForbidden () {
       const msg2 = new ROSLIB.ServiceRequest(
         {

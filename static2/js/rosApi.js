@@ -122,7 +122,12 @@ const ForbiddenUpdate = new ROSLIB.Service({
   name: '/update_forbidden',
   serviceType: 'aid_robot_msgs/srv/OperationUpdate'
 });
-
+/** 更新禁行线 */
+const DrawPicture = new ROSLIB.Service({
+  ros: ros,
+  name: '/draw_no_go_lines',
+  serviceType: 'aid_robot_msgs/srv/DrawPicture'
+});
 
 /** 发送位置点*/
 const TalkerPoint = new ROSLIB.Topic({
