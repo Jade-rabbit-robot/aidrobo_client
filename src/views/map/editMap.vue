@@ -75,7 +75,7 @@ export default {
         {
           frame_id: "map",
           type: "line",
-          data
+          data}
       );
       DrawPicture.callService(msg2, (result) => {
         if (result.success) {

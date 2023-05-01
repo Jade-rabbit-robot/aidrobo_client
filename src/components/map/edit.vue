@@ -4,8 +4,8 @@
     <div class="fa_map_box1">
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
-        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
+        <img id="img1" :src="mapData.src" @load="init" ref="img1" />
+        <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
         <div class="map_box2">
           <canvas id="operate" ref="operate"></canvas>
         </div>
@@ -431,7 +431,7 @@ export default {
         ctx.stroke();
         ctx.restore();
         this.linearCurveArr.push(this.stop_chang_data)
-        this.linearCurveArrP = this.linearCurveArr.map(e => {
+        this.$store.state.linearCurveArrP = this.linearCurveArr.map(e => {
           return {
             start: { x: imgToMap({ mapData: this.mapData, x: e[0].x }), y: imgToMap({ mapData: this.mapData, y: e[0].y }), z: 0.0 },
             end: { x:imgToMap({ mapData: this.mapData, x: e[1].x }),  y:imgToMap({ mapData: this.mapData, y: e[1].y }),  z: 0.0 }

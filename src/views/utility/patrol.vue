@@ -117,6 +117,7 @@ export default {
         }
       );
       getMapLinkedDataList.callService(msg2, (result) => {
+        console.log('[  getPoint OK]-61', result,result.success)
         if (result.success) {
           let msg = []
           try {
@@ -132,7 +133,6 @@ export default {
         } else {
           this.$message('获取巡逻点失败');
         }
-        console.log('[  getPoint OK]-61', result)
       }, (result) => {
         console.log('[  getPoint ERR]-61', result)
       });
