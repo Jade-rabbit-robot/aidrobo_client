@@ -42,7 +42,7 @@ export default {
     return {
       text: '选择位置',
       hasHistory: false,
-      step: 2,
+      step: 1,
       action: true
     }
   },

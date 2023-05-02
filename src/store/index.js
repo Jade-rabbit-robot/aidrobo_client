@@ -38,12 +38,15 @@ const store = new Vuex.Store({
     set_msg:null,//接收錯誤消息
     patrol_chang_data:[],
     //
+    actionStatus:'',//前端操作状态point/patrol/remote_control/localization/newMap/
     linearCurveArr:[],//禁行线点位
     linearCurveArrP:[],//禁行线点位
     mapData:{
       src: "",
-      width: 1930,
-      height: 3909,
+      // width: 1930,
+      // height: 3909,
+      width: 451,
+      height: 387,
       resolution: 0,
       positionX: 0,
       positionY: 0,

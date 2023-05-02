@@ -28,6 +28,10 @@
       <img src="@/assets/img/editMap/revocation.png" @click="revocation()" />
       <img src="@/assets/img/editMap/recover.png" @click="recover()" />
     </div>
+    <div class="active" v-if="toolType=='stop'||toolType=='eraser'">
+      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool=='stop'"/>
+      <img src="@/assets/img/seeMap/disActive.png" @click="changeTool(toolType)" v-else/>
+    </div>
   </div>
 </template>
 
@@ -36,9 +40,11 @@ import { mapState, mapMutations } from "vuex";
 import { changeStr, mapToImg, imgToMap } from "@/assets/common"
 
 export default {
+  props:['toolType'],
   data () {
     return {
       recoverArr: [],
+      linearCurveArr: [],
       stop_chang_data: [],//禁行区的点
       robotXY: { x: 0, y: 0 },
       scale: 1,
@@ -92,7 +98,6 @@ export default {
   },
   computed: {
     ...mapState([
-      "linearCurveArr",
       "linearCurveArrP",
       "robotPoint",
       "mapData",
@@ -119,6 +124,12 @@ export default {
   watch: {
     robotPoint: function (n) {
       this.robotXY = { x: mapToImg({ mapData: this.mapData, x: n.x }), y: mapToImg({ mapData: this.mapData, y: n.y }) }
+    },
+    linearCurveArrP: function (n) {
+      //斤新鲜会天
+      if(n.init){
+        this.initBarrier(n.msg)
+      }
     }
   },
   mounted () {
@@ -126,9 +137,14 @@ export default {
     this.getMap()
   },
   methods: {
+    changeTool(type){
+      console.log('[ type ]-143', type)
+      console.log('[  ]-142', this.$store.state.tool)
+      this.$store.state.tool=type
+    },
     getMap () {
       const msg = new ROSLIB.ServiceRequest({
-        id: this.$store.state.nowMapID * 1
+        id: this.$route.query.id * 1
       });
       getMapImage.callService(msg, (res) => {
         console.log('[ getMapImage OK]-61', res)
@@ -273,15 +289,15 @@ export default {
       this.$store.state.x_can = operate;
       this.operate_txc = operate.getContext("2d");
       // 获取的图片进行等比适配
-      this.d_width = operate.width = img1.width;
-      this.d_height = operate.height = this.scale * this.mapData.height;
+      this.d_width = operate.width = this.mapData.width;
+      this.d_height = operate.height = this.mapData.height;
+      this.$refs.operate.style.transform = "scale(" + this.scale + ")";
       this.$refs.img2.width = img1.width / 11;
       this.$refs.show_img.style.width = this.$refs.map.offsetWidth / 11 + "px";
       this.$refs.show_img.style.height =
         this.$refs.map.offsetHeight / 11 + "px";
 
-      //斤新鲜会天
-      this.initBarrier()
+
     },
     rubberstart (e) {
       let set_time = 0;
@@ -310,6 +326,7 @@ export default {
         : (this.touch_data = this.touch_data);
     },
     rubberend (e) {
+      console.log('[  ]-314', this.touch_data)
       if (this.tool == "stop") {
         this.barrier()
       }
@@ -384,14 +401,13 @@ export default {
       this.linearCurveArr.push(del[0])
       console.log('[  ]-461', this.linearCurveArr)
       this.initBarrier()
-
     },
-    initBarrier () {
+    initBarrier (msg) {
       console.log('[ this.linearCurveArr ]-453', this.linearCurveArr)
       let ctx = this.operate_txc;
       ctx.clearRect(0, 0, this.d_width, this.d_height);
-
-      this.linearCurveArr.map((e) => {
+      let data=msg?msg:this.linearCurveArr
+      data.map((e) => {
         ctx.save();
         ctx.beginPath();
         this.$store.state.stop_point = 0;
@@ -402,6 +418,7 @@ export default {
         ctx.stroke();
         ctx.restore();
       })
+      this.setLineData()
     },
     barrier () {
       let ctx = this.operate_txc;
@@ -409,7 +426,8 @@ export default {
         (this.touch_data.pageX - 30 - this.left) / this.scale
       );
       let circleY = Math.round((this.touch_data.pageY - 150 - this.top) / this.scale);
-      console.log('[  ]-431',)
+      console.log('[  ]-431', circleX, circleY)
+      console.log('[  ]-415', this.left, this.top, this.scale)
       ctx.save();
       ctx.beginPath();
       ctx.fillStyle = "red";
@@ -431,15 +449,19 @@ export default {
         ctx.stroke();
         ctx.restore();
         this.linearCurveArr.push(this.stop_chang_data)
-        this.$store.state.linearCurveArrP = this.linearCurveArr.map(e => {
-          return {
-            start: { x: imgToMap({ mapData: this.mapData, x: e[0].x }), y: imgToMap({ mapData: this.mapData, y: e[0].y }), z: 0.0 },
-            end: { x:imgToMap({ mapData: this.mapData, x: e[1].x }),  y:imgToMap({ mapData: this.mapData, y: e[1].y }),  z: 0.0 }
-          }
-        })
+        this.setLineData()
         this.stop_chang_data = [];
       }
     },
+    setLineData () {
+      this.$store.state.linearCurveArrP = this.linearCurveArr.map(e => {
+        return {
+          start: { x: imgToMap({ mapData: this.mapData, x: e[0].x }), y: imgToMap({ mapData: this.mapData, y: e[0].y }), z: 0.0 },
+          end: { x: imgToMap({ mapData: this.mapData, x: e[1].x }), y: imgToMap({ mapData: this.mapData, y: e[1].y }), z: 0.0 }
+        }
+      })
+    }
+
   }
 };
 </script>
@@ -614,5 +636,10 @@ export default {
   position: fixed;
   bottom: 50px;
   left: 1150px;
+}
+.active{
+  position: fixed;
+    top: 150px;
+    left: 1116px;
 }
 </style>

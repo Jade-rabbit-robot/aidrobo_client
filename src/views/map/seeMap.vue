@@ -14,7 +14,7 @@
         <img src="@/assets/img/seeMap/now.svg" />
         <p>当前地图</p>
       </div>
-      <div class="iconBtn" v-if="false">
+      <div class="iconBtn" v-if="false" @click="onEdit()">
         <img src="@/assets/img/seeMap/edit.svg" />
         <p>编辑地图</p>
       </div>
@@ -91,6 +91,9 @@ export default {
       };
       var pose_msg = new ROSLIB.Message(point);
       PoseStamped.publish(pose_msg);
+    },
+    onEdit(){
+      this.$router.push({ name: 'editMap', query: {id: this.$route.query.id } })
     },
     onDel () {
       this.$confirm(`<div>是否确认删除地图</div><div>（本操作无法恢复）</div>`, '删除地图', {
