@@ -58,6 +58,7 @@ export default {
         console.log('[ setCurrentMapId ERR]-61', result)
       });
       // 状态控制
+    this.$store.state.actionStatus='localization'
       const modeMsg = new ROSLIB.ServiceRequest({
         action: 'localization'
       });

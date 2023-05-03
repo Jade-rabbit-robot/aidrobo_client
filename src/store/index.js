@@ -8,7 +8,7 @@ const store = new Vuex.Store({
     rubber_data2: false, //选择橡皮檫
     rubber_size: 20, //橡皮檫大小
     stop_point: 0, //禁行区计数点
-    head_h: 0, //工具区域
+    head_h: 150, //工具区域
     zero: 0, //不规则区域点计数
 
     tool: '',//选取的工具
@@ -41,6 +41,7 @@ const store = new Vuex.Store({
     actionStatus:'',//前端操作状态point/patrol/remote_control/localization/newMap/
     linearCurveArr:[],//禁行线点位
     linearCurveArrP:[],//禁行线点位
+    eraserArr:[],//橡皮擦点位
     mapData:{
       src: "",
       // width: 1930,

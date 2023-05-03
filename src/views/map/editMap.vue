@@ -6,10 +6,10 @@
         <p><img src="@/assets/img/editMap/rubber.svg" />橡皮擦</p>
         <p>请使用手指或鼠标进行擦除操作，地图可使用双指或滚轮中键拖动或缩放</p>
       </div>
-      <div class="rubber" @click="onRubber()" v-show="!rubber && !stop">
+      <!-- <div class="rubber" @click="onRubber()" v-show="!rubber && !stop">
         <img src="@/assets/img/editMap/rubber.svg" />
         <p>橡皮擦</p>
-      </div>
+      </div> -->
       <div v-show="!rubber && stop" class="titleBox">
         <p><img src="@/assets/img/editMap/stop.svg" />禁行线</p>
         <p>请使用手指或鼠标点击两点进行连线，地图可使用双指或滚轮中键拖动或缩放</p>
@@ -50,25 +50,12 @@ export default {
   },
   mounted () {
     this.$store.state.hasSave = false;
-    this.$store.state.patrol_arr = [];
-    this.$store.state.patrol_arr_area = [];
     try {
       this.getForbidden()
     } catch (error) {
     }
     // 状态机
-    const type = new ROSLIB.ServiceRequest({
-      action: 'mapping'
-    });
-    robotMode.callService(type, (result) => {
-      console.log('[ robotMode OK]-61', result)
-      if (result.message !== 'ok') {
-        this.$message('状态切换失败');
-      }
-    }, (result) => {
-      this.$message('状态切换失败');
-      console.log('[ robotMode ERR]-61', result)
-    });
+    this.$store.state.actionStatus='edit'
   },
   methods: {
     DrawPicture (data) {
@@ -165,17 +152,18 @@ export default {
       this.toolType='eraser'
       this.rubber = true;
       this.overText = '完成'
+      this.$store.state.tool=''
     },
     onStop () {
       this.toolType='stop'
       this.stop = true
       this.overText = '完成'
+      this.$store.state.tool=''
     },
     onOver () {
-      if (this.rubber || this.stop) {
+      if(this.overText == '保存地图'){
         //禁行线
-        if (this.stop) {
-          // const line= this.linearCurveArr
+        if (this.linearCurveArrP.length) {
           if (this.hasHistory) {
             this.updateForbidden(this.linearCurveArrP)
           } else {
@@ -183,19 +171,11 @@ export default {
           }
           this.DrawPicture(this.linearCurveArrP)
         }
+      }else{
         this.rubber = false
         this.stop = false
         this.overText = '保存地图'
-        return
       }
-      this.$confirm(`<div>是否确认退出</div><div>（请确认所做操作已保存））</div>`, '退出编辑', {
-        dangerouslyUseHTMLString: true,
-        center: true
-      }).then(() => {
-        console.log('[  ]-69',)
-      }).catch(() => {
-        console.log('[  ]-72',)
-      });
     },
     onOut () {
       this.$confirm(`<div>是否确认退出</div><div>（请确认所做操作已保存）</div>`, '退出编辑', {

@@ -37,6 +37,7 @@ export default {
     this.$store.state.hasSave = false;
     this.$store.state.patrol_arr = []
     // 状态机
+    this.$store.state.actionStatus='point'
     const type = new ROSLIB.ServiceRequest({
       action: 'patrol'
     });

@@ -66,6 +66,7 @@ export default {
       }).then(() => {
         this.$router.push({ name: 'map' })
         console.log('[  ]-72',)
+    this.$store.state.actionStatus='idle'
         const msg = new ROSLIB.ServiceRequest({
           action: 'idle'
         });

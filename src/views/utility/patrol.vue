@@ -56,6 +56,8 @@ export default {
       console.log('[ error ]-45', error)
     }
     // 状态机
+    this.$store.state.actionStatus='patrol'
+
     const type = new ROSLIB.ServiceRequest({
       action: 'patrol'
     });

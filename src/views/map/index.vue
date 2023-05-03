@@ -62,6 +62,7 @@ export default {
         const mapName = addInp.value;
         this.$router.push({ name: 'newMap', query: { mapName } })
         // 状态机
+    this.$store.state.actionStatus='mapping'
         const msg = new ROSLIB.ServiceRequest({
           action: 'mapping'
         });

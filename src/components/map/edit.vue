@@ -4,8 +4,8 @@
     <div class="fa_map_box1">
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <img id="img1" :src="mapData.src" @load="init" ref="img1" />
-        <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
+        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
+        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
         <div class="map_box2">
           <canvas id="operate" ref="operate"></canvas>
         </div>
@@ -28,9 +28,9 @@
       <img src="@/assets/img/editMap/revocation.png" @click="revocation()" />
       <img src="@/assets/img/editMap/recover.png" @click="recover()" />
     </div>
-    <div class="active" v-if="toolType=='stop'||toolType=='eraser'">
-      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool=='stop'"/>
-      <img src="@/assets/img/seeMap/disActive.png" @click="changeTool(toolType)" v-else/>
+    <div class="active" v-if="toolType == 'stop' || toolType == 'eraser'">
+      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool == 'stop'||tool == 'eraser'" />
+      <img src="@/assets/img/seeMap/disActive.png" @click="changeTool(toolType)" v-else />
     </div>
   </div>
 </template>
@@ -40,7 +40,7 @@ import { mapState, mapMutations } from "vuex";
 import { changeStr, mapToImg, imgToMap } from "@/assets/common"
 
 export default {
-  props:['toolType'],
+  props: ['toolType'],
   data () {
     return {
       recoverArr: [],
@@ -98,27 +98,12 @@ export default {
   },
   computed: {
     ...mapState([
+      "eraserArr",
       "linearCurveArrP",
       "robotPoint",
       "mapData",
-      "mcode",
-      "rubber_data1",
-      "rubber_data2",
       "head_h",
-      "rubber_size",
-      "go_rubber",
       "tool",
-      "mapSrc",
-      "init_img_data",
-      "patrol_arr_area",
-      "patrol_arr",
-      "m_width",
-      "m_height",
-      "m_resolution",
-      "_map_name",
-      "zero",
-      "stop_point",
-      "charge_po",
     ])
   },
   watch: {
@@ -127,7 +112,7 @@ export default {
     },
     linearCurveArrP: function (n) {
       //斤新鲜会天
-      if(n.init){
+      if (n.init) {
         this.initBarrier(n.msg)
       }
     }
@@ -137,10 +122,8 @@ export default {
     this.getMap()
   },
   methods: {
-    changeTool(type){
-      console.log('[ type ]-143', type)
-      console.log('[  ]-142', this.$store.state.tool)
-      this.$store.state.tool=type
+    changeTool (type) {
+      this.$store.state.tool = type
     },
     getMap () {
       const msg = new ROSLIB.ServiceRequest({
@@ -157,8 +140,6 @@ export default {
 
     },
     touchStart (e, n) {
-      console.log('[ e, n ]-154', e, n)
-      this.$store.state.init_img_data = false;
       this.$refs.map_box1.style.transition = "none";
       e.currentTarget.classList.add("cli_box");
       let left = this.left;
@@ -273,9 +254,6 @@ export default {
       e.currentTarget.classList.remove("cli_box");
     },
     init () {
-      if (!this.init_img_data) {
-        return false;
-      }
       this.top = this.left = this.img2_top = this.img2_left = 0;
       this.scale = 1;
       this.$refs.operate.style.transform = "scale(" + this.scale + ")";
@@ -299,6 +277,17 @@ export default {
 
 
     },
+    circleXY (n) {
+      let circleX = Math.round(
+        (this.touch_data.pageX - 30 - this.left) / this.scale
+      );
+      let circleY = Math.round((this.touch_data.pageY - 150 - this.top) / this.scale);
+      if (n === 'x') {
+        return circleX
+      } else {
+        return circleY
+      }
+    },
     rubberstart (e) {
       let set_time = 0;
       this.$refs.map_box1.style.transition = "none";
@@ -312,21 +301,34 @@ export default {
         this.yEnd = Math.round(
           (this.touch_data.pageY - this.head_h) / this.scale
         );
+      } else if (this.tool == "eraser") {
+        let ctx = this.operate_txc;
+        ctx.save();
+        ctx.fillStyle = "#526CAD";
+        ctx.fillRect(this.circleXY('x'), this.circleXY('y'), 10, 10);
+        this.$store.state.eraserArr.push({
+          x: this.circleXY('x'),
+          y: this.circleXY('y')
+        })
       }
     },
     rubbermove (e) {
-      let ctx = this.operate_txc;
-      let r_x = Math.round((this.touch_data.pageX - this.left) / this.scale);
-      let r_y = Math.round(
-        (this.touch_data.pageY - this.head_h - this.top) / this.scale
-      );
       e.preventDefault();
       e != undefined
         ? (this.touch_data = e.touches[0])
         : (this.touch_data = this.touch_data);
+      if (this.tool == "eraser") {
+        let ctx = this.operate_txc;
+        ctx.save();
+        ctx.fillStyle = "#526CAD";
+        ctx.fillRect(this.circleXY('x'), this.circleXY('y'), 10, 10);
+        this.$store.state.eraserArr.push({
+          x: this.circleXY('x'),
+          y: this.circleXY('y')
+        })
+      }
     },
     rubberend (e) {
-      console.log('[  ]-314', this.touch_data)
       if (this.tool == "stop") {
         this.barrier()
       }
@@ -391,7 +393,8 @@ export default {
       const del = this.linearCurveArr.splice(-1, 1)
       console.log('[ del ]-452', del)
       this.recoverArr.push(del[0])
-      console.log('[  ]-453', this.recoverArr)
+      let ctx = this.operate_txc;
+      ctx.clearRect(0, 0, this.d_width, this.d_height);
       this.initBarrier()
     },
     //恢复>
@@ -400,17 +403,17 @@ export default {
       const del = this.recoverArr.splice(-1, 1)
       this.linearCurveArr.push(del[0])
       console.log('[  ]-461', this.linearCurveArr)
+      let ctx = this.operate_txc;
+      ctx.clearRect(0, 0, this.d_width, this.d_height);
       this.initBarrier()
     },
     initBarrier (msg) {
       console.log('[ this.linearCurveArr ]-453', this.linearCurveArr)
       let ctx = this.operate_txc;
-      ctx.clearRect(0, 0, this.d_width, this.d_height);
-      let data=msg?msg:this.linearCurveArr
+      let data = msg ? msg : this.linearCurveArr
       data.map((e) => {
         ctx.save();
         ctx.beginPath();
-        this.$store.state.stop_point = 0;
         ctx.strokeStyle = "red";
         ctx.lineWidth = "1";
         ctx.moveTo(e[0].x, e[0].y);
@@ -422,39 +425,32 @@ export default {
     },
     barrier () {
       let ctx = this.operate_txc;
-      let circleX = Math.round(
-        (this.touch_data.pageX - 30 - this.left) / this.scale
-      );
-      let circleY = Math.round((this.touch_data.pageY - 150 - this.top) / this.scale);
-      console.log('[  ]-431', circleX, circleY)
-      console.log('[  ]-415', this.left, this.top, this.scale)
       ctx.save();
       ctx.beginPath();
       ctx.fillStyle = "red";
-      ctx.arc(circleX, circleY, 2, 0, 2 * Math.PI);
+      ctx.arc(this.circleXY('x'), this.circleXY('y'), 2, 0, 2 * Math.PI);
       ctx.fill();
       ctx.restore();
       this.stop_chang_data.push({
-        x: circleX,
-        y: circleY
+        x: this.circleXY('x'),
+        y: this.circleXY('y')
       });
       if (this.stop_chang_data.length >= 2) {
         ctx.save();
         ctx.beginPath();
-        this.$store.state.stop_point = 0;
         ctx.strokeStyle = "red";
         ctx.lineWidth = "1";
         ctx.moveTo(this.stop_chang_data[0].x, this.stop_chang_data[0].y);
-        ctx.lineTo(circleX, circleY);
+        ctx.lineTo(this.circleXY('x'), this.circleXY('y'));
         ctx.stroke();
         ctx.restore();
         this.linearCurveArr.push(this.stop_chang_data)
-        this.setLineData()
+        this.$store.state.linearCurveArrP = this.setLineData(this.linearCurveArr)
         this.stop_chang_data = [];
       }
     },
-    setLineData () {
-      this.$store.state.linearCurveArrP = this.linearCurveArr.map(e => {
+    setLineData (arr) {
+      return arr.map(e => {
         return {
           start: { x: imgToMap({ mapData: this.mapData, x: e[0].x }), y: imgToMap({ mapData: this.mapData, y: e[0].y }), z: 0.0 },
           end: { x: imgToMap({ mapData: this.mapData, x: e[1].x }), y: imgToMap({ mapData: this.mapData, y: e[1].y }), z: 0.0 }
@@ -637,9 +633,10 @@ export default {
   bottom: 50px;
   left: 1150px;
 }
-.active{
+
+.active {
   position: fixed;
-    top: 150px;
-    left: 1116px;
+  top: 150px;
+  left: 1116px;
 }
 </style>
