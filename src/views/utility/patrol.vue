@@ -21,10 +21,10 @@
       </div>
       <div class="step2" v-if="step == 2">
         <div>
-          <div class="goPoint stop" @click="step = 1">查看路线</div>
+          <div class="goPoint stop" @click="step = 1">编辑路线</div>
           <div class="goPoint delList" @click="onDelList()">清除路线</div>
         </div>
-        <div class="goPoint action" @click="onBegin()" v-if="action">开启巡逻</div>
+        <div class="goPoint action" @click="onBegin()" v-if="action > 0">开启巡逻</div>
         <div class="goPoint stop" @click="onStop()" v-else>关闭巡逻</div>
       </div>
     </div>
@@ -43,7 +43,7 @@ export default {
       text: '选择位置',
       hasHistory: false,
       step: 1,
-      action: true
+      action: 1
     }
   },
   mounted () {
@@ -56,7 +56,7 @@ export default {
       console.log('[ error ]-45', error)
     }
     // 状态机
-    this.$store.state.actionStatus='patrol'
+    this.$store.state.actionStatus = 'patrol'
 
     const type = new ROSLIB.ServiceRequest({
       action: 'patrol'
@@ -119,15 +119,15 @@ export default {
         }
       );
       getMapLinkedDataList.callService(msg2, (result) => {
-        console.log('[  getPoint OK]-61', result,result.success)
+        console.log('[  getPoint OK]-61', result, result.success)
         if (result.success) {
           let msg = []
           try {
             msg = JSON.parse(result.message)
-            this.$store.state.patrol_arr = JSON.parse(msg[0].point_list);
+            this.$store.state.patrol_arr = { msg: JSON.parse(msg[0].point_list), init: true };
             this.text = '开始巡逻'
             this.hasHistory = true
-            this.step =2
+            this.step = 2
           } catch (error) {
             this.$message('获取巡逻点失败');
           }
@@ -159,45 +159,58 @@ export default {
       this.step = 2
     },
     onBegin () {
-      const point = { poses: [] }
-      this.$store.state.patrol_arr.map(e => {
-        point.poses.push(
-          {
-            header: {
-              stamp: {
-                sec: 0,
-                nanosec: 0
-              },
-              frame_id: "map"
-            },
-            pose: {
-              position: {
-                x: e.x,
-                y: e.y,
-                z: 0.0
-              },
-              orientation: {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-                w: 1.0
-              }
-            }
-          }
-        )
-      })
-      const msg = new ROSLIB.Message(point);
-      TalkerPoint.publish(msg);
-    },
-    onStop(){
-      const type = new ROSLIB.ServiceRequest({
-          cmd: 'pause'
+      if (this.action === 2) {
+        const type = new ROSLIB.ServiceRequest({
+          cmd: 'resume'
         });
         patrolState.callService(type, (res) => {
           console.log('[ patrol_control ok]-61', res)
         }, (res) => {
           console.log('[ patrol_control ERR]-61', res)
         });
+      } else {
+        const point = { poses: [] }
+        this.$store.state.patrol_arr.map(e => {
+          point.poses.push(
+            {
+              header: {
+                stamp: {
+                  sec: 0,
+                  nanosec: 0
+                },
+                frame_id: "map"
+              },
+              pose: {
+                position: {
+                  x: e.x,
+                  y: e.y,
+                  z: 0.0
+                },
+                orientation: {
+                  x: 0.0,
+                  y: 0.0,
+                  z: 0.0,
+                  w: 1.0
+                }
+              }
+            }
+          )
+        })
+        const msg = new ROSLIB.Message(point);
+        TalkerPoint.publish(msg);
+      }
+      this.action = 0
+    },
+    onStop () {
+      const type = new ROSLIB.ServiceRequest({
+        cmd: 'pause'
+      });
+      patrolState.callService(type, (res) => {
+        console.log('[ patrol_control ok]-61', res)
+      }, (res) => {
+        console.log('[ patrol_control ERR]-61', res)
+      });
+      this.action = 2
     },
     onBegin2 () {
       if (this.text === '选择位置') {

@@ -54,10 +54,10 @@ export default {
   data () {
     return {
       imgSrc: [
-        { src: require("@/assets/img/uti/uti1.svg"), text: '重定位', link: "/utility/relocation" },
+        // { src: require("@/assets/img/uti/uti1.svg"), text: '重定位', link: "/utility/relocation" },
         { src: require("@/assets/img/uti/uti2.svg"), text: '去位置点', link: "/utility/goPoint" },
         { src: require("@/assets/img/uti/uti3.svg"), text: '自主巡逻', link: "/utility/patrol" },
-        { src: require("@/assets/img/uti/uti4.svg"), text: '返回原点/充电', link: "/utility/charge" },
+        // { src: require("@/assets/img/uti/uti4.svg"), text: '返回原点/充电', link: "/utility/charge" },
         { src: require("@/assets/img/uti/uti5.svg"), text: '遥控模式', link: "/utility/telecontrol" },
         { src: require("@/assets/img/uti/uti6.svg"), text: '特征跟随', link: "/utility/following" },
         { src: require("@/assets/img/uti/uti9.svg"), text: "手势识别", link: "/utility/gesture" },

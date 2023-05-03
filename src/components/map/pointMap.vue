@@ -4,8 +4,8 @@
     <div class="fa_map_box1">
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <img id="img1" :src="mapData.src" @load="init" ref="img1" />
-        <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
+        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
+        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
         <div class="robot" v-bind:style="{
             transform:
               'translate(' +
@@ -45,8 +45,8 @@
       </div>
     </div>
     <div class="recover">
-      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool=='patrol'"/>
-      <img src="@/assets/img/seeMap/disActive.png" @click="changeTool('patrol')" v-else/>
+      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool == 'patrol'" />
+      <img src="@/assets/img/seeMap/disActive.png" @click="changeTool('patrol')" v-else />
     </div>
   </div>
 </template>
@@ -144,6 +144,11 @@ export default {
   watch: {
     robotPoint: function (n) {
       this.robotXY = { x: mapToImg({ mapData: this.mapData, x: n.x }), y: mapToImg({ mapData: this.mapData, y: n.y }) }
+    },
+    patrol_arr: function (n) {
+      if (n.init) {
+        this.$store.state.patrol_arr_area = n.msg
+      }
     }
   },
   mounted () {
@@ -151,9 +156,9 @@ export default {
     this.getMap()
   },
   methods: {
-    changeTool(type){
+    changeTool (type) {
       console.log('[  ]-155', type)
-      this.$store.state.tool=type
+      this.$store.state.tool = type
     },
     getMap () {
       const msg = new ROSLIB.ServiceRequest({
@@ -410,10 +415,10 @@ export default {
         this.$store.state.patrol_arr_area = []
       }
       let circleX = Math.round(
-        (this.touch_data.pageX -30 - this.left) / this.scale
+        (this.touch_data.pageX - 30 - this.left) / this.scale
       );
       let circleY = Math.round(
-        (this.touch_data.pageY -150- this.top) / this.scale
+        (this.touch_data.pageY - 150 - this.top) / this.scale
       );
       this.$store.state.patrol_arr_area.push({
         x: circleX,
@@ -422,7 +427,10 @@ export default {
       const xx_yy = this.patrol_arr_area.map(e => {
         return { x: imgToMap({ mapData: this.mapData, x: e.x }), y: imgToMap({ mapData: this.mapData, y: e.y }) };
       });
+
+      console.log('[  ]-426', this.$store.state.patrol_arr_area)
       this.$store.state.patrol_arr = xx_yy;
+
     },
   }
 };
@@ -647,9 +655,10 @@ export default {
     opacity: 0.1;
   }
 }
-.recover{
+
+.recover {
   position: fixed;
-    bottom: 50px;
-    left: 1150px;
+  bottom: 50px;
+  left: 1150px;
 }
 </style>

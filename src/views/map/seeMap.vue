@@ -14,7 +14,7 @@
         <img src="@/assets/img/seeMap/now.svg" />
         <p>当前地图</p>
       </div>
-      <div class="iconBtn" v-if="false" @click="onEdit()">
+      <div class="iconBtn" @click="onEdit()">
         <img src="@/assets/img/seeMap/edit.svg" />
         <p>编辑地图</p>
       </div>
