@@ -38,7 +38,7 @@ const store = new Vuex.Store({
     set_msg:null,//接收錯誤消息
     patrol_chang_data:[],
     //
-    actionStatus:'',//前端操作状态point/patrol/remote_control/localization/newMap/
+    actionStatus:'',//前端操作状态point/patrolStart(巡逻中)/patrolPause(暂停巡逻)/remote_control/localization/newMap/
     linearCurveArr:[],//禁行线点位
     linearCurveArrP:[],//禁行线点位
     eraserArr:[],//橡皮擦点位
@@ -54,10 +54,9 @@ const store = new Vuex.Store({
     },//地图数据
     showMsg:false,//控制msg提示框显示
     hasSave:true,//顶部路由=》页面保存提示控制
-    nowMapID:"",
+    nowMap:{id:"",name:''},
     patrol_arr_area:[],//图像坐标巡逻点
     patrol_arr: [],//地图坐标巡逻点
-    cmd:"",
   },
   getters: {
     mcode: state => state.mcode,

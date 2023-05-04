@@ -56,8 +56,6 @@ export default {
       console.log('[ error ]-45', error)
     }
     // 状态机
-    this.$store.state.actionStatus = 'patrol'
-
     const type = new ROSLIB.ServiceRequest({
       action: 'patrol'
     });
@@ -78,7 +76,7 @@ export default {
       })
       const msg2 = new ROSLIB.ServiceRequest(
         {
-          map_id: this.$store.state.nowMapID,
+          map_id: this.$store.state.nowMap.id,
           data: JSON.stringify(data_),
           frame_id: 'map',
           data_type: 'waypoint'
@@ -98,7 +96,7 @@ export default {
         {
           id: 1,
           data: JSON.stringify({
-            map_id: this.$store.state.nowMapID,
+            map_id: this.$store.state.nowMap.id,
             frame_id: 'map',
             point_list: JSON.stringify(data_)
           }),
@@ -114,7 +112,7 @@ export default {
     getPoint () {
       const msg2 = new ROSLIB.ServiceRequest(
         {
-          map_id: this.$store.state.nowMapID,
+          map_id: this.$store.state.nowMap.id,
           data_type: 'waypoint'
         }
       );
@@ -200,6 +198,7 @@ export default {
         TalkerPoint.publish(msg);
       }
       this.action = 0
+      this.$store.state.actionStatus = 'patrolStart'
     },
     onStop () {
       const type = new ROSLIB.ServiceRequest({
@@ -211,6 +210,7 @@ export default {
         console.log('[ patrol_control ERR]-61', res)
       });
       this.action = 2
+      this.$store.state.actionStatus = 'patrolPause'
     },
     onBegin2 () {
       if (this.text === '选择位置') {

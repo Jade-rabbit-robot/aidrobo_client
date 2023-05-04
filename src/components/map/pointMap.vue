@@ -162,7 +162,7 @@ export default {
     },
     getMap () {
       const msg = new ROSLIB.ServiceRequest({
-        id: this.$store.state.nowMapID * 1
+        id: this.$store.state.nowMap.id * 1
       });
       console.log('getMapImage', msg)
       getMapImage.callService(msg, (res) => {

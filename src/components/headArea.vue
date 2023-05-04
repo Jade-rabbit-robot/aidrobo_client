@@ -8,8 +8,8 @@
         <img src="@/assets/img/back.svg" />
       </div>
       <div class="rowR">
-        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()">{{$store.state.cmd}}</div>
-        <div class="title">阿加犀办公室大办公室</div>
+        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()">{{cmd}}</div>
+        <div class="title">{{this.$store.state.nowMap.name}}</div>
         <div class="electric"></div>
         <div class="Tool" @click="showTool = !showTool">
           <img src="@/assets/img/headTool.svg" />
@@ -37,14 +37,10 @@
         </div>
       </div>
     </div>
-    <!-- <Message>
-      <div @click="$store.state.showMsg = false">12312312</div>
-    </Message> -->
   </div>
 </template>
 
 <script>
-import Message from "@/components/message";
 import { mapState, mapMutations } from "vuex";
 
 export default {
@@ -52,10 +48,8 @@ export default {
     ...mapState([
       "showMsg",
       "hasSave",
+      "actionStatus"
     ])
-  },
-  components: {
-    Message
   },
   data () {
     return {
@@ -63,8 +57,18 @@ export default {
       showTool: false,
       set:null,
       luminance: 20,
+      cmd:'',
       voice: 0
     };
+  },
+  watch: {
+    actionStatus: function (n) {
+      if(n==='patrolStart'){
+        this.cmd='巡逻中...';
+      }else if(n==='patrolPause'){
+        this.cmd='暂停巡逻';
+      }
+    },
   },
   methods: {
     routerStart(){
@@ -72,6 +76,9 @@ export default {
       this.set=setInterval(()=>{
         num+=1
         if(num>=3){
+          if(actionStatus.includes('patrol')){
+            this.$router.push('/utility/patrol')
+          }
           clearInterval(this.set)
           console.log('[ 跳转至页面 ]-76')
         }

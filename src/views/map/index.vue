@@ -7,7 +7,7 @@
     <div class="list" v-else>
       <div class="item" v-for="(e, i) in data" :key="i" @click="onSel(e)">
         <div>{{ e.name }}</div>
-        <div v-show="e.id == $store.state.nowMapID">当前地图</div>
+        <div v-show="e.id == $store.state.nowMap.id">当前地图</div>
         <div>{{ new Date(e.create_timestamp * 1000).toLocaleString() }}</div>
         <div class="line"></div>
         <img src="@/assets/img/del.svg" @click="onDel(e)" />

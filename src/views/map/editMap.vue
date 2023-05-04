@@ -62,6 +62,7 @@ export default {
       const msg2 = new ROSLIB.ServiceRequest(
         {
           frame_id: "map",
+          map_id:this.$route.query.id,
           type: "line",
           data}
       );

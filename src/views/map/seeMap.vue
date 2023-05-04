@@ -39,7 +39,7 @@ export default {
     }
   },
   created () {
-    if (this.$store.nowMapID === this.$route.query.id) {
+    if (this.$store.nowMap.id === this.$route.query.id) {
       this.isUse = true
     }
   },
@@ -50,7 +50,7 @@ export default {
         id: this.$route.query.id*1
       });
       setCurrentMapId.callService(msg, (result) => {
-        this.$store.nowMapID=this.$route.query.id
+        this.$store.nowMap.id=this.$route.query.id
         this.$message('设置成功');
         console.log('[ setCurrentMapId OK]-61', result)
       }, (result) => {
