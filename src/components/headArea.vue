@@ -8,8 +8,8 @@
         <img src="@/assets/img/back.svg" />
       </div>
       <div class="rowR">
-        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()">{{cmd}}</div>
-        <div class="title">{{this.$store.state.nowMap.name}}</div>
+        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()">{{ cmd }}</div>
+        <div class="title">{{ this.$store.state.nowMap.name }}</div>
         <div class="electric"></div>
         <div class="Tool" @click="showTool = !showTool">
           <img src="@/assets/img/headTool.svg" />
@@ -55,36 +55,58 @@ export default {
     return {
       showTc: false,
       showTool: false,
-      set:null,
+      set: null,
       luminance: 20,
-      cmd:'',
+      cmd: '',
       voice: 0
     };
   },
   watch: {
     actionStatus: function (n) {
-      if(n==='patrolStart'){
-        this.cmd='巡逻中...';
-      }else if(n==='patrolPause'){
-        this.cmd='暂停巡逻';
+      if (n === 'patrolStart') {
+        this.cmd = '巡逻中...';
+      } else if (n === 'patrolPause') {
+        this.cmd = '暂停巡逻';
       }
     },
   },
   methods: {
-    routerStart(){
-      let num=0;
-      this.set=setInterval(()=>{
-        num+=1
-        if(num>=3){
-          if(actionStatus.includes('patrol')){
+    patrolAction(){
+      if (this.actionStatus === 'patrolStart') {
+        const type = new ROSLIB.ServiceRequest({
+          cmd: 'pause'
+        });
+        patrolState.callService(type, (res) => {
+          console.log('[ patrol_control ok]-61', res)
+        }, (res) => {
+          console.log('[ patrol_control ERR]-61', res)
+        });
+        this.$store.state.actionStatus = 'patrolPause'
+      } else {
+        const type = new ROSLIB.ServiceRequest({
+          cmd: 'resume'
+        });
+        patrolState.callService(type, (res) => {
+          console.log('[ patrol_control ok]-61', res)
+        }, (res) => {
+          console.log('[ patrol_control ERR]-61', res)
+        });
+      }
+    },
+    routerStart () {
+      this.patrolAction()
+      let num = 0;
+      this.set = setInterval(() => {
+        num += 1
+        if (num >= 3) {
+          if (this.actionStatus.includes('patrol')) {
             this.$router.push('/utility/patrol')
           }
           clearInterval(this.set)
-          console.log('[ 跳转至页面 ]-76')
         }
-      },1000)
+      }, 1000)
     },
-    routerEnd(){
+    routerEnd () {
       clearInterval(this.set)
     },
     routerFun (path) {
@@ -181,6 +203,9 @@ export default {
       opacity: 1;
       background: #2f3758;
       backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .title {

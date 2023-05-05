@@ -1,6 +1,6 @@
 <template>
   <div class="newMapBox">
-    <ShowMap />
+    <ShowMap :initData="initData"/>
     <div class="right point">
       <div class="step1" v-if="step == 1">
         <div class="rText" v-if="!$store.state.patrol_arr.length">
@@ -33,20 +33,32 @@
 
 <script>
 import ShowMap from "@/components/map/pointMap";
+import { mapState, mapMutations } from "vuex";
 
 export default {
   components: {
     ShowMap
   },
-  data () {
+  computed: {
+    ...mapState([
+      "actionStatus"
+    ])
+  },
+  data() {
     return {
       text: '选择位置',
       hasHistory: false,
       step: 1,
+      initData:false,
       action: 1
     }
   },
-  mounted () {
+  mounted() {
+    if (this.actionStatus === 'patrolStart') {
+      this.action = 0;
+    } else if (this.actionStatus === 'patrolPause') {
+      this.action = 2;
+    }
     this.$store.state.hasSave = false;
     this.$store.state.patrol_arr = [];
     this.$store.state.patrol_arr_area = [];
@@ -70,7 +82,7 @@ export default {
     });
   },
   methods: {
-    addPoint (data) {
+    addPoint(data) {
       const data_ = data.map((e) => {
         return { x: e.x, y: e.y, z: 0 }
       })
@@ -88,7 +100,7 @@ export default {
         console.log('[  addPoint ERR]-61', result)
       });
     },
-    updatePoint (data) {
+    updatePoint(data) {
       const data_ = data.map((e) => {
         return { x: e.x, y: e.y, z: 0 }
       })
@@ -109,7 +121,7 @@ export default {
         console.log('[  updatePoint ERR]-61', result)
       });
     },
-    getPoint () {
+    getPoint() {
       const msg2 = new ROSLIB.ServiceRequest(
         {
           map_id: this.$store.state.nowMap.id,
@@ -117,12 +129,12 @@ export default {
         }
       );
       getMapLinkedDataList.callService(msg2, (result) => {
-        console.log('[  getPoint OK]-61', result, result.success)
         if (result.success) {
           let msg = []
           try {
             msg = JSON.parse(result.message)
-            this.$store.state.patrol_arr = { msg: JSON.parse(msg[0].point_list), init: true };
+            this.initData=true
+            this.$store.state.patrol_arr = JSON.parse(msg[0].point_list);
             this.text = '开始巡逻'
             this.hasHistory = true
             this.step = 2
@@ -137,15 +149,15 @@ export default {
         console.log('[  getPoint ERR]-61', result)
       });
     },
-    onDelOne (i) {
+    onDelOne(i) {
       this.$store.state.patrol_arr.splice(i, 1)
       this.$store.state.patrol_arr_area.splice(i, 1)
     },
-    onDelList () {
+    onDelList() {
       this.$store.state.patrol_arr = []
       this.$store.state.patrol_arr_area = []
     },
-    onSave () {
+    onSave() {
       if (!this.$store.state.patrol_arr.length) {
         return false
       }
@@ -156,7 +168,7 @@ export default {
       }
       this.step = 2
     },
-    onBegin () {
+    onBegin() {
       if (this.action === 2) {
         const type = new ROSLIB.ServiceRequest({
           cmd: 'resume'
@@ -168,7 +180,8 @@ export default {
         });
       } else {
         const point = { poses: [] }
-        this.$store.state.patrol_arr.map(e => {
+        let mapPoint = this.$store.state.patrol_arr
+        mapPoint.map(e => {
           point.poses.push(
             {
               header: {
@@ -200,7 +213,7 @@ export default {
       this.action = 0
       this.$store.state.actionStatus = 'patrolStart'
     },
-    onStop () {
+    onStop() {
       const type = new ROSLIB.ServiceRequest({
         cmd: 'pause'
       });
@@ -212,7 +225,7 @@ export default {
       this.action = 2
       this.$store.state.actionStatus = 'patrolPause'
     },
-    onBegin2 () {
+    onBegin2() {
       if (this.text === '选择位置') {
         this.$store.state.tool = 'patrol'
         this.text = '开始巡逻'

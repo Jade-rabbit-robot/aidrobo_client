@@ -6,7 +6,7 @@
         <p>地图名称：</p>
         <p class="mapName">{{ $route.query.mapName }}</p>
       </div>
-      <div class="iconBtn" @click="onUse()" v-if="!isUse">
+      <div class="iconBtn" @click="onUse()" v-if="isUse">
         <img src="@/assets/img/seeMap/use.svg" />
         <p>使用地图</p>
       </div>
@@ -38,10 +38,14 @@ export default {
       isUse: false
     }
   },
-  created () {
-    if (this.$store.nowMap.id === this.$route.query.id) {
+  mounted(){
+    if (this.$store.state.nowMap.id === this.$route.query.id) {
       this.isUse = true
     }
+  },
+  created () {
+
+   
   },
   methods: {
     onUse () {
@@ -50,7 +54,7 @@ export default {
         id: this.$route.query.id*1
       });
       setCurrentMapId.callService(msg, (result) => {
-        this.$store.nowMap.id=this.$route.query.id
+        this.$store.state.nowMap.id=this.$route.query.id
         this.$message('设置成功');
         console.log('[ setCurrentMapId OK]-61', result)
       }, (result) => {

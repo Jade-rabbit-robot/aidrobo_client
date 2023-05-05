@@ -4,8 +4,8 @@
     <div class="fa_map_box1">
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
-        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
+        <img id="img1" :src="mapData.src" @load="init" ref="img1" />
+        <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
         <div class="map_box2">
           <canvas id="operate" ref="operate"></canvas>
         </div>
@@ -13,9 +13,9 @@
     </div>
     <div class="img2">
       <div class="show_img" ref="show_img" v-bind:style="{
-          'margin-top': img2_top + 'px',
-          'margin-left': img2_left + 'px',
-        }"></div>
+        'margin-top': img2_top + 'px',
+        'margin-left': img2_left + 'px',
+      }"></div>
       <img id="img2" :src="mapData.src" ref="img2" />
     </div>
     <div class="map_tool">
@@ -29,7 +29,7 @@
       <img src="@/assets/img/editMap/recover.png" @click="recover()" />
     </div>
     <div class="active" v-if="toolType == 'stop' || toolType == 'eraser'">
-      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool == 'stop'||tool == 'eraser'" />
+      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool == 'stop' || tool == 'eraser'" />
       <img src="@/assets/img/seeMap/disActive.png" @click="changeTool(toolType)" v-else />
     </div>
   </div>
@@ -40,7 +40,7 @@ import { mapState, mapMutations } from "vuex";
 import { changeStr, mapToImg, imgToMap } from "@/assets/common"
 
 export default {
-  props: ['toolType'],
+  props: ['toolType', 'initData'],
   data () {
     return {
       recoverArr: [],
@@ -110,10 +110,21 @@ export default {
     robotPoint: function (n) {
       this.robotXY = { x: mapToImg({ mapData: this.mapData, x: n.x }), y: mapToImg({ mapData: this.mapData, y: n.y }) }
     },
-    linearCurveArrP: function (n) {
+    initData: function (n) {
       //斤新鲜会天
-      if (n.init) {
-        this.initBarrier(n.msg)
+      if (n) {
+        const arr = []
+        this.linearCurveArr = this.linearCurveArrP.map((e, i) => {
+          return [{
+            x: mapToImg({ mapData: this.mapData, x: e.start.x }),
+            y: mapToImg({ mapData: this.mapData, y: e.start.y })
+          },
+          {
+            x: mapToImg({ mapData: this.mapData, x: e.end.x }),
+            y: mapToImg({ mapData: this.mapData, x: e.end.y })
+          }]
+        })
+        this.initBarrier()
       }
     }
   },
@@ -408,10 +419,10 @@ export default {
       this.initBarrier()
     },
     initBarrier (msg) {
-      console.log('[ this.linearCurveArr ]-453', this.linearCurveArr)
       let ctx = this.operate_txc;
       let data = msg ? msg : this.linearCurveArr
       data.map((e) => {
+        console.log(e)
         ctx.save();
         ctx.beginPath();
         ctx.strokeStyle = "red";
@@ -421,7 +432,6 @@ export default {
         ctx.stroke();
         ctx.restore();
       })
-      this.setLineData()
     },
     barrier () {
       let ctx = this.operate_txc;
@@ -638,5 +648,4 @@ export default {
   position: fixed;
   top: 150px;
   left: 1116px;
-}
-</style>
+}</style>
