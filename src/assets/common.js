@@ -30,3 +30,14 @@ export const imgToMap = ({ mapData, y, x }) => {
     return  x * mapData.resolution +  mapData.positionX;
   }
 }
+export const routerObj={
+  'home':'首页',
+  'map':'地图管理',
+  'newMap':"新建地图",
+  'editMap':"编辑地图",
+  'seeMap':"查看地图",
+  'site':"设置",
+  'utility':"应用功能",
+  'goPoint':"去位置点",
+  'telecontrol':"遥控",
+}

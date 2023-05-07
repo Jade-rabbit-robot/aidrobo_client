@@ -4,8 +4,8 @@
     <div class="fa_map_box1">
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <img id="img1" :src="mapData.src" @load="init" ref="img1" />
-        <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
+        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
+        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
         <div class="map_box2">
           <canvas id="operate" ref="operate"></canvas>
         </div>
@@ -121,7 +121,7 @@ export default {
           },
           {
             x: mapToImg({ mapData: this.mapData, x: e.end.x }),
-            y: mapToImg({ mapData: this.mapData, x: e.end.y })
+            y: mapToImg({ mapData: this.mapData, y: e.end.y })
           }]
         })
         this.initBarrier()
@@ -283,10 +283,7 @@ export default {
       this.$refs.operate.style.transform = "scale(" + this.scale + ")";
       this.$refs.img2.width = img1.width / 11;
       this.$refs.show_img.style.width = this.$refs.map.offsetWidth / 11 + "px";
-      this.$refs.show_img.style.height =
-        this.$refs.map.offsetHeight / 11 + "px";
-
-
+      this.$refs.show_img.style.height = this.$refs.map.offsetHeight / 11 + "px";
     },
     circleXY (n) {
       let circleX = Math.round(
@@ -419,14 +416,14 @@ export default {
       this.initBarrier()
     },
     initBarrier (msg) {
-      let ctx = this.operate_txc;
+      let operate = document.getElementById("operate");
+      let ctx = operate.getContext("2d");
       let data = msg ? msg : this.linearCurveArr
       data.map((e) => {
-        console.log(e)
         ctx.save();
         ctx.beginPath();
         ctx.strokeStyle = "red";
-        ctx.lineWidth = "1";
+        ctx.lineWidth = "3";
         ctx.moveTo(e[0].x, e[0].y);
         ctx.lineTo(e[1].x, e[1].y);
         ctx.stroke();
@@ -648,4 +645,5 @@ export default {
   position: fixed;
   top: 150px;
   left: 1116px;
-}</style>
+}
+</style>

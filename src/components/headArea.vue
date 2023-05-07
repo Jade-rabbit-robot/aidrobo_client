@@ -1,39 +1,33 @@
 <template>
   <div class="headBox">
     <div class="toolRow">
-      <div class="home" @click="routerFun('/')">
-        <img src="@/assets/img/homeico.svg" />
+      <div v-if="routerN !== '/'">
+        <div class="home" @click="routerFun('/')">
+          <img src="@/assets/img/homeico.svg" />
+        </div>
+        <div class="home home2" @click="routerFun()">
+          <img src="@/assets/img/back.svg" />
+        </div>
+        <span class="routerTxt">{{ routerTxt }}</span>
       </div>
-      <div class="home home2" @click="routerFun()">
-        <img src="@/assets/img/back.svg" />
+      <div v-else>
+        <div class="home" @click="location.reload();">
+          <img src="@/assets/img/home/refresh.png" />
+        </div>
       </div>
       <div class="rowR">
-        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()">{{ cmd }}</div>
-        <div class="title">{{ this.$store.state.nowMap.name }}</div>
-        <div class="electric"></div>
-        <div class="Tool" @click="showTool = !showTool">
-          <img src="@/assets/img/headTool.svg" />
+        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()" :style="{ opacity: cmd ? 1 : 0 }">{{ cmd }}
         </div>
-      </div>
-    </div>
-    <div class="toolBox" v-show="showTool">
-      <div class="btn btn1"></div>
-      <div class="btn btn2"></div>
-      <div class="btn btn3"></div>
-      <div class="rightBox">
-        <div class="right1">
-          <div class="rTop" @click="add('luminance')"></div>
-          <div class="rBody">
-            <div class="rBodyBg" :style="{ height: luminance + '%' }"></div>
-          </div>
-          <div class="rTop" @click="minus('luminance')"></div>
+        <div class="title show"  @click="relocation()">
+          <img src="@/assets/img/home/mapName.png" />
+          <span>{{ this.$store.state.nowMap.name || '无地图' }}</span>
         </div>
-        <div class="right2">
-          <div class="rTop" @click="add('voice')"></div>
-          <div class="rBody">
-            <div class="rBodyBg" :style="{ height: voice + '%' }"></div>
+        <div class="electric">
+          <img src="@/assets/img/home/electric.png" />
+          <div>
+            <div :style="{ 'width': '100%' }"></div>
           </div>
-          <div class="rTop" @click="minus('voice')"></div>
+          {{ electric }}%
         </div>
       </div>
     </div>
@@ -42,7 +36,7 @@
 
 <script>
 import { mapState, mapMutations } from "vuex";
-
+import { routerObj } from '@/assets/common'
 export default {
   computed: {
     ...mapState([
@@ -53,11 +47,13 @@ export default {
   },
   data () {
     return {
+      electric: 100,
       showTc: false,
-      showTool: false,
       set: null,
       luminance: 20,
       cmd: '',
+      routerN: '',
+      routerTxt: '',
       voice: 0
     };
   },
@@ -69,9 +65,41 @@ export default {
         this.cmd = '暂停巡逻';
       }
     },
+    $route (to, from) {
+      this.routerN = to.path
+      this.routerTxt = routerObj[to.name]
+      // console.log('//从哪来',from.path);
+      console.log('//到哪去', to);
+    }
   },
   methods: {
-    patrolAction(){
+    relocation(){
+      const point = {
+        header: {
+          stamp: {
+            sec: 0,
+            nanosec: 0
+          },
+          frame_id: "map"
+        },
+        pose: {
+          position: {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0
+          },
+          orientation: {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            w: 1.0
+          }
+        }
+      };
+      var pose_msg = new ROSLIB.Message(point);
+      PoseStamped.publish(pose_msg);
+    },
+    patrolAction () {
       if (this.actionStatus === 'patrolStart') {
         const type = new ROSLIB.ServiceRequest({
           cmd: 'pause'
@@ -142,6 +170,7 @@ export default {
   },
   mounted () {
     console.log("[  ]-45", this.$router.history.current.path);
+    this.routerN = this.$router.history.current.path
   }
 };
 </script>
@@ -205,7 +234,7 @@ export default {
       backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
-      justify-content: center;
+      padding: 0 30px;
     }
 
     .title {
@@ -214,11 +243,34 @@ export default {
       overflow: hidden;
       text-overflow: ellipsis;
       line-height: 80px;
+
+      &>span {
+        margin-left: 20px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
 
     .electric {
-      width: 120px;
-      // background: #fff;
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 177px;
+
+      &>img {
+        margin-right: 10px;
+      }
+
+      &>div {
+        right: 98px;
+        width: 72px;
+        position: absolute;
+
+        &>div {
+          height: 25px;
+          background: #c6cfe9;
+        }
+      }
     }
 
     .Tool {
@@ -307,5 +359,11 @@ export default {
       }
     }
   }
+}
+
+.routerTxt {
+  position: absolute;
+  left: 230px;
+  top: 46px;
 }
 </style>

@@ -32,6 +32,7 @@ export default new Router({
   routes: [
     {
       path: '/',
+      name:'home',
       component: Home,
     },
     {
@@ -78,6 +79,7 @@ export default new Router({
     },
     {
       path: '/site',
+      name:'site',
       component: Site,
     },
     {
@@ -87,14 +89,17 @@ export default new Router({
     },
     {
       path: '/utility/relocation',
+      name:'relocation',
       component: relocation,
     },
     {
       path: '/utility/goPoint',
+      name:'goPoint',
       component: goPoint,
     },
     {
       path: '/utility/patrol',
+      name:'patrol',
       component: patrol,
     },
     {
@@ -103,6 +108,7 @@ export default new Router({
     },
     {
       path: '/utility/telecontrol',
+      name:'telecontrol',
       component: telecontrol,
     },
     {

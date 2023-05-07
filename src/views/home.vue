@@ -41,7 +41,7 @@ export default {
     // 获取当前地图id
     getCurrentMapId.callService(null, (result) => {
       this.$store.state.nowMap = {id:result.map_id,name:result.map_name}
-      
+
       console.log('[  finishMap OK]-61', result)
     }, (result) => {
       console.log('[  finishMap ERR]-61', result)

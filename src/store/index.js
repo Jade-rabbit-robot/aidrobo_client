@@ -44,11 +44,9 @@ const store = new Vuex.Store({
     eraserArr:[],//橡皮擦点位
     mapData:{
       src: "",
-      // width: 1930,
-      // height: 3909,
-      width: 451,
-      height: 387,
-      resolution: 0,
+      width: 1930,
+      height: 3909,
+      resolution:0.05000000074505806,
       positionX: 0,
       positionY: 0,
     },//地图数据

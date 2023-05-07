@@ -10,7 +10,7 @@
         <img src="@/assets/img/seeMap/use.svg" />
         <p>使用地图</p>
       </div>
-      <div class="iconBtn" v-else>
+      <div class="iconBtn usemap" v-else>
         <img src="@/assets/img/seeMap/now.svg" />
         <p>当前地图</p>
       </div>
@@ -45,7 +45,7 @@ export default {
   },
   created () {
 
-   
+
   },
   methods: {
     onUse () {
@@ -198,5 +198,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.usemap{
+  background: linear-gradient(110deg, rgba(55,89,238,0.64) 11%, rgba(30,157,244,0.37) 89%);
 }
 </style>

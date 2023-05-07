@@ -148,7 +148,7 @@ export default {
     },
     initData: function (n) {
       if (n) {
-        this.$store.state.patrol_arr_area = n.msg.map(e => {
+        this.$store.state.patrol_arr_area = this.patrol_arr.map(e => {
           return { x: mapToImg({ mapData: this.mapData, x: e.x }), y: mapToImg({ mapData: this.mapData, y: e.y }) }
         })
       }

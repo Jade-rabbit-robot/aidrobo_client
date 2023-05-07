@@ -57,7 +57,7 @@ export default {
   font-weight: normal;
   line-height: 31px;
   letter-spacing: 0em;
- color: #fff;
+  color: #fff;
 }
 
 .showBox {
@@ -104,9 +104,11 @@ export default {
   font-size: 50px;
   margin-bottom: 30px;
 }
-.el-message-box__headerbtn{
+
+.el-message-box__headerbtn {
   font-size: 50px;
 }
+
 .el-message-box__message {
   color: #fff;
   font-size: 35px;
@@ -114,6 +116,22 @@ export default {
 }
 
 .el-message-box__message div {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
+
+  }
+.el-message {
+  padding: 30px 60px;
+  border-radius: 20px;
+  background: #212A53;
+  border: 5px solid #212A53;
+  backdrop-filter: blur(10.88px);
+  box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
+  color: #fff;
 }
+  .el-message .el-icon-info,
+  .el-message--info .el-message__content {
+    font-size: 50px;
+  color: #fff;
+
+  }
 </style>

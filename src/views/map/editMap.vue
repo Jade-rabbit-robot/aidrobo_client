@@ -1,6 +1,6 @@
 <template>
   <div class="newMapBox">
-    <ShowMap class="map" :toolType="toolType" :initData="initData"/>
+    <ShowMap class="map" :toolType="toolType" :initData="initData" />
     <div class="right">
       <div v-show="rubber && !stop" class="titleBox">
         <p><img src="@/assets/img/editMap/rubber.svg" />橡皮擦</p>
@@ -33,12 +33,12 @@ export default {
   components: {
     ShowMap
   },
-  data() {
+  data () {
     return {
       overText: '保存地图',
       rubber: false,
       stop: false,
-      initData:false,
+      initData: false,
       toolType: ''
     }
   },
@@ -49,17 +49,19 @@ export default {
       "mapData",
     ])
   },
-  mounted() {
+  mounted () {
     this.$store.state.hasSave = false;
     try {
-      this.getForbidden()
+      setTimeout(() => {
+        this.getForbidden()
+      }, 1000)
     } catch (error) {
     }
     // 状态机
     this.$store.state.actionStatus = 'edit'
   },
   methods: {
-    DrawPicture(data) {
+    DrawPicture (data) {
       const msg2 = new ROSLIB.ServiceRequest(
         {
           frame_id: "map",
@@ -77,7 +79,7 @@ export default {
         console.log('[  DrawPicture ERR]-61', result)
       });
     },
-    getForbidden() {
+    getForbidden () {
       const msg2 = new ROSLIB.ServiceRequest(
         {
           map_id: this.$route.query.id * 1,
@@ -87,11 +89,11 @@ export default {
         if (result.success) {
           let msg = []
           try {
-            console.log('result.message==>',typeof result.message)
+            console.log('result.message==>', typeof result.message)
             if (result.message.length) {
               msg = result.message
-              console.log('[ msg ]-75', msg)
-              this.$store.state.linearCurveArrP = { init: true, msg }
+              this.initData = true
+              this.$store.state.linearCurveArrP = msg
               this.hasHistory = true
             }
 
@@ -106,7 +108,7 @@ export default {
         console.log('[  getForbidden ERR]-61', result)
       });
     },
-    addForbidden(data) {
+    addForbidden (data) {
       const data_ = data
       const msg2 = new ROSLIB.ServiceRequest(
         {
@@ -122,7 +124,7 @@ export default {
         console.log('[  addForbidden ERR]-61', result)
       });
     },
-    updateForbidden(data) {
+    updateForbidden (data) {
       const data_ = data
       const msg2 = new ROSLIB.ServiceRequest(
         {
@@ -141,20 +143,21 @@ export default {
         console.log('[  updateForbidden ERR]-61', result)
       });
     },
-    onRubber() {
+    onRubber () {
       this.toolType = 'eraser'
       this.rubber = true;
       this.overText = '完成'
       this.$store.state.tool = ''
     },
-    onStop() {
+    onStop () {
       this.toolType = 'stop'
       this.stop = true
       this.overText = '完成'
       this.$store.state.tool = ''
     },
-    onOver() {
+    onOver () {
       if (this.overText == '保存地图') {
+        console.log('[ this.linearCurveArrP. ]-158', this.linearCurveArrP)
         //禁行线
         if (this.linearCurveArrP.length) {
           if (this.hasHistory) {
@@ -165,12 +168,13 @@ export default {
           this.DrawPicture(this.linearCurveArrP)
         }
       } else {
+        this.toolType = ''
         this.rubber = false
         this.stop = false
         this.overText = '保存地图'
       }
     },
-    onOut() {
+    onOut () {
       this.$confirm(`<div>是否确认退出</div><div>（请确认所做操作已保存）</div>`, '退出编辑', {
         dangerouslyUseHTMLString: true,
         center: true
