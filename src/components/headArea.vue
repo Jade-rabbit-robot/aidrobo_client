@@ -11,7 +11,7 @@
         <span class="routerTxt">{{ routerTxt }}</span>
       </div>
       <div v-else>
-        <div class="home" @click="location.reload();">
+        <div class="home" @click="refreshFun()">
           <img src="@/assets/img/home/refresh.png" />
         </div>
       </div>
@@ -73,7 +73,18 @@ export default {
     }
   },
   methods: {
+    refreshFun(){
+      location.reload();
+    },
     relocation(){
+      const modeMsg = new ROSLIB.ServiceRequest({
+        action: 'localization'
+      });
+      robotMode.callService(modeMsg, (result) => {
+        console.log('[ robotMode OK]-61', result)
+      }, (result) => {
+        console.log('[ robotMode ERR]-61', result)
+      });
       const point = {
         header: {
           stamp: {

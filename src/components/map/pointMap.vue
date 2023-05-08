@@ -147,7 +147,7 @@ export default {
       this.robotXY = { x: mapToImg({ mapData: this.mapData, x: n.x }), y: mapToImg({ mapData: this.mapData, y: n.y }) }
     },
     initData: function (n) {
-      if (n) {
+      if (n&&this.tool==='patrol') {
         this.$store.state.patrol_arr_area = this.patrol_arr.map(e => {
           return { x: mapToImg({ mapData: this.mapData, x: e.x }), y: mapToImg({ mapData: this.mapData, y: e.y }) }
         })
@@ -172,7 +172,6 @@ export default {
         console.log('[ getMapImage OK]-61', res)
         if (res.success) {
           this.mapData = changeStr(res.map)
-          // this.chargeXY = { x: this.xx2(0), y: this.yy2(0) }
         }
       }, (result) => {
         console.log('[ getMapImage ERR]-61', result)
@@ -297,9 +296,6 @@ export default {
       e.currentTarget.classList.remove("cli_box");
     },
     init() {
-      if (!this.init_img_data) {
-        return false;
-      }
       this.top = this.left = this.img2_top = this.img2_left = 0;
       this.scale = 1;
       this.$refs.operate.style.transform = "scale(" + this.scale + ")";

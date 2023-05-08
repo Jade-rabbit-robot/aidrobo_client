@@ -54,6 +54,7 @@ export default {
     }
   },
   mounted() {
+    this.$store.state.tool = 'patrol'
     if (this.actionStatus === 'patrolStart') {
       this.action = 0;
     } else if (this.actionStatus === 'patrolPause') {

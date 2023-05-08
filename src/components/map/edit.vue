@@ -4,8 +4,8 @@
     <div class="fa_map_box1">
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
-        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
+        <img id="img1" :src="mapData.src" @load="init" ref="img1" />
+        <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
         <div class="map_box2">
           <canvas id="operate" ref="operate"></canvas>
         </div>
