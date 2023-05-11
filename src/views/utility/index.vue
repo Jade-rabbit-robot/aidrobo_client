@@ -44,25 +44,22 @@
 
 <script>
 import fullscreenLoading from "../../components/fullscreenLoading.js";
-const CMD = {
-  '/utility/following': 'follow',
-  '/utility/gesture': 'hand',
-  '/utility/object-recognition': 'object'
-}
 
 export default {
   data () {
     return {
+      // imgSrc 中，需要执行 startCamera 的才加 cmd 字段
       imgSrc: [
         // { src: require("@/assets/img/uti/uti1.svg"), text: '重定位', link: "/utility/relocation" },
         { src: require("@/assets/img/uti/uti2.svg"), text: '去位置点', link: "/utility/goPoint" },
         { src: require("@/assets/img/uti/uti3.svg"), text: '自主巡逻', link: "/utility/patrol" },
         // { src: require("@/assets/img/uti/uti4.svg"), text: '返回原点/充电', link: "/utility/charge" },
         { src: require("@/assets/img/uti/uti5.svg"), text: '遥控模式', link: "/utility/telecontrol" },
-        { src: require("@/assets/img/uti/uti6.svg"), text: '特征跟随', link: "/utility/following" },
-        { src: require("@/assets/img/uti/uti9.svg"), text: "手势识别", link: "/utility/gesture" },
-        { src: require("@/assets/img/uti/uti7.svg"), text: '物品识别', link: "/utility/object-recognition"},
-        { src: require("@/assets/img/uti/uti8.svg"), text: '资源看板' },
+        { src: require("@/assets/img/uti/uti6.svg"), text: '人形跟随', link: "/utility/following", cmd: 'follow' },
+        { src: require("@/assets/img/uti/face.svg"), text: '人脸跟随', link: "/utility/following", cmd: 'face' },
+        { src: require("@/assets/img/uti/uti9.svg"), text: "手势识别", link: "/utility/gesture", cmd: 'hand' },
+        { src: require("@/assets/img/uti/uti7.svg"), text: '物品识别', link: "/utility/object-recognition", cmd: 'object'},
+        // { src: require("@/assets/img/uti/uti8.svg"), text: '资源看板' },
       ],
       data: null,
       isSel: null,
@@ -101,9 +98,9 @@ export default {
       try {
         let link = undefined;
         // 进入某些页面前，先运行一些特定逻辑
-        if(Object.keys(CMD).includes(item.link)) {
+        if(item.cmd) {
           loading = fullscreenLoading();
-          const rgbSize = await this.startCamera(CMD[item.link]);
+          const rgbSize = await this.startCamera(item.cmd);
           if(!rgbSize.success || !rgbSize.message) {
             throw '';
           }

@@ -6,7 +6,7 @@
         <p>地图名称：</p>
         <p class="mapName">{{ $route.query.mapName }}</p>
       </div>
-      <div class="iconBtn" @click="onUse()" v-if="isUse">
+      <div class="iconBtn" @click="onUse()" v-if="!isUse">
         <img src="@/assets/img/seeMap/use.svg" />
         <p>使用地图</p>
       </div>

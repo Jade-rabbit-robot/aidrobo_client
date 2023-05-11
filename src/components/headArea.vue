@@ -62,7 +62,7 @@ export default {
       if (n === 'patrolStart') {
         this.cmd = '巡逻中...';
       } else if (n === 'patrolPause') {
-        this.cmd = '暂停巡逻';
+        this.cmd = '恢复巡逻';
       }
     },
     $route (to, from) {
@@ -77,13 +77,16 @@ export default {
       location.reload();
     },
     relocation(){
+      console.log('头部点击定位')
       const modeMsg = new ROSLIB.ServiceRequest({
         action: 'localization'
       });
       robotMode.callService(modeMsg, (result) => {
         console.log('[ robotMode OK]-61', result)
+        this.$message('定位成功');
       }, (result) => {
         console.log('[ robotMode ERR]-61', result)
+        this.$message('定位失败');
       });
       const point = {
         header: {
@@ -111,6 +114,7 @@ export default {
       PoseStamped.publish(pose_msg);
     },
     patrolAction () {
+      console.log('this.actionStatus',this.actionStatus)
       if (this.actionStatus === 'patrolStart') {
         const type = new ROSLIB.ServiceRequest({
           cmd: 'pause'
@@ -122,6 +126,7 @@ export default {
         });
         this.$store.state.actionStatus = 'patrolPause'
       } else {
+        this.$store.state.actionStatus = 'patrolStart'
         const type = new ROSLIB.ServiceRequest({
           cmd: 'resume'
         });

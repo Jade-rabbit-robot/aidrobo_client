@@ -45,7 +45,7 @@
       </div>
     </div>
     <div class="recover">
-      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool == 'patrol'" />
+      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool == 'patrol'||tool == 'point'" />
       <img src="@/assets/img/seeMap/disActive.png" @click="changeTool('patrol')" v-else />
     </div>
   </div>
@@ -56,7 +56,7 @@ import { mapState, mapMutations } from "vuex";
 import { changeStr, mapToImg, imgToMap } from "@/assets/common"
 
 export default {
-  props:["initData"],
+  props: ["initData"],
   data() {
     return {
       mapData: {
@@ -147,7 +147,7 @@ export default {
       this.robotXY = { x: mapToImg({ mapData: this.mapData, x: n.x }), y: mapToImg({ mapData: this.mapData, y: n.y }) }
     },
     initData: function (n) {
-      if (n&&this.tool==='patrol') {
+      if (n) {
         this.$store.state.patrol_arr_area = this.patrol_arr.map(e => {
           return { x: mapToImg({ mapData: this.mapData, x: e.x }), y: mapToImg({ mapData: this.mapData, y: e.y }) }
         })
@@ -160,8 +160,16 @@ export default {
   },
   methods: {
     changeTool(type) {
-      console.log('[  ]-155', type)
-      this.$store.state.tool = type
+      if (!type) {
+        this.$store.state.tool = ''
+      } else {
+        if (window.location.hash.includes('patrol')) {
+          this.$store.state.tool = 'patrol'
+        } else {
+          this.$store.state.tool = 'point'
+        }
+      }
+
     },
     getMap() {
       const msg = new ROSLIB.ServiceRequest({

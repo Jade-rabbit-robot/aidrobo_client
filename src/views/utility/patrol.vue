@@ -21,7 +21,7 @@
       </div>
       <div class="step2" v-if="step == 2">
         <div>
-          <div class="goPoint stop" @click="step = 1">编辑路线</div>
+          <div class="goPoint stop" @click="editPatrolFun()">编辑路线</div>
           <div class="goPoint delList" @click="onDelList()">清除路线</div>
         </div>
         <div class="goPoint action" @click="onBegin()" v-if="action > 0">开启巡逻</div>
@@ -53,8 +53,16 @@ export default {
       action: 1
     }
   },
+  watch: {
+    actionStatus: function (n) {
+      if (n === 'patrolStart') {
+        this.action = 0;
+      } else if (n === 'patrolPause') {
+        this.action = 2;
+      }
+    },
+  },
   mounted() {
-    this.$store.state.tool = 'patrol'
     if (this.actionStatus === 'patrolStart') {
       this.action = 0;
     } else if (this.actionStatus === 'patrolPause') {
@@ -83,6 +91,10 @@ export default {
     });
   },
   methods: {
+    editPatrolFun(){
+    this.$store.state.tool = 'patrol'
+    this.step = 1
+    },
     addPoint(data) {
       const data_ = data.map((e) => {
         return { x: e.x, y: e.y, z: 0 }
@@ -168,6 +180,7 @@ export default {
         this.addPoint(this.$store.state.patrol_arr)
       }
       this.step = 2
+      this.action = 1
     },
     onBegin() {
       if (this.action === 2) {
