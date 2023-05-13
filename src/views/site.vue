@@ -6,40 +6,13 @@
         <!-- 基础设置 -->
         <div v-if="i === 0">
           <div class="item">
-            <span>自动调整亮度</span>
+            <span>开启/关闭</span>
             <el-switch v-model="value" active-color="#05E29E" inactive-color="#1A1931" active-text="开" inactive-text="关">
             </el-switch>
           </div>
-          <div class="item">
-            <span>基础避障</span>
-            <el-switch v-model="value" active-color="#05E29E" inactive-color="#1A1931">
-            </el-switch>
-          </div>
-          <div class="item itemTip">
-            基础避障可以在遥控时提供保护
-          </div>
-        </div>
-        <!-- 锁屏设置 -->
-        <div v-else-if="i === 1">
-          <div class="item">
-            <span>自动锁屏</span>
-            <el-switch v-model="value" active-color="#05E29E" inactive-color="#1A1931" active-text="开" inactive-text="关">
-            </el-switch>
-          </div>
-          <div class="item timeInp">
-            <span>进入锁屏时间(秒)</span>
-            <el-input v-model="input" placeholder="请输入内容"></el-input>
-          </div>
-          <div class="item filesInp">
-            <span>锁屏文件</span>
-            <el-input v-model="input" placeholder="请输入内容"></el-input>
-          </div>
-        </div>
-        <div v-else-if="i === 5">
-          <div class="item">点击测试</div>
         </div>
         <div v-else>
-          <div v-for="j in item.num" :key="j" class="item">机器编号(SN):{{ item['机器编号(SN)'] }}</div>
+          <div v-for="(v,k) in item.info" :key="k" class="item">{{ k }}:{{ v}}</div>
         </div>
       </div>
     </div>
@@ -54,29 +27,23 @@ export default {
       input: '',
       box: [
         {
-          title: "基础设置"
-        },
-        {
-          title: "锁屏设置"
+          title: "表情锁屏"
         }, {
           title: "设备信息",
-          num: 2,
-          '机器编号(SN)': "T2301110001",
-          '机器编号(SN)': "T2301110001",
-        }, {
-          title: "网络设备信息",
-          num: 2,
-          '机器编号(SN)': "T2301110001",
-          '机器编号(SN)': "T2301110001",
+          info: {
+            '机器编号(SN)': "AIDR-T2301110001",
+            '软件版本': "0.5.5.1.d",
+          }
+
         }, {
           title: "主要硬件信息",
-          num: 4,
-          '机器编号(SN)': "T2301110001",
-          '机器编号(SN)': "T2301110001",
-          '机器编号(SN)': "T2301110001",
-          '机器编号(SN)': "T2301110001",
-        }, {
-          title: "测试模式"
+          info: {
+            '主板': "Firfly AIO-3588Q  8+64G",
+            '主控': "艺科 YKRC-2",
+            '激光雷达': "蓝海 LDS-50C-C20E",
+            '双目模组': "奥比中光 DaBai",
+          },
+
         },
 
       ]
@@ -94,22 +61,23 @@ export default {
 .box {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-evenly;
   color: #fff;
 
   &>div {
     padding: 40px 70px;
     width: 670px;
-    height: 350px;
+    min-height: 220px;
     border-radius: 20px;
     background: linear-gradient(116deg, rgba(71, 84, 141, 0.64) 12%, rgba(71, 66, 124, 0.52) 90%);
     backdrop-filter: blur(10.88px);
     box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
     margin-top: 30px;
     margin-bottom: 30px;
+    margin-left: 100px;
 
     .title {
       font-size: 40px;
+      font-weight: bold;
     }
 
     &>div {
@@ -164,10 +132,12 @@ export default {
   width: 140px;
   font-size: 35px;
 }
+
 .filesInp>>>.el-input {
   width: 300px;
   font-size: 35px;
 }
+
 .item>>>.el-input__inner {
   height: 70px;
   border-radius: 10px;

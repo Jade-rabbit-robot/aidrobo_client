@@ -4,8 +4,8 @@
     <div class="fa_map_box1">
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <img id="img1" :src="mapData.src" @load="init" ref="img1" />
-        <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
+        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
+        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
         <div class="map_box2">
           <canvas id="operate" ref="operate"></canvas>
         </div>
@@ -18,11 +18,9 @@
       }"></div>
       <img id="img2" :src="mapData.src" ref="img2" />
     </div>
-    <div class="map_tool">
-      <div v-for="(item, index) in items" :key="index" @touchstart="touchStart($event, index)"
-        @touchend="touchend($event)">
-        <span :class="item.name" :style="item.cla"></span>
-      </div>
+    <div class="zoom">
+      <img src="@/assets/img/seeMap/fda.png" @click="zoom('f')"/>
+      <img src="@/assets/img/seeMap/sxiao.png" @click="zoom('s')"/>
     </div>
     <div class="recover">
       <img src="@/assets/img/editMap/revocation.png" @click="revocation()" />
@@ -150,20 +148,14 @@ export default {
       });
 
     },
-    touchStart (e, n) {
-      this.$refs.map_box1.style.transition = "none";
-      e.currentTarget.classList.add("cli_box");
-      let left = this.left;
-      let top = this.top;
-      let img2_left = this.img2_left;
-      let img2_top = this.img2_top;
+    zoom(type){
       let img_w = this.$refs.img1.width;
       let img_h = this.$refs.img1.height;
-      let box_h = this.$refs.map.offsetHeight;
-      let box_w = this.$refs.map.offsetWidth;
       let s_h = top / img_h;
       let s_w = left / img_w;
-      if (n == 0) {
+      let left = this.left;
+      let top = this.top;
+      if(type==='f'){
         if (this.scale < 4) {
           this.$refs.map_box1.style.transition = "transform 1s";
           this.scale += 0.1;
@@ -177,24 +169,11 @@ export default {
           this.$refs.show_img.style.height =
             (this.$refs.img2.height * this.$refs.map.offsetHeight) / img_h +
             "px";
+
           this.top = top = s_h * img_h;
           this.left = left = s_w * img_w;
         }
-      } else if (n == 1) {
-        clearInterval(this.interval);
-        this.interval = setInterval(() => {
-          if (top < 0) {
-            top += 33;
-            img2_top -=
-              ((this.$refs.img2.height * this.$refs.map.offsetHeight) /
-                img_h /
-                this.$refs.map.offsetHeight) *
-              33;
-            this.top = top;
-            this.img2_top = img2_top;
-          }
-        }, 100);
-      } else if (n == 2) {
+      }else{
         if (img_w > this.screen_w) {
           this.$refs.map_box1.style.transition = "transform 1s";
           this.scale > 1 ? (this.scale -= 0.1) : (this.scale = 1);
@@ -214,50 +193,10 @@ export default {
             this.img2_left = this.img2_top = this.left = this.top = 0;
           }
         }
-      } else if (n == 3) {
-        // ←
-        clearInterval(this.interval);
-        this.interval = setInterval(() => {
-          if (left < 33) {
-            left += 33;
-            img2_left -=
-              ((this.$refs.img2.width * this.$refs.map.offsetWidth) /
-                img_w /
-                this.$refs.map.offsetWidth) *
-              33;
-            this.left = left;
-            this.img2_left = img2_left;
-          }
-        }, 100);
-      } else if (n == 4) {
-        clearInterval(this.interval);
-        this.interval = setInterval(() => {
-          if (box_h - img_h < top) {
-            top -= 33;
-            img2_top +=
-              ((this.$refs.img2.height * this.$refs.map.offsetHeight) /
-                img_h /
-                this.$refs.map.offsetHeight) *
-              33;
-            this.top = top;
-            this.img2_top = img2_top;
-          }
-        }, 100);
-      } else if (n == 5) {
-        clearInterval(this.interval);
-        this.interval = setInterval(() => {
-          if (left > box_w - img_w) {
-            left -= 33;
-            img2_left +=
-              ((this.$refs.img2.width * this.$refs.map.offsetWidth) /
-                img_w /
-                this.$refs.map.offsetWidth) *
-              33;
-            this.left = left;
-            this.img2_left = img2_left;
-          }
-        }, 100);
       }
+    },
+    touchStart (e, n) {
+      this.$refs.map_box1.style.transition = "none";
     },
     touchend (e) {
       clearInterval(this.interval);
@@ -344,10 +283,12 @@ export default {
     map_move () {
       try {
         if (this.tool == "") {
+          console.log('[  ]-347',this.$refs.img2.width,this.$refs.map.offsetWidth )
           let cT =
             Math.round((this.touch_data.pageY - this.head_h) / this.scale) -
             this.yEnd;
           let cL = Math.round(this.touch_data.pageX / this.scale) - this.xEnd;
+          console.log('[  ]-352',cT,cL )
           this.yEnd = Math.round(
             (this.touch_data.pageY - this.head_h) / this.scale
           );
@@ -637,13 +578,18 @@ export default {
 
 .recover {
   position: fixed;
-  bottom: 50px;
+  bottom: 160px;
   left: 1150px;
 }
 
 .active {
   position: fixed;
-  top: 150px;
-  left: 1116px;
+  bottom: 50px;
+  left: 50px;
+}
+.zoom{
+  position: fixed;
+  bottom: 50px;
+  left: 1160px;
 }
 </style>

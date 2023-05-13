@@ -16,11 +16,13 @@
         </div>
       </div>
       <div class="rowR">
-        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()" :style="{ opacity: cmd ? 1 : 0 }">{{ cmd }}
+        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()">
+          <img src="@/assets/img/home/patrol.png" />
+          <span>sdfsdfsdfsdfsdfdsf{{ cmd }}</span>
         </div>
-        <div class="title show"  @click="relocation()">
+        <div class="show" @click="relocation()">
           <img src="@/assets/img/home/mapName.png" />
-          <span>{{ this.$store.state.nowMap.name || '无地图' }}</span>
+          <span>sdfsdfsdfsdfsdfdsf{{ this.$store.state.nowMap.name || '无地图' }}</span>
         </div>
         <div class="electric">
           <img src="@/assets/img/home/electric.png" />
@@ -69,14 +71,14 @@ export default {
       this.routerN = to.path
       this.routerTxt = routerObj[to.name]
       // console.log('//从哪来',from.path);
-      console.log('//到哪去', to);
+      // console.log('//到哪去', to);
     }
   },
   methods: {
-    refreshFun(){
-      location.reload();
+    refreshFun () {
+      window.location.reload();
     },
-    relocation(){
+    relocation () {
       console.log('头部点击定位')
       const modeMsg = new ROSLIB.ServiceRequest({
         action: 'localization'
@@ -114,7 +116,6 @@ export default {
       PoseStamped.publish(pose_msg);
     },
     patrolAction () {
-      console.log('this.actionStatus',this.actionStatus)
       if (this.actionStatus === 'patrolStart') {
         const type = new ROSLIB.ServiceRequest({
           cmd: 'pause'
@@ -251,19 +252,17 @@ export default {
       display: flex;
       align-items: center;
       padding: 0 30px;
-    }
-
-    .title {
-      max-width: 400px;
-      width: 370px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      line-height: 80px;
-
+      display: flex;
+      align-items: center;
+      justify-content: center;
       &>span {
         margin-left: 20px;
         overflow: hidden;
         text-overflow: ellipsis;
+        flex-shrink: 0;
+        max-width: 200px;
+        height: 100%;
+        line-height: 80px;
       }
     }
 
