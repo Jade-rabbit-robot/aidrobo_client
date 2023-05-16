@@ -16,8 +16,11 @@
         <p>设置</p>
       </div>
     </router-link>
+    <div class="text">
+      {{ text }}
+    </div>
     <div class="logo">
-      <img src="@/assets/img/logo.png" width="500px"/>
+      <img src="@/assets/img/logo.png" width="500px" />
     </div>
   </div>
 </template>
@@ -26,6 +29,7 @@
 export default {
   data () {
     return {
+      text: 'Ver.0.3.3.1.d',
       showTc: true
     };
   },
@@ -40,7 +44,7 @@ export default {
     })
     // 获取当前地图id
     getCurrentMapId.callService(null, (result) => {
-      this.$store.state.nowMap = {id:result.map_id,name:result.map_name}
+      this.$store.state.nowMap = { id: result.map_id, name: result.map_name }
 
       console.log('[  finishMap OK]-61', result)
     }, (result) => {
@@ -78,6 +82,14 @@ export default {
   backdrop-filter: blur(10.88px);
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
 }
+
+.text {
+  font-size: 44px;
+  position: absolute;
+  bottom: 40px;
+  left: 74px;
+}
+
 .logo {
   position: absolute;
   bottom: 30px;

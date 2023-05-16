@@ -16,13 +16,13 @@
         </div>
       </div>
       <div class="rowR">
-        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()">
+        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()" :style="{ opacity: cmd ? 1 : 0 }">
           <img src="@/assets/img/home/patrol.png" />
-          <span>sdfsdfsdfsdfsdfdsf{{ cmd }}</span>
+          <span>{{ cmd }}</span>
         </div>
         <div class="show" @click="relocation()">
           <img src="@/assets/img/home/mapName.png" />
-          <span>sdfsdfsdfsdfsdfdsf{{ this.$store.state.nowMap.name || '无地图' }}</span>
+          <span>{{ this.$store.state.nowMap.name || '无地图' }}</span>
         </div>
         <div class="electric">
           <img src="@/assets/img/home/electric.png" />

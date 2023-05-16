@@ -4,8 +4,8 @@
     <div class="fa_map_box1">
       <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
         @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
-        <!-- <img id="img1" :src="mapData.src" @load="init" ref="img1" /> -->
-        <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" />
+        <img id="img1" :src="mapData.src" @load="init" ref="img1" />
+        <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
         <div class="map_box2">
           <canvas id="operate" ref="operate"></canvas>
         </div>
@@ -283,12 +283,10 @@ export default {
     map_move () {
       try {
         if (this.tool == "") {
-          console.log('[  ]-347',this.$refs.img2.width,this.$refs.map.offsetWidth )
           let cT =
             Math.round((this.touch_data.pageY - this.head_h) / this.scale) -
             this.yEnd;
           let cL = Math.round(this.touch_data.pageX / this.scale) - this.xEnd;
-          console.log('[  ]-352',cT,cL )
           this.yEnd = Math.round(
             (this.touch_data.pageY - this.head_h) / this.scale
           );
@@ -299,8 +297,8 @@ export default {
             (this.$refs.img2.height * this.$refs.map.offsetHeight) /
             this.$refs.img1.height;
           this.xEnd = Math.round(this.touch_data.pageX / this.scale);
-          this.top = this.top + cT;
-          this.left = this.left + cL;
+          this.top = this.top + cT*10;
+          this.left = this.left + cL*10;
           this.img2_top -= (show_img_h / this.$refs.map.offsetHeight) * cT; //小地图边界判断(通过比例值获取)
           this.img2_left -= (show_img_w / this.$refs.map.offsetWidth) * cL;
           if (
