@@ -7,7 +7,7 @@
       机器人与手机处在同一网络下，点击下方按钮开启遥控后，在手机端遥控App内输入所示的IP地址
     </div>
     <div v-else>
-      IP：<span>{{ ip }}</span>
+      IP：<span>{{ $store.state.IP || '--' }}</span>
     </div>
     <div class="btn" @click="btnFun">
       {{ btnText }}
@@ -20,7 +20,6 @@ export default {
   data () {
     return {
       btnText: '开启遥控模式',
-      ip: '192.168.222.167',
     }
   },
   mounted () {
@@ -28,13 +27,29 @@ export default {
   },
   methods: {
     btnFun () {
+      let msg = new ROSLIB.ServiceRequest({
+        action: 'idle'
+      });
       if (this.btnText === '开启遥控模式') {
         this.btnText = '关闭遥控模式'
+        this.$store.state.actionStatus = 'remote'
+        msg = new ROSLIB.ServiceRequest({
+          action: 'remote_control'
+        });
       } else {
+        this.$store.state.actionStatus = 'idle'
+        msg = new ROSLIB.ServiceRequest({
+          action: 'idle'
+        });
         this.$router.push({
           path: "/utility"
         });
       }
+      robotMode.callService(msg, (result) => {
+        console.log('[  finishMap OK]-61', result)
+      }, (result) => {
+        console.log('[  finishMap ERR]-61', result)
+      });
     }
   }
 }

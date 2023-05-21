@@ -32,7 +32,7 @@ export default {
     return {
       showAdd: false,
       showDel: false,
-      data:[],
+      data: [],
       isSel: null
     };
   },
@@ -61,12 +61,21 @@ export default {
         const addInp = document.querySelector("#addInp")
         const mapName = addInp.value;
         this.$router.push({ name: 'newMap', query: { mapName } })
-        // 状态机
-    this.$store.state.actionStatus='mapping'
+        // 建图模式
         const msg = new ROSLIB.ServiceRequest({
           action: 'mapping'
         });
         robotMode.callService(msg, (result) => {
+          console.log('[ robotMode OK]-61', result)
+        }, (result) => {
+          console.log('[ robotMode ERR]-61', result)
+        });
+        // 遥控模式
+        this.$store.state.actionStatus = 'remote'
+        const msg2 = new ROSLIB.ServiceRequest({
+          action: 'remote_control'
+        });
+        robotMode.callService(msg2, (result) => {
           console.log('[ robotMode OK]-61', result)
         }, (result) => {
           console.log('[ robotMode ERR]-61', result)
@@ -83,12 +92,12 @@ export default {
       }).then(() => {
         const msg = new ROSLIB.ServiceRequest({
           id: this.$route.query.id * 1,
-          data_type:'map'
+          data_type: 'map'
         });
         deleteMap.callService(msg, (result) => {
-          if(result.success){
+          if (result.success) {
             this.$message('删除成功');
-          }else{
+          } else {
             this.$message('删除失败');
           }
         }, (result) => {
@@ -147,6 +156,7 @@ export default {
     div:first-child {
       margin-left: 16px;
     }
+
     div:nth-child(2) {
       width: 165px;
       height: 58px;

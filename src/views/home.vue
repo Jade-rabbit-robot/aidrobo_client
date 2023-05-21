@@ -50,6 +50,14 @@ export default {
     }, (result) => {
       console.log('[  finishMap ERR]-61', result)
     });
+    // 获取ip
+    const msg = new ROSLIB.ServiceRequest();
+    GetStrings.callService(msg, (result) => {
+      this.$store.state.IP = result.result
+      console.log('[  get_ip OK]-61', result)
+    }, (result) => {
+      console.log('[  get_ip ERR]-61', result)
+    });
   }
 };
 </script>

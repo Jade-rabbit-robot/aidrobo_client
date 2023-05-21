@@ -181,6 +181,12 @@ const stopFollow = new ROSLIB.Service({
   name: '/follow_stop',
   serviceType: 'aid_robot_msgs/srv/AICmd'
 });
+/** 获取ip */
+const GetStrings = new ROSLIB.Service({
+  ros: ros,
+  name: '/get_ip_addresses',
+  serviceType: 'aid_robot_msgs/srv/GetString'
+});
 ros.on('connection', function () {
   console.log('rosOk!!!');
 });

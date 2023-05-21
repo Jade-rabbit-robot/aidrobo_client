@@ -55,6 +55,7 @@ const store = new Vuex.Store({
     nowMap:{id:"",name:''},
     patrol_arr_area:[],//图像坐标巡逻点
     patrol_arr: [],//地图坐标巡逻点
+    IP:''//ros链接ip
   },
   getters: {
     mcode: state => state.mcode,
