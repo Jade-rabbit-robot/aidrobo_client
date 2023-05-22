@@ -187,6 +187,12 @@ const GetStrings = new ROSLIB.Service({
   name: '/get_ip_addresses',
   serviceType: 'aid_robot_msgs/srv/GetString'
 });
+/** 获取电量信息 */
+const BatteryState = new ROSLIB.Service({
+  ros: ros,
+  name: '/battery_data',
+  serviceType: 'sensor_msgs/msg/BatteryState'
+});
 ros.on('connection', function () {
   console.log('rosOk!!!');
 });

@@ -4,7 +4,7 @@
       <div v-for="(item, i) in box" :key="i">
         <div class="title">{{ item.title }}</div>
         <!-- 基础设置 -->
-        <div v-if="i === 0">
+        <div v-if="item.title === '表情锁屏'">
           <div class="item">
             <span>开启/关闭</span>
             <el-switch v-model="value" active-color="#05E29E" inactive-color="#1A1931" active-text="开" inactive-text="关">
@@ -26,16 +26,17 @@ export default {
       value: true,
       input: '',
       box: [
+        // {
+        //   title: "表情锁屏"
+        // },
+        // {
+        //   title: "设备信息",
+        //   info: {
+        //     '机器编号(SN)': "AIDR-T2301110001",
+        //     '软件版本': "0.5.5.1.d",
+        //   }
+        // },
         {
-          title: "表情锁屏"
-        }, {
-          title: "设备信息",
-          info: {
-            '机器编号(SN)': "AIDR-T2301110001",
-            '软件版本': "0.5.5.1.d",
-          }
-
-        }, {
           title: "主要硬件信息",
           info: {
             '主板': "Firfly AIO-3588Q  8+64G",

@@ -58,6 +58,10 @@ export default {
     }, (result) => {
       console.log('[  get_ip ERR]-61', result)
     });
+     // 电量信息
+     BatteryState.subscribe(result => {
+        this.$store.state.percentage = result.percentage?Math.ceil(result.percentage):100;
+    })
   }
 };
 </script>
