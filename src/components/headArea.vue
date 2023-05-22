@@ -27,9 +27,9 @@
         <div class="electric">
           <img src="@/assets/img/home/electric.png" />
           <div>
-            <div :style="{ 'width': '100%' }"></div>
+            <div :style="{ 'width': $store.state.percentage + '%' }"></div>
           </div>
-          {{ electric }}%
+          {{ $store.state.percentage }}%
         </div>
       </div>
     </div>
@@ -49,7 +49,6 @@ export default {
   },
   data () {
     return {
-      electric: 100,
       showTc: false,
       set: null,
       luminance: 20,
@@ -255,6 +254,7 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
+
       &>span {
         margin-left: 20px;
         overflow: hidden;
@@ -278,12 +278,15 @@ export default {
 
       &>div {
         right: 98px;
-        width: 72px;
+        width: 66px;
         position: absolute;
 
         &>div {
           height: 25px;
           background: #c6cfe9;
+          right: 6px;
+          top: -12px;
+          position: absolute;
         }
       }
     }

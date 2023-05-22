@@ -188,7 +188,7 @@ const GetStrings = new ROSLIB.Service({
   serviceType: 'aid_robot_msgs/srv/GetString'
 });
 /** 获取电量信息 */
-const BatteryState = new ROSLIB.Service({
+const BatteryState = new ROSLIB.Topic({
   ros: ros,
   name: '/battery_data',
   serviceType: 'sensor_msgs/msg/BatteryState'
