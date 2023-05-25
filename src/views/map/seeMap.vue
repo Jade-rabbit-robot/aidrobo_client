@@ -14,10 +14,10 @@
         <img src="@/assets/img/seeMap/now.svg" />
         <p>当前地图</p>
       </div>
-      <!-- <div class="iconBtn" @click="onEdit()">
+      <div class="iconBtn" @click="onEdit()">
         <img src="@/assets/img/seeMap/edit.svg" />
         <p>编辑地图</p>
-      </div> -->
+      </div>
       <div class="over" @click="onDel()">
         <img src="@/assets/img/del.svg" />
         <p>删除地图</p>
@@ -112,6 +112,7 @@ export default {
         deleteMap.callService(msg, (result) => {
           if(result.success){
             this.$message('删除成功');
+            this.$router.push({ name: 'map' })
           }else{
             this.$message('删除失败');
           }

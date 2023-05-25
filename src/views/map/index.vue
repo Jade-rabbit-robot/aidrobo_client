@@ -10,7 +10,7 @@
         <div v-show="e.id == $store.state.nowMap.id">当前地图</div>
         <div>{{ new Date(e.create_timestamp * 1000).toLocaleString() }}</div>
         <div class="line"></div>
-        <img src="@/assets/img/del.svg" @click="onDel(e)" />
+        <img src="@/assets/img/del.svg" @click="onDel($event, e)" />
       </div>
     </div>
     <div class="addBtn" @click="addMap">
@@ -37,18 +37,21 @@ export default {
     };
   },
   mounted () {
-    getMapList.callService(null, (result) => {
-      try {
-        this.data = JSON.parse(result.map_list)
-      } catch (error) {
-
-      }
-      console.log('[  finishMap OK]-61', result)
-    }, (result) => {
-      console.log('[  finishMap ERR]-61', result)
-    });
+    this.getMap()
   },
   methods: {
+    getMap () {
+      getMapList.callService(null, (result) => {
+        try {
+          this.data = JSON.parse(result.map_list)
+        } catch (error) {
+          console.log('[  finishMap ERR]-61', error)
+        }
+        console.log('[  finishMap OK]-61', result)
+      }, (result) => {
+        console.log('[  finishMap ERR]-61', result)
+      });
+    },
     addMap () {
       const addInp = document.querySelector("#addInp")
       addInp && (addInp.value = "")
@@ -85,18 +88,20 @@ export default {
     onSel (e) {
       this.$router.push({ name: 'seeMap', query: { mapName: e.name, id: e.id } })
     },
-    onDel (e) {
+    onDel (event, e) {
+      event.stopPropagation()
       this.$confirm(`<div> 地图名：${e.name}</div><div>（本操作无法恢复）</div>`, '删除地图', {
         dangerouslyUseHTMLString: true,
         center: true
       }).then(() => {
         const msg = new ROSLIB.ServiceRequest({
-          id: this.$route.query.id * 1,
+          id: e.id * 1,
           data_type: 'map'
         });
         deleteMap.callService(msg, (result) => {
           if (result.success) {
             this.$message('删除成功');
+            this.getMap()
           } else {
             this.$message('删除失败');
           }
