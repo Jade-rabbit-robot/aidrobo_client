@@ -51,6 +51,7 @@ export default {
       hasHistory: false,
       step: 1,
       initData: false,
+      patrolId:1,
       action: 1
     }
   },
@@ -124,7 +125,7 @@ export default {
       })
       const msg2 = new ROSLIB.ServiceRequest(
         {
-          id: 1,
+          id: this.patrolId,
           data: JSON.stringify({
             map_id: this.$store.state.nowMap.id,
             frame_id: 'map',
@@ -152,6 +153,7 @@ export default {
           try {
             msg = JSON.parse(result.message)
             this.initData = true
+            this.patrolId = msg[0].id
             this.$store.state.patrol_arr = JSON.parse(msg[0].point_list);
             this.text = '开始巡逻'
             this.hasHistory = true
