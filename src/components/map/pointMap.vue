@@ -155,10 +155,11 @@ export default {
     zoom(type){
       let img_w = this.$refs.img1.width;
       let img_h = this.$refs.img1.height;
-      let s_h = top / img_h;
-      let s_w = left / img_w;
       let left = this.left;
       let top = this.top;
+      let s_h = top / img_h;
+      let s_w = left / img_w;
+
       if(type==='f'){
         if (this.scale < 4) {
           this.$refs.map_box1.style.transition = "transform 1s";
@@ -174,8 +175,8 @@ export default {
             (this.$refs.img2.height * this.$refs.map.offsetHeight) / img_h +
             "px";
 
-          this.top = top = s_h * img_h;
-          this.left = left = s_w * img_w;
+          this.top = s_h * img_h;
+          this.left = s_w * img_w;
         }
       }else{
         if (img_w > this.screen_w) {
@@ -224,8 +225,8 @@ export default {
       this.$store.state.x_can = operate;
       this.operate_txc = operate.getContext("2d");
       // 获取的图片进行等比适配
-      this.$store.state.map_img_w = this.d_width = operate.width = img1.width;
-      this.d_height = operate.height = img1.height;
+      this.$store.state.map_img_w = this.d_width = operate.width =this.mapData.width;
+      this.d_height = operate.height =  this.mapData.height;
       this.$refs.img2.width = img1.width / 11;
       this.$refs.show_img.style.width = this.$refs.map.offsetWidth / 11 + "px";
       this.$refs.show_img.style.height =

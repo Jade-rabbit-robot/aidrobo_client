@@ -151,10 +151,10 @@ export default {
     zoom(type){
       let img_w = this.$refs.img1.width;
       let img_h = this.$refs.img1.height;
-      let s_h = top / img_h;
-      let s_w = left / img_w;
       let left = this.left;
       let top = this.top;
+      let s_h = top / img_h;
+      let s_w = left / img_w;
       if(type==='f'){
         if (this.scale < 4) {
           this.$refs.map_box1.style.transition = "transform 1s";
@@ -170,8 +170,8 @@ export default {
             (this.$refs.img2.height * this.$refs.map.offsetHeight) / img_h +
             "px";
 
-          this.top = top = s_h * img_h;
-          this.left = left = s_w * img_w;
+          this.top = s_h * img_h;
+          this.left = s_w * img_w;
         }
       }else{
         if (img_w > this.screen_w) {
