@@ -156,7 +156,7 @@ export default {
       let s_h = top / img_h;
       let s_w = left / img_w;
       if(type==='f'){
-        if (this.scale < 4) {
+        if (this.scale < 20) {
           this.$refs.map_box1.style.transition = "transform 1s";
           this.scale += 0.1;
           this.img2_scale -= 0.025;
