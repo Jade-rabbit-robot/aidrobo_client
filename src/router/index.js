@@ -16,6 +16,7 @@ import telecontrol from '@/views/utility/telecontrol'
 import following from '@/views/utility/following'
 import gesture from '@/views/utility/gesture'
 import objectRecognition from '@/views/utility/objectRecognition'
+import screen from '@/views/utility/screen'
 
 import Site from '@/views/site'
 import Map from '@/views/map/index'
@@ -122,6 +123,11 @@ export default new Router({
     {
       path: '/utility/object-recognition',
       component: objectRecognition,
+    },
+    {
+      path: '/utility/screen',
+      name: 'screen',
+      component: screen,
     },
   ]
 })

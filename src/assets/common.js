@@ -40,4 +40,5 @@ export const routerObj={
   'utility':"应用功能",
   'goPoint':"去位置点",
   'telecontrol':"遥控",
+  'screen': "展示大屏",
 }

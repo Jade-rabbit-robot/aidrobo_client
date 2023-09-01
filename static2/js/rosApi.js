@@ -1,5 +1,6 @@
 const ros = new ROSLIB.Ros();
 ros.connect('ws://192.168.1.120:9090');
+// ros.connect('ws://192.168.111.45:9090');
 // ros.connect('ws://192.168.110.204:9090');
 /** 模式切换 */
 const robotMode = new ROSLIB.Service({

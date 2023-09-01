@@ -59,6 +59,7 @@ export default {
         { src: require("@/assets/img/uti/face.svg"), text: '人脸跟随', link: "/utility/following", cmd: 'face' },
         { src: require("@/assets/img/uti/uti9.svg"), text: "手势识别", link: "/utility/gesture", cmd: 'hand' },
         { src: require("@/assets/img/uti/uti7.svg"), text: '物品识别', link: "/utility/object-recognition", cmd: 'object'},
+        { src: require("@/assets/img/uti/screen.svg"), text: '展示大屏', link: "/utility/screen", cmd: 'object'},
         // { src: require("@/assets/img/uti/uti8.svg"), text: '资源看板' },
       ],
       data: null,
