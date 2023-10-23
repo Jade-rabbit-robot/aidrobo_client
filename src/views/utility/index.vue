@@ -51,7 +51,7 @@ export default {
       // imgSrc 中，需要执行 startCamera 的才加 cmd 字段
       imgSrc: [
         // { src: require("@/assets/img/uti/uti1.svg"), text: '重定位', link: "/utility/relocation" },
-        { src: require("@/assets/img/uti/uti2.svg"), text: '去位置点', link: "/utility/goPoint" },
+        // { src: require("@/assets/img/uti/uti2.svg"), text: '去位置点', link: "/utility/goPoint" },
         { src: require("@/assets/img/uti/uti3.svg"), text: '自主巡逻', link: "/utility/patrol" },
         // { src: require("@/assets/img/uti/uti4.svg"), text: '返回原点/充电', link: "/utility/charge" },
         { src: require("@/assets/img/uti/uti5.svg"), text: '遥控模式', link: "/utility/telecontrol" },

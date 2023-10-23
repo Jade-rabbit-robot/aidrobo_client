@@ -1,12 +1,18 @@
 const ros = new ROSLIB.Ros();
 ros.connect('ws://192.168.1.120:9090');
-// ros.connect('ws://192.168.111.45:9090');
-// ros.connect('ws://192.168.110.204:9090');
+// ros.connect('ws://192.168.110.217:9090');
 /** 模式切换 */
 const robotMode = new ROSLIB.Service({
   ros: ros,
   name: '/mode_set',
   serviceType: 'aid_robot_msgs/srv/StatusChange'
+});
+
+/** 指令控制 */
+const controlRobot = new ROSLIB.Topic({
+  ros: ros,
+  name: '/cmd_vel',
+  messageType: 'geometry_msgs/msg/Twist'
 });
 
 /** 建图订阅 */
