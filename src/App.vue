@@ -33,8 +33,77 @@ export default {
   computed: {
     ...mapState(["loading_build", "loading_dev"])
   },
-  mounted () { },
-  methods: {},
+  mounted () {
+    window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keyup", this.moveEnd);
+  },
+  beforeDestroy() {
+    window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("keyup", this.moveEnd);
+  },
+  methods: {
+    onKeyDown(e) {
+      const keyCodes = {
+        38: 'f',//上
+        40: 'b',//下
+        37: 'l',//左
+        39: 'r',//右
+        80: 'p',// P
+      }
+      const type = keyCodes[e.keyCode];
+      type && this.moveFun(type);
+    },
+    moveFun(type) {
+      console.log("[ type ]-66", type);
+      if (!type) {
+        return false;
+      }
+      const linear = {
+        x: 0,
+        y: 0.0,
+        z: 0.0,
+      };
+      const angular = {
+        x: 0,
+        y: 0.0,
+        z: 0.0,
+      };
+      if (type == "f") {
+        // 上
+        linear.x = 0.32;
+      } else if (type == "l") {
+        // 左
+        angular.z = 0.65;
+      } else if (type == "b") {
+        // 下
+        linear.x = -0.32;
+      } else if (type == "r") {
+        // →
+        angular.z = -0.65;
+      } else if (type == "p") {
+        linear.x = 0;
+        angular.z = 0;
+      }
+      var run_msg = new ROSLIB.Message({ linear, angular });
+      console.log("[ run_msg ]-86", run_msg);
+      controlRobot.publish(run_msg);
+    },
+    moveEnd() {
+      const linear = {
+        x: 0,
+        y: 0.0,
+        z: 0.0,
+      };
+      const angular = {
+        x: 0,
+        y: 0.0,
+        z: 0.0,
+      };
+      var run_msg = new ROSLIB.Message({ linear, angular });
+      console.log("[ run_msg ]-86-end", run_msg);
+      controlRobot.publish(run_msg);
+    },
+  },
   components: {
     headArea,
     toolArea,
