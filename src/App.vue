@@ -196,7 +196,12 @@ export default {
   backdrop-filter: blur(10.88px);
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
   color: #fff;
+  font-size: 35px;
 }
+.el-message__content {
+  font-size: 35px;
+}
+
   .el-message .el-icon-info,
   .el-message--info .el-message__content {
     font-size: 50px;

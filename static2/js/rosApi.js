@@ -1,7 +1,9 @@
 const ros = new ROSLIB.Ros();
-ros.connect('ws://192.168.1.120:9090');
-// ros.connect('ws://192.168.110.217:9090');
-// ros.connect('ws://192.168.110.236:9090');
+const rosURL = 'ws://192.168.1.120:9090'
+// const rosURL = 'ws://192.168.111.237:9090'
+
+/* ros 的 connect 连接逻辑移动到 headArea.vue 组件中进行 */
+
 /** 模式切换 */
 const robotMode = new ROSLIB.Service({
   ros: ros,
@@ -201,6 +203,4 @@ const BatteryState = new ROSLIB.Topic({
   name: '/battery_data',
   serviceType: 'sensor_msgs/msg/BatteryState'
 });
-ros.on('connection', function () {
-  console.log('rosOk!!!');
-});
+

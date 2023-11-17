@@ -56,7 +56,7 @@ const store = new Vuex.Store({
     patrol_arr_area:[],//图像坐标巡逻点
     patrol_arr: [],//地图坐标巡逻点
     IP:'',//ros链接ip
-    percentage:100
+    percentage: undefined
   },
   getters: {
     mcode: state => state.mcode,
