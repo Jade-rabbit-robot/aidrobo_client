@@ -39,7 +39,7 @@ export default {
         {
           title: "主要硬件信息",
           info: {
-            '主板': "Firfly AIO-3588Q  8+64G",
+            '主板': "ARC-6490 8+64G（SOC:QCM6490）",
             '主控': "艺科 YKRC-2",
             '激光雷达': "蓝海 LDS-50C-C20E",
             '双目模组': "奥比中光 DaBai",
@@ -89,7 +89,7 @@ export default {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        width: 600px;
+        width: 730px;
 
         .el-switch {
           transform: scale(2.5);
