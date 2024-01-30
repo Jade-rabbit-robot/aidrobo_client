@@ -17,6 +17,7 @@ import following from '@/views/utility/following'
 import gesture from '@/views/utility/gesture'
 import objectRecognition from '@/views/utility/objectRecognition'
 import screen from '@/views/utility/screen'
+import exhibition from '@/views/utility/exhibition'
 
 import Site from '@/views/site'
 import Map from '@/views/map/index'
@@ -128,6 +129,11 @@ export default new Router({
       path: '/utility/screen',
       name: 'screen',
       component: screen,
+    },
+    {
+      path: '/utility/exhibition',
+      name: 'exhibition',
+      component: exhibition,
     },
   ]
 })

@@ -1,23 +1,17 @@
 <template>
   <div class="homeBox">
-    <router-link to="/utility">
-      <div class="item">
+    <div class="item">
+      <router-link to="/utility" class="link">
         <img src="@/assets/img/home1.svg" />
         <p>应用功能</p>
-      </div>
-    </router-link>
-    <router-link to="/map">
-      <div class="item">
+      </router-link>
+    </div>
+    <div class="item">
+      <router-link to="/map" class="link">
         <img src="@/assets/img/home2.svg" />
         <p>地图管理</p>
-      </div>
-    </router-link>
-    <router-link to="/site">
-      <div class="item">
-        <img src="@/assets/img/home3.svg" />
-        <p>设置</p>
-      </div>
-    </router-link>
+      </router-link>
+    </div>
     <div class="text">
       {{ text }}
     </div>
@@ -31,7 +25,7 @@
 export default {
   data() {
     return {
-      text: "Ver.0.7.4.2.a",
+      text: "AidroboDemo 2.0 / Aidros 0.4",
       showTc: true,
     };
   },
@@ -54,7 +48,7 @@ export default {
       },
       (result) => {
         console.log("[  finishMap ERR]-61", result);
-      }
+      },
     );
     // 获取ip
     const msg = new ROSLIB.ServiceRequest();
@@ -66,7 +60,7 @@ export default {
       },
       (result) => {
         console.log("[  get_ip ERR]-61", result);
-      }
+      },
     );
     // 电量信息
     BatteryState.subscribe((result) => {
@@ -85,9 +79,24 @@ export default {
   justify-content: space-around;
   width: 100%;
   height: calc(100% - 120px);
+  padding: 0 127px;
+  box-sizing: border-box;
 }
 
 .item {
+  //height: 100%;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding-top: 20px;
+  flex: 1;
+  margin-left: 65px;
+  &:first-of-type {
+    margin-left: 0;
+  }
+}
+
+.link {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -95,8 +104,10 @@ export default {
   font-size: 50px;
   color: #fff;
   top: 234px;
-  width: 500px;
-  height: 700px;
+  width: 100%;
+  height: 100%;
+  max-height: 700px;
+  min-height: 555px;
   border-radius: 20px;
   opacity: 1;
   background: linear-gradient(

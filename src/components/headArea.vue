@@ -20,16 +20,12 @@
           <img src="@/assets/img/home/patrol.png" />
           <span>{{ cmd }}</span>
         </div>
-        <div class="show" ref="relocationRef" @click="relocation()">
+        <div class="show aid-map" ref="relocationRef" @click="relocation()">
           <img src="@/assets/img/home/mapName.png" />
           <span>{{ this.$store.state.nowMap.name || '无地图' }}</span>
         </div>
-        <div class="electric">
-          <img src="@/assets/img/home/electric.png" />
-          <div>
-            <div :style="{ 'width': $store.state.percentage + '%' }"></div>
-          </div>
-          <span v-if="$store.state.percentage">{{ $store.state.percentage }}%</span>
+        <div class="aid-logo">
+          <img src="@/assets/img/aid-logo2.png" />
         </div>
       </div>
     </div>
@@ -264,7 +260,6 @@ export default {
   }
 
   .rowR {
-    width: 57%;
     height: 100%;
     margin-left: 42%;
     position: relative;
@@ -302,28 +297,30 @@ export default {
       }
     }
 
-    .electric {
+    .aid-map {
+      margin: 0 44px 0 28px;
+    }
+
+    .aid-logo {
+      padding-left: 26px;
+      margin-right: 46px;
       position: relative;
       display: flex;
       align-items: center;
-      width: 177px;
-
-      &>img {
-        margin-right: 10px;
+      &:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 48px;
+        width: 2px;
+        border-radius: 5px;
+        background: #e1dddd;
       }
 
-      &>div {
-        right: 98px;
-        width: 66px;
-        position: absolute;
-
-        &>div {
-          height: 25px;
-          background: #c6cfe9;
-          right: 6px;
-          top: -12px;
-          position: absolute;
-        }
+      &>img {
+        width: 219px;
       }
     }
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="newMapBox">
+  <div class="newMapBox layout-gutter">
     <ShowMap :initData="initData" />
     <div class="right point">
       <div class="step1" v-if="step == 1">
@@ -52,7 +52,8 @@ export default {
       step: 1,
       initData: false,
       patrolId:1,
-      action: 1
+      action: 1,
+      loading: null
     }
   },
   watch: {
@@ -65,10 +66,7 @@ export default {
     },
   },
   mounted () {
-    let loading = fullscreenLoading();
-    setTimeout(() => {
-      loading.close();
-    }, 5 * 1000)
+    this.loading = fullscreenLoading();
     if (this.actionStatus === 'patrolStart') {
       this.action = 0;
     } else if (this.actionStatus === 'patrolPause') {
@@ -80,6 +78,7 @@ export default {
     try {
       this.getPoint()
     } catch (error) {
+      this.loading.close();
       console.log('[ error ]-45', error)
     }
     // 状态机
@@ -165,7 +164,9 @@ export default {
         } else {
           this.$message('获取巡逻点失败');
         }
+        this.loading.close();
       }, (result) => {
+        this.loading.close();
         console.log('[  getPoint ERR]-61', result)
       });
     },
@@ -327,7 +328,8 @@ export default {
 
 .right {
   width: 434px;
-  height: 1010px;
+  height: 100%;
+  max-height: 1010px;
   background-color: #ccc;
   border-radius: 5px;
   background: linear-gradient(155deg, rgba(71, 84, 141, 0.64) 24%, rgba(71, 66, 124, 0.52) 98%);
@@ -336,10 +338,8 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 1010px;
   line-height: 50px;
   margin-left: 30px;
-  margin-top: 30px;
   justify-content: space-between;
   padding: 20px;
   box-sizing: border-box;

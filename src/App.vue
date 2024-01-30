@@ -70,16 +70,16 @@ export default {
       };
       if (type == "f") {
         // 上
-        linear.x = 0.32;
+        linear.x = 0.52;
       } else if (type == "l") {
         // 左
-        angular.z = 0.65;
+        angular.z = 1;
       } else if (type == "b") {
         // 下
-        linear.x = -0.32;
+        linear.x = -0.52;
       } else if (type == "r") {
         // →
-        angular.z = -0.65;
+        angular.z = -1;
       } else if (type == "p") {
         linear.x = 0;
         angular.z = 0;
@@ -132,7 +132,7 @@ export default {
 .showBox {
   margin-top: 120px;
   width: 100%;
-  height: 1080px;
+  height: calc(100% - 120px);
 }
 
 .el-message-box {

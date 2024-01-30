@@ -412,12 +412,12 @@ export default {
 .map {
   position: relative;
   top: 0;
-  height: 1010px;
+  height: 100%;
+  max-height: 1010px;
   width: 1380px;
   border-radius: 5px;
   background: #526CAD;
   overflow: hidden;
-  margin-top: 30px;
   margin-left: 30px;
 }
 
@@ -575,19 +575,19 @@ export default {
 
 
 .recover {
-  position: fixed;
+  position: absolute;
   bottom: 160px;
-  left: 1150px;
+  right: 50px;
 }
 
 .active {
-  position: fixed;
+  position: absolute;
   bottom: 50px;
-  left: 50px;
+  right: 50px;
 }
 .zoom{
-  position: fixed;
+  position: absolute;
   bottom: 50px;
-  left: 1160px;
+  right: 50px;
 }
 </style>

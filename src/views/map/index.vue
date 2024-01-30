@@ -150,7 +150,7 @@ export default {
     width: 1660px;
     height: 158px;
     border-radius: 20px;
-    margin-bottom: 100px;
+    margin-bottom: 45px;
     background: linear-gradient(95deg,
         rgba(71, 84, 141, 0.64) 9%,
         rgba(53, 81, 119, 0.15) 86%,
@@ -159,7 +159,7 @@ export default {
     box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
 
     div:first-child {
-      margin-left: 16px;
+      margin-left: 100px;
     }
 
     div:nth-child(2) {
@@ -202,8 +202,8 @@ export default {
 
 .addBtn {
   position: absolute;
-  left: 1502px;
-  top: 959px;
+  right: 115px;
+  bottom: 150px;
   width: 303px;
   height: 90px;
   border-radius: 100px;

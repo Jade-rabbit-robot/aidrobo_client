@@ -1,6 +1,7 @@
 const ros = new ROSLIB.Ros();
-const rosURL = 'ws://192.168.1.120:9090'
-// const rosURL = 'ws://192.168.111.237:9090'
+// const host = '192.168.1.120';
+const host = '192.168.110.160';
+const rosURL = `ws://${host}:9090`
 
 /* ros 的 connect 连接逻辑移动到 headArea.vue 组件中进行 */
 

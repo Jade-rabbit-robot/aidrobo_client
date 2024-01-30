@@ -1,5 +1,5 @@
 <template>
-  <div class="newMapBox">
+  <div class="newMapBox layout-gutter">
     <ShowMap />
     <div class="right">
       <p>IP:{{ $store.state.IP||'--' }}</p>
@@ -95,7 +95,8 @@ export default {
 
 .right {
   width: 434px;
-  height: 1010px;
+  height: 100%;
+  max-height: 1010px;
   background-color: #ccc;
   border-radius: 5px;
   background: linear-gradient(155deg, rgba(71, 84, 141, 0.64) 24%, rgba(71, 66, 124, 0.52) 98%);
@@ -105,7 +106,6 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: space-evenly;
-  height: 1010px;
 
   &>p {
     text-align: center;

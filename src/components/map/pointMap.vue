@@ -42,7 +42,7 @@
       <img src="@/assets/img/seeMap/fda.png" @click="zoom('f')"/>
       <img src="@/assets/img/seeMap/sxiao.png" @click="zoom('s')"/>
     </div>
-    <div class="active">
+    <div class="active" v-if="!notShowActive">
       <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool == 'patrol'||tool == 'point'" />
       <img src="@/assets/img/seeMap/disActive.png" @click="changeTool('patrol')" v-else />
     </div>
@@ -54,7 +54,7 @@ import { mapState, mapMutations } from "vuex";
 import { changeStr, mapToImg, imgToMap } from "@/assets/common"
 
 export default {
-  props: ["initData"],
+  props: ["initData", "notShowActive"],
   data() {
     return {
       mapData: {
@@ -351,12 +351,12 @@ export default {
 .map {
   position: relative;
   top: 0;
-  height: 1010px;
+  height: 100%;
+  max-height: 1010px;
   width: 1380px;
   border-radius: 5px;
   background: #526CAD;
   overflow: hidden;
-  margin-top: 30px;
   margin-left: 30px;
 }
 

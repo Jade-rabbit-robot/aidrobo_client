@@ -5,6 +5,8 @@ import ElementUI from 'element-ui';
 import Sortable from 'sortablejs';
 import axios from 'axios';
 import "@/assets/global.less"
+import SocketIO from "vue-socket.io";
+import ClientSocketIO from "socket.io-client";
 
 // Vue.use(iView);
 Vue.prototype.$http = axios
@@ -12,6 +14,12 @@ import {panstart,panmove,panend,pinchstart,pinchmove,pinchend}  from './assets/t
 import 'element-ui/lib/theme-chalk/index.css';
 import App from './App'
 Vue.use(ElementUI);
+Vue.use(
+  new SocketIO({
+    debug: false,
+    connection: ClientSocketIO.connect("http://" + host + ":55555", {autoConnect: false}),
+  })
+);
 new Vue({
   el: '#app',
   router,

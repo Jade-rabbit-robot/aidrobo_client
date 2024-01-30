@@ -6,11 +6,12 @@
       :autoplay="false"
       ref="carousel"
       class="box"
-      height="930px"
+      height="calc(100vh - 120px)"
     >
       <el-carousel-item
         v-for="(page, pageIndex) in pages"
         :key="`page-${pageIndex}`"
+        style="display:flex; align-items:center;min-height: 750px;"
       >
         <div class="page-container">
           <div @click="goPage(item)" class="link-item" v-for="(item, i) in page" :key="i">
@@ -50,16 +51,16 @@ export default {
     return {
       // imgSrc 中，需要执行 startCamera 的才加 cmd 字段
       imgSrc: [
+        { src: require("@/assets/img/uti/uti3.svg"), text: '自主巡逻', link: "/utility/patrol" },
+        { src: require("@/assets/img/uti/screen.svg"), text: '展示看台', link: "/utility/exhibition"},
+        { src: require("@/assets/img/uti/uti9.svg"), text: "手势识别", link: "/utility/gesture", cmd: 'hand' },
         // { src: require("@/assets/img/uti/uti1.svg"), text: '重定位', link: "/utility/relocation" },
         // { src: require("@/assets/img/uti/uti2.svg"), text: '去位置点', link: "/utility/goPoint" },
-        { src: require("@/assets/img/uti/uti3.svg"), text: '自主巡逻', link: "/utility/patrol" },
         // { src: require("@/assets/img/uti/uti4.svg"), text: '返回原点/充电', link: "/utility/charge" },
-        { src: require("@/assets/img/uti/uti5.svg"), text: '遥控模式', link: "/utility/telecontrol" },
-        { src: require("@/assets/img/uti/uti6.svg"), text: '人形跟随', link: "/utility/following", cmd: 'follow' },
-        { src: require("@/assets/img/uti/face.svg"), text: '人脸跟随', link: "/utility/following", cmd: 'face' },
-        { src: require("@/assets/img/uti/uti9.svg"), text: "手势识别", link: "/utility/gesture", cmd: 'hand' },
-        { src: require("@/assets/img/uti/uti7.svg"), text: '物品识别', link: "/utility/object-recognition", cmd: 'object'},
-        { src: require("@/assets/img/uti/screen.svg"), text: '展示大屏', link: "/utility/screen", cmd: 'object'},
+        // { src: require("@/assets/img/uti/uti5.svg"), text: '遥控模式', link: "/utility/telecontrol" },
+        // { src: require("@/assets/img/uti/uti6.svg"), text: '人形跟随', link: "/utility/following", cmd: 'follow' },
+        // { src: require("@/assets/img/uti/face.svg"), text: '人脸跟随', link: "/utility/following", cmd: 'face' },
+        // { src: require("@/assets/img/uti/uti7.svg"), text: '物品识别', link: "/utility/object-recognition", cmd: 'object'},
         // { src: require("@/assets/img/uti/uti8.svg"), text: '资源看板' },
       ],
       data: null,
@@ -141,7 +142,6 @@ export default {
   .page-container {
     display: flex;
     flex-wrap: wrap;
-    margin: 150px 0 0 0;
     height: 744px;
     align-content: space-between;
   }

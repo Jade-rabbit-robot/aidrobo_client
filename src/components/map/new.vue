@@ -101,7 +101,8 @@ export default {
 .map {
   position: relative;
   top: 0;
-  height: 1010px;
+  height: 100%;
+  max-height: 1010px;
   width: 1380px;
   border-radius: 5px;
   background: #526CAD;

@@ -1,5 +1,5 @@
 <template>
-  <div class="newMapBox">
+  <div class="newMapBox layout-gutter">
     <ShowMap class="map" :toolType="toolType" :initData="initData" />
     <div class="right">
       <div v-show="rubber && !stop" class="titleBox">
@@ -201,7 +201,8 @@ export default {
 
 .right {
   width: 434px;
-  height: 1010px;
+  height: 100%;
+  max-height: 1010px;
   background-color: #ccc;
   border-radius: 5px;
   background: linear-gradient(155deg, rgba(71, 84, 141, 0.64) 24%, rgba(71, 66, 124, 0.52) 98%);
@@ -211,10 +212,8 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: space-evenly;
-  height: 1010px;
   line-height: 50px;
   margin-left: 30px;
-  margin-top: 30px;
 
   .titleBox {
     margin-bottom: 80px;

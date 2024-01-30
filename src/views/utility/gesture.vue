@@ -1,5 +1,5 @@
 <template>
-  <div class="gesture-container">
+  <div class="gesture-container layout-gutter">
     <div class="video-container" id="video"></div>
     <div class="right">
       <div class="rText">
@@ -57,14 +57,14 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
-  padding-top: 30px;
   padding-left: 30px;
 }
 
 .video-container {
   position: relative;
   top: 0;
-  height: 1010px;
+  height: 100%;
+  max-height: 1010px;
   width: 1380px;
   //background: transparent;
   //border-radius: 5px;
@@ -74,7 +74,8 @@ export default {
 
 .right {
   width: 434px;
-  height: 1010px;
+  height: 100%;
+  max-height: 1010px;
   background-color: #ccc;
   border-radius: 5px;
   background: linear-gradient(
