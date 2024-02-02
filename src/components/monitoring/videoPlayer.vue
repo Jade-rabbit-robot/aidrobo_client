@@ -3,7 +3,12 @@
     <div class="video-box">
       <video id="video" poster="none"></video>
     </div>
-    <button class="play-pause-btn" @click="playOrStop">
+    <button
+      :class="['play-pause-btn', {'btn-disable': loading}]"
+      @click="playOrStop"
+      v-loading="loading"
+      element-loading-background="#12275e"
+    >
       <img :src="isPlay ? pauseIcon : playIcon" width="34px" /><span>{{
         isPlay ? "停止" : "开始运行AI识别"
       }}</span>
@@ -14,7 +19,9 @@
 <script>
 import playIcon from "@/assets/img/monitor/play.png";
 import pauseIcon from "@/assets/img/monitor/pause.png";
-import { stop, start } from "@/services/http";
+
+const cmd = "track";
+
 export default {
   name: "Send11VideoPlayer",
 
@@ -23,39 +30,76 @@ export default {
       playIcon,
       pauseIcon,
       isPlay: false,
+      loading: false,
     };
-  },
-
-  mounted() {
-    const video = document.getElementById("video");
-    const top = video.getBoundingClientRect().top;
-    const left = video.getBoundingClientRect().left;
-    const width = video.getBoundingClientRect().width;
-    const height = video.getBoundingClientRect().height;
-    if (window.aidShowBridge && window.aidShowBridge.setSurfaceLocation) {
-      window.aidShowBridge.setSurfaceLocation(left, top, width, height, 1920);
-    }
-
-    // document.getElementById("video").addEventListener("ended", () => {
-    //   this.isPlay = !this.isPlay;
-    // });
-
-    stop();
-    // start();
-    // this.isPlay = true;
   },
 
   methods: {
     playOrStop() {
-      this.isPlay = !this.isPlay;
-      if (this.isPlay) {
-        // document.getElementById("video").play();
-        start();
-      } else {
-        // document.getElementById("video").pause();
-        stop();
+      if (this.loading) return;
+      this.isPlay ? this.stop() : this.play();
+    },
+    async play() {
+      try {
+        this.loading = true;
+        const rgbSize = await this.startCamera(cmd);
+        if (!rgbSize.success || !rgbSize.message) {
+          throw "";
+        }
+        const { w, h } = JSON.parse(rgbSize.message);
+        this.isPlay = true;
+
+        const video = document.getElementById("video");
+        const top = video.getBoundingClientRect().top;
+        const left = video.getBoundingClientRect().left;
+        const width = video.getBoundingClientRect().width;
+        const height = video.getBoundingClientRect().height;
+        if (window.aidShowBridge && window.aidShowBridge.setSurfaceLocation) {
+          window.aidShowBridge.setSurfaceLocation(
+            left,
+            top,
+            width,
+            height,
+            Number(w),
+            Number(h),
+            1920,
+          );
+        }
+      } finally {
+        const that = this;
+        setTimeout(() => (that.loading = false), 2000);
       }
     },
+    async stop() {
+      stopCamera.callService(
+        null,
+        (res) => {
+          console.log("[ cam_stop ok]-61", res);
+          this.isPlay = false;
+          if (window.aidShowBridge && window.aidShowBridge.close) {
+            window.aidShowBridge.close();
+          }
+        },
+        (res) => {
+          console.log("[ cam_stop ERR]-61", res);
+        },
+      );
+    },
+    async startCamera(cmd) {
+      return new Promise((resolve, reject) => {
+        const params = new ROSLIB.ServiceRequest({cmd});
+        startCamera.callService(params, (res) => {
+          console.log('[ cam_start ok]-61', res)
+          resolve(res)
+        }, (res) => {
+          console.log('[ cam_start ERR]-61', res)
+          reject(res)
+        });
+      })
+    }
+  },
+  beforeDestroy() {
+    this.stop();
   },
   watch: {
     "$store.state.ready": function (value) {
@@ -81,17 +125,16 @@ export default {
   box-shadow: 0px 0px 10px #1a316d;
   // padding: 20px;
   border-radius: 4px;
-  flex: 1;
   display: flex;
   flex-direction: column;
   .video-box {
-    flex:1;
+    flex: 1;
     display: flex;
     justify-content: center;
     padding-top: 20px;
     video {
       width: 360px;
-      height: 100%;
+      height: 405px;
       background: black;
     }
   }
@@ -125,7 +168,11 @@ export default {
     align-items: center;
     font-size: 18px;
     letter-spacing: 3px;
-    &:hover {
+    &.btn-disable {
+      cursor: default;
+      background: #12275e;
+    }
+    &:not(.btn-disable):hover {
       background: #12275e;
     }
     img {

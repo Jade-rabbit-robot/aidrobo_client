@@ -25,7 +25,7 @@
 export default {
   data() {
     return {
-      text: "AidroboDemo 2.0 / Aidros 0.4",
+      text: "AidSimbot 2.0 / AidRos 0.4",
       showTc: true,
     };
   },

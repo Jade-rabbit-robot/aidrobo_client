@@ -27,8 +27,9 @@ export default {
 #monitoring-area {
   height: 100%;
   max-height: 1010px;
-  width: 409px;
+  width: 390px;
   display: flex;
   flex-direction: column;
+  margin-left: 20px;
 }
 </style>

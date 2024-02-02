@@ -43,7 +43,6 @@ export default {
   sockets: {
     soc_info(data) {
       if (data) {
-        console.log(data);
         if (!this.$store.state.ready) this.$store.state.ready = true;
         this.stats = {
           ...data,
@@ -72,10 +71,11 @@ export default {
 
 <style lang="less" scoped>
 .content-wrapper {
+  background: #344880;
   box-shadow: 0px 0px 10px #1a316d;
+  height: 365px;
   border-radius: 4px;
   margin-top: 20px;
-  min-height: 400px;
   display: flex;
   .resource-chart {
     flex: 1;

@@ -21,7 +21,7 @@
 export default {
   name: "SocProgress",
   props: {
-    percent: () => Number | String,
+    percent: Number,
     contentStyle: String,
     itemStyle: String,
   },

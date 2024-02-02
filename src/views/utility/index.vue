@@ -52,7 +52,7 @@ export default {
       // imgSrc 中，需要执行 startCamera 的才加 cmd 字段
       imgSrc: [
         { src: require("@/assets/img/uti/uti3.svg"), text: '自主巡逻', link: "/utility/patrol" },
-        { src: require("@/assets/img/uti/screen.svg"), text: '展示看台', link: "/utility/exhibition"},
+        { src: require("@/assets/img/uti/screen.svg"), text: '展示看台', link: "/utility/exhibition" },
         { src: require("@/assets/img/uti/uti9.svg"), text: "手势识别", link: "/utility/gesture", cmd: 'hand' },
         // { src: require("@/assets/img/uti/uti1.svg"), text: '重定位', link: "/utility/relocation" },
         // { src: require("@/assets/img/uti/uti2.svg"), text: '去位置点', link: "/utility/goPoint" },

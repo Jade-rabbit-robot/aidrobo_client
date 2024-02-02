@@ -3,8 +3,8 @@
     <ShowMap />
     <div class="right">
       <p>IP:{{ $store.state.IP||'--' }}</p>
-      <p>遥控模式已打开请使用手App遥控机器人行走建图，完成扫描后点击完成扫描进入下一步</p>
-      <p>注意：起始位置为起始点或充电桩，建图需完成回环后回到该位置</p>
+      <p>请使用键盘方向键遥控机器人，扫描完成后点击完成扫描按钮</p>
+      <p>注意：起始位置为起始点，建图需完成回环后回到该位置</p>
       <div class="over" @click="onOver()">完成扫描</div>
       <div class="out" @click="onOut()">退出</div>
     </div>
