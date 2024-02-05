@@ -22,14 +22,15 @@ export default {
   data() {
     return {
       initData: false,
+      loading: false
     };
   },
   mounted() {
-    let loading = fullscreenLoading();
-    setTimeout(() => {
-      loading.close();
-    }, 5 * 1000)
+    this.loading = fullscreenLoading();
     this.getPoint();
+  },
+  beforeDestroy() {
+    this.loading && this.loading.close();
   },
   methods: {
     getPoint() {
@@ -53,9 +54,11 @@ export default {
           } else {
             this.$message("获取巡逻点失败");
           }
+          this.loading && this.loading.close();
         },
         (result) => {
           console.log("[  getPoint ERR]-61", result);
+          this.loading && this.loading.close();
         },
       );
     },
