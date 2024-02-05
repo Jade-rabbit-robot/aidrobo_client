@@ -53,7 +53,6 @@ export default {
       initData: false,
       patrolId:1,
       action: 1,
-      loading: null
     }
   },
   watch: {
@@ -66,7 +65,10 @@ export default {
     },
   },
   mounted () {
-    this.loading = fullscreenLoading();
+    let loading = fullscreenLoading();
+    setTimeout(() => {
+      loading.close();
+    }, 5 * 1000)
     if (this.actionStatus === 'patrolStart') {
       this.action = 0;
     } else if (this.actionStatus === 'patrolPause') {
@@ -78,7 +80,6 @@ export default {
     try {
       this.getPoint()
     } catch (error) {
-      this.loading.close();
       console.log('[ error ]-45', error)
     }
     // 状态机
@@ -164,9 +165,7 @@ export default {
         } else {
           this.$message('获取巡逻点失败');
         }
-        this.loading.close();
       }, (result) => {
-        this.loading.close();
         console.log('[  getPoint ERR]-61', result)
       });
     },
