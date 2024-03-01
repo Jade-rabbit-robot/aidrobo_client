@@ -31,7 +31,7 @@
 export default {
   data() {
     return {
-      text: "Ver.0.8.4.2.a",
+      text: "Ver.0.8.4.3.a",
       showTc: true,
     };
   },
