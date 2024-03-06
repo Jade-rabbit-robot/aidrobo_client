@@ -35,6 +35,14 @@ export default {
       showTc: true,
     };
   },
+  beforeRouteEnter(to, from, next) {
+    if(to && to.query && to.query.reload) {
+      next(to.path)
+      window.location.reload();
+      return;
+    }
+    next();
+  },
   mounted() {
     this.$store.state.tool = "";
     // 全局订阅机器人位置

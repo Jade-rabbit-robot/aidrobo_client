@@ -13,7 +13,12 @@
         :key="`page-${pageIndex}`"
       >
         <div class="page-container">
-          <div @click="goPage(item)" class="link-item" v-for="(item, i) in page" :key="i">
+          <div
+            @click="goPage(item)"
+            class="link-item"
+            v-for="(item, i) in page"
+            :key="i"
+          >
             <router-link to="" class="link">
               <img :src="item.src" />
               <p>{{ item.text }}</p>
@@ -46,7 +51,7 @@
 import fullscreenLoading from "../../components/fullscreenLoading.js";
 
 export default {
-  data () {
+  data() {
     return {
       // imgSrc 中，需要执行 startCamera 的才加 cmd 字段
       imgSrc: [
@@ -61,6 +66,8 @@ export default {
         { src: require("@/assets/img/uti/uti7.svg"), text: '物品识别', link: "/utility/object-recognition", cmd: 'object'},
         { src: require("@/assets/img/uti/screen.svg"), text: '展示大屏', link: "/utility/screen", cmd: 'object'},
         // { src: require("@/assets/img/uti/uti8.svg"), text: '资源看板' },
+        { src: require("@/assets/img/uti/uti10.svg"), text: "无线投屏", link: "/utility/wireless-screen", shellPath: "/home/aidlux/startAc.sh"},
+        { src: require("@/assets/img/uti/uti11.svg"), text: "快速恢复", link: "/utility/recovery", shellPath: "/home/aidlux/roborestart.bash"},
       ],
       data: null,
       isSel: null,
@@ -99,37 +106,75 @@ export default {
       try {
         let link = undefined;
         // 进入某些页面前，先运行一些特定逻辑
-        if(item.cmd) {
+        if (item.cmd) {
           loading = fullscreenLoading();
           const rgbSize = await this.startCamera(item.cmd);
-          if(!rgbSize.success || !rgbSize.message) {
-            throw '';
+          if (!rgbSize.success || !rgbSize.message) {
+            throw "";
           }
-          const {w, h} = JSON.parse(rgbSize.message);
+          const { w, h } = JSON.parse(rgbSize.message);
           loading.close();
-          link = `${item.link}?w=${w}&h=${h}`
+          link = `${item.link}?w=${w}&h=${h}`;
+        }
+        if (item.shellPath) {
+          // 调用 shell
+          if (item.link === "/utility/recovery") {
+            this.recovery(item);
+            return;
+          }
+          this.setJSBridgeShell(item.shellPath);
+          return;
         }
 
-        this.$router.push(link || item.link || '#');
+        this.$router.push(link || item.link || "#");
       } catch (e) {
-        e = e || 'Failed Error!';
+        e = e || "Failed Error!";
         this.$message.error(e.message || e);
         loading && loading.close();
       }
-
     },
     async startCamera(cmd) {
       return new Promise((resolve, reject) => {
-        const params = new ROSLIB.ServiceRequest({cmd});
-        startCamera.callService(params, (res) => {
-          console.log('[ cam_start ok]-61', res)
-          resolve(res)
-        }, (res) => {
-          console.log('[ cam_start ERR]-61', res)
-          reject(res)
-        });
-      })
-    }
+        const params = new ROSLIB.ServiceRequest({ cmd });
+        startCamera.callService(
+          params,
+          (res) => {
+            console.log("[ cam_start ok]-61", res);
+            resolve(res);
+          },
+          (res) => {
+            console.log("[ cam_start ERR]-61", res);
+            reject(res);
+          },
+        );
+      });
+    },
+    setJSBridgeShell(path) {
+      if (window.aidShowBridge && window.aidShowBridge.execSh) {
+        window.aidShowBridge.execSh(path);
+      }
+    },
+    recovery(item) {
+      this.$confirm(
+        `<div style="width: 80%;line-height: 60px;margin: auto;">如机器人当前有启用地图，请将机器人放回地图的起始点后再执行恢复</div>`,
+        "是否执行快速恢复",
+        {
+          dangerouslyUseHTMLString: true,
+          center: true,
+          confirmButtonText: "是",
+          confirmButtonClass: 'recovery-confirm',
+          cancelButtonText: "否",
+          cancelButtonClass: 'recovery-cancel'
+        },
+      ).then(() => {
+        this.setJSBridgeShell(item.shellPath);
+        let loading = fullscreenLoading();
+        setTimeout(() => {
+          loading.close();
+          this.$router.push('/?reload=true');
+        }, 2.5 * 1000);
+      });
+    },
   },
 };
 </script>
@@ -149,7 +194,12 @@ export default {
     width: 330px;
     height: 330px;
     border-radius: 20px;
-    background: linear-gradient(132deg, rgba(71, 84, 141, 0.64) 17%, rgba(53, 81, 119, 0.15) 92%, rgba(53, 92, 119, 0.14) 93%);
+    background: linear-gradient(
+      132deg,
+      rgba(71, 84, 141, 0.64) 17%,
+      rgba(53, 81, 119, 0.15) 92%,
+      rgba(53, 92, 119, 0.14) 93%
+    );
     backdrop-filter: blur(10.88px);
     box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
     margin-left: 120px;
@@ -202,5 +252,14 @@ export default {
     right: 40px;
     transform: rotate(180deg);
   }
+}
+</style>
+<style>
+.el-message-box .el-message-box__btns button.recovery-confirm {
+  background: #b04cf3;
+  margin-left: 50px;
+}
+.el-message-box .el-message-box__btns button.recovery-cancel {
+  background: #7f86b9;
 }
 </style>
