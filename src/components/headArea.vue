@@ -85,10 +85,10 @@ export default {
       });
       robotMode.callService(modeMsg, (result) => {
         console.log('[ robotMode OK]-61', result)
-        this.$message('定位成功');
+        this.$message('定位复位成功');
       }, (result) => {
         console.log('[ robotMode ERR]-61', result)
-        this.$message('定位失败');
+        this.$message('定位复位失败');
       });
       const point = {
         header: {
