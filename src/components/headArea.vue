@@ -31,6 +31,9 @@
           </div>
           <span v-if="$store.state.percentage">{{ $store.state.percentage }}%</span>
         </div>
+        <div class="chat">
+          <img src="@/assets/img/home/chat.png" @click="openChat" />
+        </div>
       </div>
     </div>
   </div>
@@ -183,6 +186,11 @@ export default {
     },
     minus (type, fun) {
       this[type] > 0 && (this[type] -= 1);
+    },
+    openChat() {
+      if(window.aidShowBridge && window.aidShowBridge.chatWithAidbot) {
+        window.aidShowBridge.chatWithAidbot();
+      }
     }
   },
   created() {
@@ -264,9 +272,9 @@ export default {
   }
 
   .rowR {
-    width: 57%;
+    width: 65%;
     height: 100%;
-    margin-left: 42%;
+    margin-left: 35%;
     position: relative;
     display: flex;
     align-items: center;
@@ -325,6 +333,10 @@ export default {
           position: absolute;
         }
       }
+    }
+    .chat {
+      margin-left: 10px;
+      margin-right: 50px;
     }
 
     .Tool {

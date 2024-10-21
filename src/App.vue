@@ -43,6 +43,10 @@ export default {
   },
   methods: {
     onKeyDown(e) {
+      // 机器人语音ai页面打开时，不执行
+      if(window.aidShowBridge && window.aidShowBridge.chatDialogShow && window.aidShowBridge.chatDialogShow()) {
+        return;
+      }
       const keyCodes = {
         38: 'f',//上
         40: 'b',//下
@@ -89,6 +93,11 @@ export default {
       controlRobot.publish(run_msg);
     },
     moveEnd() {
+      // 机器人语音ai页面打开时，不执行
+      if(window.aidShowBridge && window.aidShowBridge.chatDialogShow && window.aidShowBridge.chatDialogShow()) {
+        return;
+      }
+
       const linear = {
         x: 0,
         y: 0.0,
