@@ -16,20 +16,27 @@
         </div>
       </div>
       <div class="rowR">
-        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()" :style="{ opacity: cmd ? 1 : 0 }">
+        <div
+          class="show"
+          @touchstart="routerStart()"
+          @touchend="routerEnd()"
+          :style="{ opacity: cmd ? 1 : 0 }"
+        >
           <img src="@/assets/img/home/patrol.png" />
           <span>{{ cmd }}</span>
         </div>
         <div class="show" ref="relocationRef" @click="relocation()">
           <img src="@/assets/img/home/mapName.png" />
-          <span>{{ this.$store.state.nowMap.name || '无地图' }}</span>
+          <span>{{ this.$store.state.nowMap.name || "无地图" }}</span>
         </div>
         <div class="electric">
           <img src="@/assets/img/home/electric.png" />
           <div>
-            <div :style="{ 'width': $store.state.percentage + '%' }"></div>
+            <div :style="{ width: $store.state.percentage + '%' }"></div>
           </div>
-          <span v-if="$store.state.percentage">{{ $store.state.percentage }}%</span>
+          <span v-if="$store.state.percentage"
+            >{{ $store.state.percentage }}%</span
+          >
         </div>
         <div class="chat">
           <img src="@/assets/img/home/chat.png" @click="openChat" />
@@ -41,58 +48,58 @@
 
 <script>
 import { mapState, mapMutations } from "vuex";
-import { routerObj } from '@/assets/common'
+import { routerObj } from "@/assets/common";
 export default {
   computed: {
-    ...mapState([
-      "showMsg",
-      "hasSave",
-      "actionStatus"
-    ])
+    ...mapState(["showMsg", "hasSave", "actionStatus"])
   },
-  data () {
+  data() {
     return {
       showTc: false,
       set: null,
       luminance: 20,
-      cmd: '',
-      routerN: '',
-      routerTxt: '',
+      cmd: "",
+      routerN: "",
+      routerTxt: "",
       voice: 0,
       reconnectFlag: false
     };
   },
   watch: {
-    actionStatus: function (n) {
-      if (n === 'patrolStart') {
-        this.cmd = '巡逻中...';
-      } else if (n === 'patrolPause') {
-        this.cmd = '恢复巡逻';
+    actionStatus: function(n) {
+      if (n === "patrolStart") {
+        this.cmd = "巡逻中...";
+      } else if (n === "patrolPause") {
+        this.cmd = "恢复巡逻";
       }
     },
-    $route (to, from) {
-      this.routerN = to.path
-      this.routerTxt = routerObj[to.name]
+    $route(to, from) {
+      this.routerN = to.path;
+      this.routerTxt = routerObj[to.name];
       // console.log('//从哪来',from.path);
       // console.log('//到哪去', to);
     }
   },
   methods: {
-    refreshFun () {
+    refreshFun() {
       window.location.reload();
     },
-    relocation () {
-      console.log('头部点击定位')
+    relocation() {
+      console.log("头部点击定位");
       const modeMsg = new ROSLIB.ServiceRequest({
-        action: 'localization'
+        action: "localization"
       });
-      robotMode.callService(modeMsg, (result) => {
-        console.log('[ robotMode OK]-61', result)
-        this.$message('定位复位成功');
-      }, (result) => {
-        console.log('[ robotMode ERR]-61', result)
-        this.$message('定位复位失败');
-      });
+      robotMode.callService(
+        modeMsg,
+        result => {
+          console.log("[ robotMode OK]-61", result);
+          this.$message("定位复位成功");
+        },
+        result => {
+          console.log("[ robotMode ERR]-61", result);
+          this.$message("定位复位失败");
+        }
+      );
       const point = {
         header: {
           stamp: {
@@ -118,77 +125,90 @@ export default {
       var pose_msg = new ROSLIB.Message(point);
       PoseStamped.publish(pose_msg);
     },
-    patrolAction () {
-      if (this.actionStatus === 'patrolStart') {
+    patrolAction() {
+      if (this.actionStatus === "patrolStart") {
         const type = new ROSLIB.ServiceRequest({
-          cmd: 'pause'
+          cmd: "pause"
         });
-        patrolState.callService(type, (res) => {
-          console.log('[ patrol_control ok]-61', res)
-        }, (res) => {
-          console.log('[ patrol_control ERR]-61', res)
-        });
-        this.$store.state.actionStatus = 'patrolPause'
+        patrolState.callService(
+          type,
+          res => {
+            console.log("[ patrol_control ok]-61", res);
+          },
+          res => {
+            console.log("[ patrol_control ERR]-61", res);
+          }
+        );
+        this.$store.state.actionStatus = "patrolPause";
       } else {
-        this.$store.state.actionStatus = 'patrolStart'
+        this.$store.state.actionStatus = "patrolStart";
         const type = new ROSLIB.ServiceRequest({
-          cmd: 'resume'
+          cmd: "resume"
         });
-        patrolState.callService(type, (res) => {
-          console.log('[ patrol_control ok]-61', res)
-        }, (res) => {
-          console.log('[ patrol_control ERR]-61', res)
-        });
+        patrolState.callService(
+          type,
+          res => {
+            console.log("[ patrol_control ok]-61", res);
+          },
+          res => {
+            console.log("[ patrol_control ERR]-61", res);
+          }
+        );
       }
     },
-    routerStart () {
-      this.patrolAction()
+    routerStart() {
+      this.patrolAction();
       let num = 0;
       this.set = setInterval(() => {
-        num += 1
+        num += 1;
         if (num >= 3) {
-          if (this.actionStatus.includes('patrol')) {
-            this.$router.push('/utility/patrol')
+          if (this.actionStatus.includes("patrol")) {
+            this.$router.push("/utility/patrol");
           }
-          clearInterval(this.set)
+          clearInterval(this.set);
         }
-      }, 1000)
+      }, 1000);
     },
-    routerEnd () {
-      clearInterval(this.set)
+    routerEnd() {
+      clearInterval(this.set);
     },
-    routerFun (path) {
-      if (this.$router.history.current.path === '/utility/goPoint') {
+    routerFun(path) {
+      if (this.$router.history.current.path === "/utility/goPoint") {
         if (!this.hasSave) {
-          this.$confirm(`<div>是否确认退出</div><div>（已操作内容不会保存）</div>`, '退出', {
-            dangerouslyUseHTMLString: true,
-            center: true
-          }).then(() => {
-            if (path === '/') {
-              this.$router.push('/')
-            } else {
-              this.$router.go(-1)
+          this.$confirm(
+            `<div>是否确认退出</div><div>（已操作内容不会保存）</div>`,
+            "退出",
+            {
+              dangerouslyUseHTMLString: true,
+              center: true
             }
-          }).catch(() => {
-          });
+          )
+            .then(() => {
+              if (path === "/") {
+                this.$router.push("/");
+              } else {
+                this.$router.go(-1);
+              }
+            })
+            .catch(() => {});
         }
       } else {
-        if (path === '/') {
-          this.$router.push('/')
+        if (path === "/") {
+          this.$router.push("/");
         } else {
-          this.$router.go(-1)
+          this.$router.go(-1);
         }
       }
     },
-    add (type, fun) {
-      this.$store.state.showMsg = true
+    add(type, fun) {
+      this.$store.state.showMsg = true;
       this[type] < 100 && (this[type] += 1);
     },
-    minus (type, fun) {
+    minus(type, fun) {
       this[type] > 0 && (this[type] -= 1);
     },
     openChat() {
-      if(window.aidShowBridge && window.aidShowBridge.chatWithAidbot) {
+      if (window.aidShowBridge && window.aidShowBridge.chatWithAidbot) {
         window.aidShowBridge.chatWithAidbot();
       }
     }
@@ -199,38 +219,38 @@ export default {
 
     // 重连
     let reconnectBegin; // 重连的开始时间
-    ros.on('close', () => {
-      if(_this.reconnectFlag) return;
+    ros.on("close", () => {
+      if (_this.reconnectFlag) return;
 
-      if(!reconnectBegin) {
+      if (!reconnectBegin) {
         reconnectBegin = Date.now();
       }
       const LimitTime = 30 * 1000; // 限制重连时间为30s
-      const gap = (Date.now() - reconnectBegin)
-      if(gap > LimitTime) {
+      const gap = Date.now() - reconnectBegin;
+      if (gap > LimitTime) {
         _this.reconnectFlag = true;
         reconnectBegin = null;
-        console.log('重连失败，已断开连接');
-        _this.$message.error({message:'机器人启动失败', center: true});
+        console.log("重连失败，已断开连接");
+        _this.$message.error({ message: "机器人启动失败", center: true });
       } else {
-        console.log('正在重连...', gap);
+        console.log("正在重连...", gap);
         ros.connect(rosURL);
       }
-    })
+    });
 
-    ros.on('connection', function () {
-      console.log('rosOk!!!');
-      if(!_this.reconnectFlag) {
+    ros.on("connection", function() {
+      console.log("rosOk!!!");
+      if (!_this.reconnectFlag) {
         _this.reconnectFlag = true;
         _this.$nextTick(() => {
           _this.$refs.relocationRef.click();
-        })
+        });
       }
     });
   },
-  mounted () {
+  mounted() {
     console.log("[  ]-45", this.$router.history.current.path);
-    this.routerN = this.$router.history.current.path
+    this.routerN = this.$router.history.current.path;
   }
 };
 </script>
@@ -240,12 +260,12 @@ export default {
   position: absolute;
   left: 0px;
   top: 0px;
-  width: 1920px;
+  width: 100vw;
   height: 120px;
   opacity: 1;
   z-index: 10;
   color: #fff;
-  background: #495BAF;
+  background: #495baf;
   backdrop-filter: blur(10.88px);
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
 }
@@ -257,7 +277,7 @@ export default {
   .home {
     width: 80px;
     height: 80px;
-    background: #2F3758;
+    background: #2f3758;
     border-radius: 10px;
     margin: 20px;
     position: absolute;
@@ -280,7 +300,7 @@ export default {
     align-items: center;
     justify-content: space-between;
 
-    &>div {
+    & > div {
       height: 80px;
     }
 
@@ -299,7 +319,7 @@ export default {
       align-items: center;
       justify-content: center;
 
-      &>span {
+      & > span {
         margin-left: 20px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -316,16 +336,16 @@ export default {
       align-items: center;
       width: 177px;
 
-      &>img {
+      & > img {
         margin-right: 10px;
       }
 
-      &>div {
+      & > div {
         right: 98px;
         width: 66px;
         position: absolute;
 
-        &>div {
+        & > div {
           height: 25px;
           background: #c6cfe9;
           right: 6px;
@@ -417,7 +437,7 @@ export default {
       background: #bfc9f9;
       position: relative;
 
-      &>div {
+      & > div {
         position: absolute;
         width: 53.83px;
         bottom: 0;

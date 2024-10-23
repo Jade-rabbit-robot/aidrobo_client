@@ -2,27 +2,40 @@
 <template>
   <div class="map" ref="map" @touchmove="map_move()">
     <div class="fa_map_box1">
-      <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
-        @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
+      <div
+        class="map_box1"
+        ref="map_box1"
+        @touchstart="rubberstart($event)"
+        @touchmove="rubbermove($event)"
+        @touchend="rubberend($event)"
+        v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }"
+      >
         <img id="img1" :src="mapData.src" @load="init" ref="img1" />
         <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
-        <div class="robot" v-bind:style="{
-          transform:
-            'translate(' +
-            (robotXY.x * scale - 15) +
-            'px,' +
-            (robotXY.y * scale - 15) +
-            'px)',
-        }">
-        </div>
-        <div v-for="(item, index) in patrol_arr_area" :key="index" class="map_point" v-bind:style="{
-          transform:
-            'translate(' +
-            (item.x * scale - 25) +
-            'px,' +
-            (item.y * scale + -70) +
-            'px)',
-        }">
+        <div
+          class="robot"
+          v-bind:style="{
+            transform:
+              'translate(' +
+              (robotXY.x * scale - 15) +
+              'px,' +
+              (robotXY.y * scale - 15) +
+              'px)'
+          }"
+        ></div>
+        <div
+          v-for="(item, index) in patrol_arr_area"
+          :key="index"
+          class="map_point"
+          v-bind:style="{
+            transform:
+              'translate(' +
+              (item.x * scale - 25) +
+              'px,' +
+              (item.y * scale + -70) +
+              'px)'
+          }"
+        >
           <img src="../../../static2/img/point.png" width="50px" />
           <span class="pointNum">{{ index + 1 }}</span>
         </div>
@@ -32,19 +45,31 @@
       </div>
     </div>
     <div class="img2">
-      <div class="show_img" ref="show_img" v-bind:style="{
-        'margin-top': img2_top + 'px',
-        'margin-left': img2_left + 'px',
-      }"></div>
+      <div
+        class="show_img"
+        ref="show_img"
+        v-bind:style="{
+          'margin-top': img2_top + 'px',
+          'margin-left': img2_left + 'px'
+        }"
+      ></div>
       <img id="img2" :src="mapData.src" ref="img2" />
     </div>
     <div class="zoom">
-      <img src="@/assets/img/seeMap/fda.png" @click="zoom('f')"/>
-      <img src="@/assets/img/seeMap/sxiao.png" @click="zoom('s')"/>
+      <img src="@/assets/img/seeMap/fda.png" @click="zoom('f')" />
+      <img src="@/assets/img/seeMap/sxiao.png" @click="zoom('s')" />
     </div>
     <div class="active">
-      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool == 'patrol'||tool == 'point'" />
-      <img src="@/assets/img/seeMap/disActive.png" @click="changeTool('patrol')" v-else />
+      <img
+        src="@/assets/img/seeMap/active.png"
+        @click="changeTool('')"
+        v-if="tool == 'patrol' || tool == 'point'"
+      />
+      <img
+        src="@/assets/img/seeMap/disActive.png"
+        @click="changeTool('patrol')"
+        v-else
+      />
     </div>
   </div>
 </template>
@@ -351,10 +376,10 @@ export default {
 .map {
   position: relative;
   top: 0;
-  height: 1010px;
+  height: calc(100% - 70px);
   width: 1380px;
   border-radius: 5px;
-  background: #526CAD;
+  background: #526cad;
   overflow: hidden;
   margin-top: 30px;
   margin-left: 30px;
@@ -526,9 +551,11 @@ export default {
   top: 0;
   left: 0;
   z-index: 11;
-  background: linear-gradient(135deg,
-      rgb(255 172 85) 0%,
-      rgb(255 13 52 / 81%) 100%);
+  background: linear-gradient(
+    135deg,
+    rgb(255 172 85) 0%,
+    rgb(255 13 52 / 81%) 100%
+  );
   box-shadow: -1px -2px 3px -5px rgb(249 249 249),
     4px 4px 10px -5px rgb(0 0 0 / 30%);
 }
@@ -572,7 +599,7 @@ export default {
   bottom: 50px;
   left: 50px;
 }
-.zoom{
+.zoom {
   position: fixed;
   bottom: 50px;
   left: 1130px;

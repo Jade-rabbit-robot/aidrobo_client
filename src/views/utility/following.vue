@@ -13,8 +13,16 @@
           <span>跟踪丢失</span>
         </div>
 
-        <div v-if="isStart" class="action danger-status" @click="stopFollow">停止跟随</div>
-        <div v-else :class="['action', { readyBtn: personStatus }]" @click="startFollow(personStatus)">开始跟随</div>
+        <div v-if="isStart" class="action danger-status" @click="stopFollow">
+          停止跟随
+        </div>
+        <div
+          v-else
+          :class="['action', { readyBtn: personStatus }]"
+          @click="startFollow(personStatus)"
+        >
+          开始跟随
+        </div>
       </div>
     </div>
   </div>
@@ -23,53 +31,57 @@
 <script>
 const TEXT = {
   idle: {
-    title: '选择跟随目标',
-    description: '请选择跟随目标后点击下方开始跟随按钮'
+    title: "选择跟随目标",
+    description: "请选择跟随目标后点击下方开始跟随按钮"
   },
   following: {
-    title: '正在跟随...',
-    description: '正在跟随标记的目标，行走的速度请勿过快'
+    title: "正在跟随...",
+    description: "正在跟随标记的目标，行走的速度请勿过快"
   }
-}
+};
 export default {
   data() {
     return {
       isStart: false, // 是否开启了跟随
       loading: false,
       personStatus: false, // 人物识别状态 false: 没有跟随； true: 跟随中
-      lost: false,
+      lost: false
     };
   },
   computed: {
     text() {
-      return this.isStart ? TEXT.following : TEXT.idle
+      return this.isStart ? TEXT.following : TEXT.idle;
     }
   },
   mounted() {
     this.initVideo();
     getFollowStatus.subscribe(res => {
-      console.log('personStatus:', res.data)
+      console.log("personStatus:", res.data);
       this.personStatus = res.data;
 
-      if(this.lost && this.personStatus) {
+      if (this.lost && this.personStatus) {
         // 取消 ‘跟踪丢失’ 的提示
-        this.setLost(false)
+        this.setLost(false);
       }
-      if(this.isStart && !this.personStatus) {
+      if (this.isStart && !this.personStatus) {
         // ‘跟踪丢失’ 的提示
-        this.setLost(true)
+        this.setLost(true);
       }
-    })
+    });
   },
   beforeDestroy() {
-    stopCamera.callService(null, (res) => {
-      console.log('[ cam_stop ok]-61', res)
-    }, (res) => {
-      console.log('[ cam_stop ERR]-61', res)
-    });
+    stopCamera.callService(
+      null,
+      res => {
+        console.log("[ cam_stop ok]-61", res);
+      },
+      res => {
+        console.log("[ cam_stop ERR]-61", res);
+      }
+    );
     getFollowStatus.unsubscribe(res => {
-      console.log('unsubscribe:', res);
-    })
+      console.log("unsubscribe:", res);
+    });
     if (window.aidShowBridge && window.aidShowBridge.close) {
       window.aidShowBridge.close();
     }
@@ -78,52 +90,68 @@ export default {
     initVideo() {
       const rgbWidth = this.$route.query.w;
       const rgbHeight = this.$route.query.h;
-      const video = document.getElementById('video')
-      const top = video.getBoundingClientRect().top
-      const left = video.getBoundingClientRect().left
-      const width = video.getBoundingClientRect().width
-      const height = video.getBoundingClientRect().height
+      const video = document.getElementById("video");
+      const top = video.getBoundingClientRect().top;
+      const left = video.getBoundingClientRect().left;
+      const width = video.getBoundingClientRect().width;
+      const height = video.getBoundingClientRect().height;
       if (window.aidShowBridge && window.aidShowBridge.setSurfaceLocation) {
-        window.aidShowBridge.setSurfaceLocation(left, top, width, height, Number(rgbWidth), Number(rgbHeight), 1920);
+        window.aidShowBridge.setSurfaceLocation(
+          left,
+          top,
+          width,
+          height,
+          Number(rgbWidth),
+          Number(rgbHeight),
+          1920
+        );
       }
     },
     startFollow(ready) {
-      if(!ready || this.loading) return;
+      if (!ready || this.loading) return;
       this.loading = true;
-      startFollow.callService(null, (res) => {
-        console.log('[ follow_start ok]-61', res);
-        this.isStart = true;
-        this.loading = false;
-      }, (res) => {
-        console.log('[ follow_start ERR]-61', res);
-        this.loading = false;
-      });
+      startFollow.callService(
+        null,
+        res => {
+          console.log("[ follow_start ok]-61", res);
+          this.isStart = true;
+          this.loading = false;
+        },
+        res => {
+          console.log("[ follow_start ERR]-61", res);
+          this.loading = false;
+        }
+      );
     },
     stopFollow() {
-      if(this.loading) return;
+      if (this.loading) return;
       this.loading = true;
-      stopFollow.callService(null, (res) => {
-        console.log('[ follow_stop ok]-61', res);
-        this.isStart = false;
-        this.loading = false;
-      }, (res) => {
-        console.log('[ follow_stop ERR]-61', res);
-        this.loading = false;
-      });
+      stopFollow.callService(
+        null,
+        res => {
+          console.log("[ follow_stop ok]-61", res);
+          this.isStart = false;
+          this.loading = false;
+        },
+        res => {
+          console.log("[ follow_stop ERR]-61", res);
+          this.loading = false;
+        }
+      );
     },
     setLost(lost) {
-      if(this.lost === lost) {
+      if (this.lost === lost) {
         // 状态没变
         return;
       }
       this.lost = lost;
-      this.$refs.message.classList.remove('hide');
+      this.$refs.message.classList.remove("hide");
 
-      if(!lost)  {
-        this.$refs.message.classList.add('hide');
+      if (!lost) {
+        this.$refs.message.classList.add("hide");
       }
     }
-  },
+  }
 };
 </script>
 
@@ -142,7 +170,7 @@ export default {
 .video-container {
   position: relative;
   top: 0;
-  height: 1010px;
+  height: calc(100% - 30px);
   width: 1380px;
   //background: transparent;
   //border-radius: 5px;
@@ -152,7 +180,7 @@ export default {
 
 .right {
   width: 434px;
-  height: 1010px;
+  height: calc(100% - 30px);
   background-color: #ccc;
   border-radius: 5px;
   background: linear-gradient(
@@ -193,7 +221,7 @@ export default {
   width: 300px;
   height: 80px;
   border-radius: 10px;
-  background: #2E3449;
+  background: #2e3449;
   backdrop-filter: blur(10px);
   margin-bottom: 60px;
   display: flex;
@@ -233,6 +261,6 @@ export default {
   ) !important;
 }
 .danger-status {
-  background: #D94040 !important;
+  background: #d94040 !important;
 }
 </style>

@@ -2,8 +2,14 @@
 <template>
   <div class="map" ref="map" @touchmove="map_move()">
     <div class="fa_map_box1">
-      <div class="map_box1" ref="map_box1" @touchstart="rubberstart($event)" @touchmove="rubbermove($event)"
-        @touchend="rubberend($event)" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
+      <div
+        class="map_box1"
+        ref="map_box1"
+        @touchstart="rubberstart($event)"
+        @touchmove="rubbermove($event)"
+        @touchend="rubberend($event)"
+        v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }"
+      >
         <img id="img1" :src="mapData.src" @load="init" ref="img1" />
         <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
         <div class="map_box2">
@@ -12,23 +18,35 @@
       </div>
     </div>
     <div class="img2">
-      <div class="show_img" ref="show_img" v-bind:style="{
-        'margin-top': img2_top + 'px',
-        'margin-left': img2_left + 'px',
-      }"></div>
+      <div
+        class="show_img"
+        ref="show_img"
+        v-bind:style="{
+          'margin-top': img2_top + 'px',
+          'margin-left': img2_left + 'px'
+        }"
+      ></div>
       <img id="img2" :src="mapData.src" ref="img2" />
     </div>
     <div class="zoom">
-      <img src="@/assets/img/seeMap/fda.png" @click="zoom('f')"/>
-      <img src="@/assets/img/seeMap/sxiao.png" @click="zoom('s')"/>
+      <img src="@/assets/img/seeMap/fda.png" @click="zoom('f')" />
+      <img src="@/assets/img/seeMap/sxiao.png" @click="zoom('s')" />
     </div>
     <div class="recover">
       <img src="@/assets/img/editMap/revocation.png" @click="revocation()" />
       <img src="@/assets/img/editMap/recover.png" @click="recover()" />
     </div>
     <div class="active" v-if="toolType == 'stop' || toolType == 'eraser'">
-      <img src="@/assets/img/seeMap/active.png" @click="changeTool('')" v-if="tool == 'stop' || tool == 'eraser'" />
-      <img src="@/assets/img/seeMap/disActive.png" @click="changeTool(toolType)" v-else />
+      <img
+        src="@/assets/img/seeMap/active.png"
+        @click="changeTool('')"
+        v-if="tool == 'stop' || tool == 'eraser'"
+      />
+      <img
+        src="@/assets/img/seeMap/disActive.png"
+        @click="changeTool(toolType)"
+        v-else
+      />
     </div>
   </div>
 </template>
@@ -412,10 +430,10 @@ export default {
 .map {
   position: relative;
   top: 0;
-  height: 1010px;
+  height: calc(100% - 70px);
   width: 1380px;
   border-radius: 5px;
-  background: #526CAD;
+  background: #526cad;
   overflow: hidden;
   margin-top: 30px;
   margin-left: 30px;
@@ -573,7 +591,6 @@ export default {
   transform: translate(-60px, -60px);
 }
 
-
 .recover {
   position: fixed;
   bottom: 160px;
@@ -585,7 +602,7 @@ export default {
   bottom: 50px;
   left: 50px;
 }
-.zoom{
+.zoom {
   position: fixed;
   bottom: 50px;
   left: 1160px;

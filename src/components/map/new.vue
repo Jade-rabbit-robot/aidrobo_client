@@ -1,26 +1,42 @@
 <template>
   <div class="map" ref="map">
     <div class="fa_map_box1">
-      <div class="map_box1" ref="map_box1" v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }">
+      <div
+        class="map_box1"
+        ref="map_box1"
+        v-bind:style="{ transform: 'translate(' + left + 'px,' + top + 'px)' }"
+      >
         <img id="img1" :src="mapData.src" ref="img1" />
-        <div class="robot" v-bind:style="{
-          transform:
-            'translate(' +
-            (xx2(robotPoint.x) * scale - 15) +
-            'px,' +
-            (yy2(robotPoint.y) * scale - 15) +
-            'px)',
-        }" v-if="showType != 'see'">
-        </div>
-        <div class="charge" v-bind:style="{
-          transform:
-            'translate(' +
-            (chargeXY.x * scale - 46) +
-            'px,' +
-            (chargeXY.y * scale - 124) +
-            'px)',
-        }" v-else>
-          <img id="img1" src="@/assets/img/startPoint.svg" @load="init" ref="img1" />
+        <div
+          class="robot"
+          v-bind:style="{
+            transform:
+              'translate(' +
+              (xx2(robotPoint.x) * scale - 15) +
+              'px,' +
+              (yy2(robotPoint.y) * scale - 15) +
+              'px)'
+          }"
+          v-if="showType != 'see'"
+        ></div>
+        <div
+          class="charge"
+          v-bind:style="{
+            transform:
+              'translate(' +
+              (chargeXY.x * scale - 46) +
+              'px,' +
+              (chargeXY.y * scale - 124) +
+              'px)'
+          }"
+          v-else
+        >
+          <img
+            id="img1"
+            src="@/assets/img/startPoint.svg"
+            @load="init"
+            ref="img1"
+          />
         </div>
       </div>
     </div>
@@ -101,10 +117,10 @@ export default {
 .map {
   position: relative;
   top: 0;
-  height: 1010px;
+  height: calc(100% - 70px);
   width: 1380px;
   border-radius: 5px;
-  background: #526CAD;
+  background: #526cad;
   overflow: auto;
 }
 
@@ -126,7 +142,6 @@ export default {
   background: #ff9b44;
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
 }
-
 
 .charge {
   width: 92px;

@@ -57,21 +57,60 @@ export default {
       imgSrc: [
         // { src: require("@/assets/img/uti/uti1.svg"), text: '重定位', link: "/utility/relocation" },
         // { src: require("@/assets/img/uti/uti2.svg"), text: '去位置点', link: "/utility/goPoint" },
-        { src: require("@/assets/img/uti/uti3.svg"), text: '自主巡逻', link: "/utility/patrol" },
+        {
+          src: require("@/assets/img/uti/uti3.svg"),
+          text: "自主巡逻",
+          link: "/utility/patrol"
+        },
         // { src: require("@/assets/img/uti/uti4.svg"), text: '返回原点/充电', link: "/utility/charge" },
         //{ src: require("@/assets/img/uti/uti5.svg"), text: '遥控模式', link: "/utility/telecontrol" },
-        { src: require("@/assets/img/uti/uti6.svg"), text: '人形跟随', link: "/utility/following", cmd: 'follow' },
-        { src: require("@/assets/img/uti/face.svg"), text: '人脸跟随', link: "/utility/following", cmd: 'face' },
-        { src: require("@/assets/img/uti/uti9.svg"), text: "手势控制", link: "/utility/gesture", cmd: 'hand' },
-        { src: require("@/assets/img/uti/uti7.svg"), text: '物品识别', link: "/utility/object-recognition", cmd: 'object'},
-        { src: require("@/assets/img/uti/screen.svg"), text: '展示大屏', link: "/utility/screen", cmd: 'object'},
+        {
+          src: require("@/assets/img/uti/uti6.svg"),
+          text: "人形跟随",
+          link: "/utility/following",
+          cmd: "follow"
+        },
+        {
+          src: require("@/assets/img/uti/face.svg"),
+          text: "人脸跟随",
+          link: "/utility/following",
+          cmd: "face"
+        },
+        {
+          src: require("@/assets/img/uti/uti9.svg"),
+          text: "手势控制",
+          link: "/utility/gesture",
+          cmd: "hand"
+        },
+        {
+          src: require("@/assets/img/uti/uti7.svg"),
+          text: "物品识别",
+          link: "/utility/object-recognition",
+          cmd: "object"
+        },
+        {
+          src: require("@/assets/img/uti/screen.svg"),
+          text: "展示大屏",
+          link: "/utility/screen",
+          cmd: "object"
+        },
         // { src: require("@/assets/img/uti/uti8.svg"), text: '资源看板' },
-        { src: require("@/assets/img/uti/uti10.svg"), text: "无线投屏", link: "/utility/wireless-screen", shellPath: "/home/aidlux/startAc.sh"},
-        { src: require("@/assets/img/uti/uti11.svg"), text: "快速恢复", link: "/utility/recovery", shellPath: "/home/aidlux/roborestart.bash"},
+        {
+          src: require("@/assets/img/uti/uti10.svg"),
+          text: "无线投屏",
+          link: "/utility/wireless-screen",
+          shellPath: "/home/aidlux/startAc.sh"
+        },
+        {
+          src: require("@/assets/img/uti/uti11.svg"),
+          text: "快速恢复",
+          link: "/utility/recovery",
+          shellPath: "/home/aidlux/roborestart.bash"
+        }
       ],
       data: null,
       isSel: null,
-      pageIndex: 0,
+      pageIndex: 0
     };
   },
   computed: {
@@ -86,7 +125,7 @@ export default {
         res[page].push(item);
       });
       return res;
-    },
+    }
   },
   methods: {
     changePage(direction, disabled) {
@@ -138,14 +177,14 @@ export default {
         const params = new ROSLIB.ServiceRequest({ cmd });
         startCamera.callService(
           params,
-          (res) => {
+          res => {
             console.log("[ cam_start ok]-61", res);
             resolve(res);
           },
-          (res) => {
+          res => {
             console.log("[ cam_start ERR]-61", res);
             reject(res);
-          },
+          }
         );
       });
     },
@@ -162,20 +201,20 @@ export default {
           dangerouslyUseHTMLString: true,
           center: true,
           confirmButtonText: "是",
-          confirmButtonClass: 'recovery-confirm',
+          confirmButtonClass: "recovery-confirm",
           cancelButtonText: "否",
-          cancelButtonClass: 'recovery-cancel'
-        },
+          cancelButtonClass: "recovery-cancel"
+        }
       ).then(() => {
         this.setJSBridgeShell(item.shellPath);
         let loading = fullscreenLoading();
         setTimeout(() => {
           loading.close();
-          this.$router.push('/?reload=true');
+          this.$router.push("/?reload=true");
         }, 2.5 * 1000);
       });
-    },
-  },
+    }
+  }
 };
 </script>
 
@@ -186,7 +225,7 @@ export default {
   .page-container {
     display: flex;
     flex-wrap: wrap;
-    margin: 150px 0 0 0;
+    margin: 110px 0 0 0;
     height: 744px;
     align-content: space-between;
   }
