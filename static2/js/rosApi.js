@@ -14,7 +14,7 @@ const robotMode = new ROSLIB.Service({
 /** 指令控制 */
 const controlRobot = new ROSLIB.Topic({
   ros: ros,
-  name: '/cmd_vel',
+  name: '/cmd_vel_remote_ctrl',
   messageType: 'geometry_msgs/msg/Twist'
 });
 
@@ -93,7 +93,7 @@ const robotPosition = new ROSLIB.Topic({
 /** 重定位*/
 const PoseStamped = new ROSLIB.Topic({
   ros: ros,
-  name: '/goal_pose',
+  name: '/goal_pose_',
   messageType: 'geometry_msgs/msg/PoseStamped'
 });
 /** 获取巡逻点列表 */
@@ -202,5 +202,11 @@ const BatteryState = new ROSLIB.Topic({
   ros: ros,
   name: '/battery_data',
   serviceType: 'sensor_msgs/msg/BatteryState'
+});
+/** 编辑地图 */
+const MapEditor = new ROSLIB.Service({
+  ros: ros,
+  name: '/map_editor',
+  serviceType: 'aid_robot_msgs/srv/DrawForbidden'
 });
 

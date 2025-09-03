@@ -6,10 +6,10 @@
         <p><img src="@/assets/img/editMap/rubber.svg" />橡皮擦</p>
         <p>请使用手指或鼠标进行擦除操作，地图可使用双指或滚轮中键拖动或缩放</p>
       </div>
-      <!-- <div class="rubber" @click="onRubber()" v-show="!rubber && !stop">
+      <div class="rubber" @click="onRubber()" v-show="!rubber && !stop">
         <img src="@/assets/img/editMap/rubber.svg" />
         <p>橡皮擦</p>
-      </div> -->
+      </div>
       <div v-show="!rubber && stop" class="titleBox">
         <p><img src="@/assets/img/editMap/stop.svg" />禁行线</p>
         <p>请使用手指或鼠标点击两点进行连线，地图可使用双指或滚轮中键拖动或缩放</p>
@@ -44,6 +44,8 @@ export default {
   },
   computed: {
     ...mapState([
+      "eraserArr",
+      "eraserArrP",
       "linearCurveArr",
       "linearCurveArrP",
       "mapData",
@@ -61,22 +63,42 @@ export default {
     this.$store.state.actionStatus = 'edit'
   },
   methods: {
-    DrawPicture (data) {
+    DrawMap (rectangle_array) {
+      const msg2 = new ROSLIB.ServiceRequest(
+        {
+          frame_id: "map",
+          map_id: this.$route.query.id * 1,
+          type: "point",
+          data: [],
+          rectangle_array
+        }
+      );
+      MapEditor.callService(msg2, (result) => {
+        if (result.success) {
+          console.log('[ msg ]-75', result)
+        }
+        console.log('[  DrawMap OK]-61', result)
+      }, (result) => {
+        console.log('[  DrawMap ERR]-61', result)
+      });
+    },
+    DrawForbidden (data) {
       const msg2 = new ROSLIB.ServiceRequest(
         {
           frame_id: "map",
           map_id: this.$route.query.id * 1,
           type: "line",
-          data
+          data,
+          rectangle_array:[]
         }
       );
-      DrawPicture.callService(msg2, (result) => {
+      DrawForbidden.callService(msg2, (result) => {
         if (result.success) {
           console.log('[ msg ]-75', result)
         }
-        console.log('[  DrawPicture OK]-61', result)
+        console.log('[  DrawForbidden OK]-61', result)
       }, (result) => {
-        console.log('[  DrawPicture ERR]-61', result)
+        console.log('[  DrawForbidden ERR]-61', result)
       });
     },
     getForbidden () {
@@ -158,6 +180,7 @@ export default {
     onOver () {
       if (this.overText == '保存地图') {
         console.log('[ this.linearCurveArrP. ]-158', this.linearCurveArrP)
+        console.log('[ this.eraserArrP. ]-158', this.eraserArrP)
         //禁行线
         if (this.linearCurveArrP.length) {
           if (this.hasHistory) {
@@ -165,7 +188,10 @@ export default {
           } else {
             this.addForbidden(this.linearCurveArrP)
           }
-          this.DrawPicture(this.linearCurveArrP)
+          this.DrawForbidden(this.linearCurveArrP)
+        }
+        if (this.eraserArrP.length) {
+          this.DrawMap(this.eraserArrP)
         }
       } else {
         this.toolType = ''
