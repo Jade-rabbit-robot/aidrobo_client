@@ -82,7 +82,7 @@ export default {
         console.log('[  DrawMap ERR]-61', result)
       });
     },
-    DrawForbidden (data) {
+    DrawPicture (data) {
       const msg2 = new ROSLIB.ServiceRequest(
         {
           frame_id: "map",
@@ -92,13 +92,13 @@ export default {
           rectangle_array:[]
         }
       );
-      DrawForbidden.callService(msg2, (result) => {
+      DrawPicture.callService(msg2, (result) => {
         if (result.success) {
           console.log('[ msg ]-75', result)
         }
-        console.log('[  DrawForbidden OK]-61', result)
+        console.log('[  DrawPicture OK]-61', result)
       }, (result) => {
-        console.log('[  DrawForbidden ERR]-61', result)
+        console.log('[  DrawPicture ERR]-61', result)
       });
     },
     getForbidden () {
@@ -188,7 +188,7 @@ export default {
           } else {
             this.addForbidden(this.linearCurveArrP)
           }
-          this.DrawForbidden(this.linearCurveArrP)
+          this.DrawPicture(this.linearCurveArrP)
         }
         if (this.eraserArrP.length) {
           this.DrawMap(this.eraserArrP)

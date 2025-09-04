@@ -19,8 +19,8 @@
       <img id="img2" :src="mapData.src" ref="img2" />
     </div>
     <div class="zoom">
-      <img src="@/assets/img/seeMap/fda.png" @click="zoom('f')"/>
-      <img src="@/assets/img/seeMap/sxiao.png" @click="zoom('s')"/>
+      <img src="@/assets/img/seeMap/fda.png" @click="zoom('f')" />
+      <img src="@/assets/img/seeMap/sxiao.png" @click="zoom('s')" />
     </div>
     <div class="recover">
       <img src="@/assets/img/editMap/revocation.png" @click="revocation()" />
@@ -39,7 +39,7 @@ import { changeStr, mapToImg, imgToMap } from "@/assets/common"
 
 export default {
   props: ['toolType', 'initData'],
-  data () {
+  data() {
     return {
       recoverArr: [],
       linearCurveArr: [],
@@ -97,6 +97,7 @@ export default {
   computed: {
     ...mapState([
       "eraserArr",
+      "eraserArrP",
       "linearCurveArrP",
       "robotPoint",
       "mapData",
@@ -126,15 +127,15 @@ export default {
       }
     }
   },
-  mounted () {
+  mounted() {
     this.$store.state.map_width = this.$refs.map.offsetWidth;
     this.getMap()
   },
   methods: {
-    changeTool (type) {
+    changeTool(type) {
       this.$store.state.tool = type
     },
-    getMap () {
+    getMap() {
       const msg = new ROSLIB.ServiceRequest({
         id: this.$route.query.id * 1
       });
@@ -148,14 +149,14 @@ export default {
       });
 
     },
-    zoom(type){
+    zoom(type) {
       let img_w = this.$refs.img1.width;
       let img_h = this.$refs.img1.height;
       let left = this.left;
       let top = this.top;
       let s_h = top / img_h;
       let s_w = left / img_w;
-      if(type==='f'){
+      if (type === 'f') {
         if (this.scale < 20) {
           this.$refs.map_box1.style.transition = "transform 1s";
           this.scale += 0.1;
@@ -173,7 +174,7 @@ export default {
           this.top = s_h * img_h;
           this.left = s_w * img_w;
         }
-      }else{
+      } else {
         if (img_w > this.screen_w) {
           this.$refs.map_box1.style.transition = "transform 1s";
           this.scale > 1 ? (this.scale -= 0.1) : (this.scale = 1);
@@ -195,15 +196,15 @@ export default {
         }
       }
     },
-    touchStart (e, n) {
+    touchStart(e, n) {
       this.$refs.map_box1.style.transition = "none";
     },
-    touchend (e) {
+    touchend(e) {
       clearInterval(this.interval);
       this.interval = null;
       e.currentTarget.classList.remove("cli_box");
     },
-    init () {
+    init() {
       this.top = this.left = this.img2_top = this.img2_left = 0;
       this.scale = 1;
       this.$refs.operate.style.transform = "scale(" + this.scale + ")";
@@ -224,7 +225,7 @@ export default {
       this.$refs.show_img.style.width = this.$refs.map.offsetWidth / 11 + "px";
       this.$refs.show_img.style.height = this.$refs.map.offsetHeight / 11 + "px";
     },
-    circleXY (n) {
+    circleXY(n) {
       let circleX = Math.round(
         (this.touch_data.pageX - 30 - this.left) / this.scale
       );
@@ -235,7 +236,7 @@ export default {
         return circleY
       }
     },
-    rubberstart (e) {
+    rubberstart(e) {
       let set_time = 0;
       this.$refs.map_box1.style.transition = "none";
       let ctx = this.operate_txc;
@@ -251,15 +252,19 @@ export default {
       } else if (this.tool == "eraser") {
         let ctx = this.operate_txc;
         ctx.save();
-        ctx.fillStyle = "#526CAD";
-        ctx.fillRect(this.circleXY('x'), this.circleXY('y'), 10, 10);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(this.circleXY('x') - 5, this.circleXY('y') - 5, 10, 10);
         this.$store.state.eraserArr.push({
           x: this.circleXY('x'),
           y: this.circleXY('y')
         })
+        this.$store.state.eraserArrP.push(this.setPointData({
+          x: this.circleXY('x'),
+          y: this.circleXY('y')
+        }))
       }
     },
-    rubbermove (e) {
+    rubbermove(e) {
       e.preventDefault();
       e != undefined
         ? (this.touch_data = e.touches[0])
@@ -267,20 +272,24 @@ export default {
       if (this.tool == "eraser") {
         let ctx = this.operate_txc;
         ctx.save();
-        ctx.fillStyle = "#526CAD";
-        ctx.fillRect(this.circleXY('x'), this.circleXY('y'), 10, 10);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(this.circleXY('x') - 5, this.circleXY('y') - 5, 10, 10);
         this.$store.state.eraserArr.push({
           x: this.circleXY('x'),
           y: this.circleXY('y')
         })
+        this.$store.state.eraserArrP.push(this.setPointData({
+          x: this.circleXY('x'),
+          y: this.circleXY('y')
+        }))
       }
     },
-    rubberend (e) {
+    rubberend(e) {
       if (this.tool == "stop") {
         this.barrier()
       }
     },
-    map_move () {
+    map_move() {
       try {
         if (this.tool == "") {
           let cT =
@@ -297,8 +306,8 @@ export default {
             (this.$refs.img2.height * this.$refs.map.offsetHeight) /
             this.$refs.img1.height;
           this.xEnd = Math.round(this.touch_data.pageX / this.scale);
-          this.top = this.top + cT*10;
-          this.left = this.left + cL*10;
+          this.top = this.top + cT * 10;
+          this.left = this.left + cL * 10;
           this.img2_top -= (show_img_h / this.$refs.map.offsetHeight) * cT; //小地图边界判断(通过比例值获取)
           this.img2_left -= (show_img_w / this.$refs.map.offsetWidth) * cL;
           if (
@@ -336,7 +345,7 @@ export default {
       }
     },
     //<撤销
-    revocation () {
+    revocation() {
       const del = this.linearCurveArr.splice(-1, 1)
       console.log('[ del ]-452', del)
       this.recoverArr.push(del[0])
@@ -345,7 +354,7 @@ export default {
       this.initBarrier()
     },
     //恢复>
-    recover (e) {
+    recover(e) {
       console.log('[ recover ]-458',)
       const del = this.recoverArr.splice(-1, 1)
       this.linearCurveArr.push(del[0])
@@ -354,7 +363,7 @@ export default {
       ctx.clearRect(0, 0, this.d_width, this.d_height);
       this.initBarrier()
     },
-    initBarrier (msg) {
+    initBarrier(msg) {
       let operate = document.getElementById("operate");
       let ctx = operate.getContext("2d");
       let data = msg ? msg : this.linearCurveArr
@@ -369,7 +378,7 @@ export default {
         ctx.restore();
       })
     },
-    barrier () {
+    barrier() {
       let ctx = this.operate_txc;
       ctx.save();
       ctx.beginPath();
@@ -395,13 +404,20 @@ export default {
         this.stop_chang_data = [];
       }
     },
-    setLineData (arr) {
+    setLineData(arr) {
       return arr.map(e => {
         return {
           start: { x: imgToMap({ mapData: this.mapData, x: e[0].x }), y: imgToMap({ mapData: this.mapData, y: e[0].y }), z: 0.0 },
           end: { x: imgToMap({ mapData: this.mapData, x: e[1].x }), y: imgToMap({ mapData: this.mapData, y: e[1].y }), z: 0.0 }
         }
       })
+    },
+    setPointData(e) {
+      return {
+        center_point: { x: imgToMap({ mapData: this.mapData, x: e.x }), y: imgToMap({ mapData: this.mapData, y: e.y }), z: 0.0 },
+        side_length: 0.5,
+        grayscale: 0
+      }
     }
 
   }
@@ -585,7 +601,8 @@ export default {
   bottom: 50px;
   left: 50px;
 }
-.zoom{
+
+.zoom {
   position: fixed;
   bottom: 50px;
   left: 1160px;

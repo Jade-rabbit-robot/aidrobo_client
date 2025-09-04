@@ -207,6 +207,6 @@ const BatteryState = new ROSLIB.Topic({
 const MapEditor = new ROSLIB.Service({
   ros: ros,
   name: '/map_editor',
-  serviceType: 'aid_robot_msgs/srv/DrawForbidden'
+  serviceType: 'aid_robot_msgs/srv/DrawPicture'
 });
 
