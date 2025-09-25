@@ -27,76 +27,59 @@ export default {
   },
   mounted() {},
   methods: {
-    onOver() {
-      this.$confirm(
-        `<div>是否确认完成扫描，确认后将生成地图进入编辑</div><div>（无法返回）</div>`,
-        "完成扫描",
-        {
-          dangerouslyUseHTMLString: true,
-          center: true
-        }
-      ).then(() => {
-        const date = Date.now();
+    onOver () {
+      this.$confirm(`<div>是否确认完成扫描，确认后将生成地图进入编辑</div><div>（无法返回）</div>`, '完成扫描', {
+        dangerouslyUseHTMLString: true,
+        center: true
+      }).then(() => {
+        const date = Date.now()
         const msg = new ROSLIB.ServiceRequest({
-          map_file_name: `/root/maps/${date}`
+          map_file_name: `/maps/${date}`
         });
-        saveMap.callService(
-          msg,
-          result => {
-            if (result.success) {
-              const msg2 = new ROSLIB.ServiceRequest({
+        saveMap.callService(msg, (result) => {
+          if (result.success) {
+            const msg2 = new ROSLIB.ServiceRequest(
+              {
                 map_name: this.mapName,
-                map_file: `/root/maps/${date}`
-              });
-              saveMapDb.callService(
-                msg2,
-                result => {
-                  console.log("[  saveMapDb OK]-61", result);
-                },
-                result => {
-                  console.log("[  saveMapDb ERR]-61", result);
-                }
-              );
-              this.$router.push({ name: "map" });
-            } else {
-              this.$message("保存失败");
-            }
-          },
-          result => {
-            console.log("[  saveMap ERR]-61", result);
+                map_file: `/maps/${date}`
+              }
+            );
+            saveMapDb.callService(msg2, (result) => {
+              console.log('[  saveMapDb OK]-61', result)
+            }, (result) => {
+              console.log('[  saveMapDb ERR]-61', result)
+            });
+            this.$router.push({ name: 'map' })
+          } else {
+            this.$message('保存失败');
           }
-        );
-      });
-    },
-    onOut() {
-      this.$confirm(
-        `<div>是否确认退出</div><div>（已扫描地图不会保存）</div>`,
-        "退出扫描",
-        {
-          dangerouslyUseHTMLString: true,
-          center: true
-        }
-      ).then(() => {
-        this.$router.push({ name: "map" });
-        console.log("[  ]-72");
-        this.$store.state.actionStatus = "idle";
-        const msg = new ROSLIB.ServiceRequest({
-          action: "idle"
+        }, (result) => {
+          console.log('[  saveMap ERR]-61', result)
         });
-        robotMode.callService(
-          msg,
-          result => {
-            console.log("[  finishMap OK]-61", result);
-          },
-          result => {
-            console.log("[  finishMap ERR]-61", result);
-          }
-        );
-        console.log("[  ]-69");
-      });
+      })
+    },
+    onOut () {
+      this.$confirm(`<div>是否确认退出</div><div>（已扫描地图不会保存）</div>`, '退出扫描', {
+        dangerouslyUseHTMLString: true,
+        center: true
+      }).then(() => {
+        this.$router.push({ name: 'map' })
+        console.log('[  ]-72',)
+        this.$store.state.actionStatus = 'idle'
+        const msg = new ROSLIB.ServiceRequest({
+          action: 'idle'
+        });
+        robotMode.callService(msg, (result) => {
+          console.log('[  finishMap OK]-61', result)
+        }, (result) => {
+          console.log('[  finishMap ERR]-61', result)
+        });
+        console.log('[  ]-69',)
+      })
     }
   }
-};
+
+}
 </script>
 
 <style lang="less" scoped>

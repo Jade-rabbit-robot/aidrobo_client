@@ -115,6 +115,7 @@ export default {
   computed: {
     ...mapState([
       "eraserArr",
+      "eraserArrP",
       "linearCurveArrP",
       "robotPoint",
       "mapData",
@@ -269,12 +270,16 @@ export default {
       } else if (this.tool == "eraser") {
         let ctx = this.operate_txc;
         ctx.save();
-        ctx.fillStyle = "#526CAD";
-        ctx.fillRect(this.circleXY('x'), this.circleXY('y'), 10, 10);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(this.circleXY('x') - 5, this.circleXY('y') - 5, 10, 10);
         this.$store.state.eraserArr.push({
           x: this.circleXY('x'),
           y: this.circleXY('y')
         })
+        this.$store.state.eraserArrP.push(this.setPointData({
+          x: this.circleXY('x'),
+          y: this.circleXY('y')
+        }))
       }
     },
     rubbermove (e) {
@@ -285,12 +290,16 @@ export default {
       if (this.tool == "eraser") {
         let ctx = this.operate_txc;
         ctx.save();
-        ctx.fillStyle = "#526CAD";
-        ctx.fillRect(this.circleXY('x'), this.circleXY('y'), 10, 10);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(this.circleXY('x') - 5, this.circleXY('y') - 5, 10, 10);
         this.$store.state.eraserArr.push({
           x: this.circleXY('x'),
           y: this.circleXY('y')
         })
+        this.$store.state.eraserArrP.push(this.setPointData({
+          x: this.circleXY('x'),
+          y: this.circleXY('y')
+        }))
       }
     },
     rubberend (e) {
@@ -315,8 +324,8 @@ export default {
             (this.$refs.img2.height * this.$refs.map.offsetHeight) /
             this.$refs.img1.height;
           this.xEnd = Math.round(this.touch_data.pageX / this.scale);
-          this.top = this.top + cT*10;
-          this.left = this.left + cL*10;
+          this.top = this.top + cT * 10;
+          this.left = this.left + cL * 10;
           this.img2_top -= (show_img_h / this.$refs.map.offsetHeight) * cT; //小地图边界判断(通过比例值获取)
           this.img2_left -= (show_img_w / this.$refs.map.offsetWidth) * cL;
           if (
@@ -420,6 +429,13 @@ export default {
           end: { x: imgToMap({ mapData: this.mapData, x: e[1].x }), y: imgToMap({ mapData: this.mapData, y: e[1].y }), z: 0.0 }
         }
       })
+    },
+    setPointData(e) {
+      return {
+        center_point: { x: imgToMap({ mapData: this.mapData, x: e.x }), y: imgToMap({ mapData: this.mapData, y: e.y }), z: 0.0 },
+        side_length: 0.5,
+        grayscale: 0
+      }
     }
 
   }

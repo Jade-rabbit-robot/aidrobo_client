@@ -6,10 +6,10 @@
         <p><img src="@/assets/img/editMap/rubber.svg" />橡皮擦</p>
         <p>请使用手指或鼠标进行擦除操作，地图可使用双指或滚轮中键拖动或缩放</p>
       </div>
-      <!-- <div class="rubber" @click="onRubber()" v-show="!rubber && !stop">
+      <div class="rubber" @click="onRubber()" v-show="!rubber && !stop">
         <img src="@/assets/img/editMap/rubber.svg" />
         <p>橡皮擦</p>
-      </div> -->
+      </div>
       <div v-show="!rubber && stop" class="titleBox">
         <p><img src="@/assets/img/editMap/stop.svg" />禁行线</p>
         <p>
@@ -45,7 +45,13 @@ export default {
     };
   },
   computed: {
-    ...mapState(["linearCurveArr", "linearCurveArrP", "mapData"])
+    ...mapState([
+      "eraserArr",
+      "eraserArrP",
+      "linearCurveArr",
+      "linearCurveArrP",
+      "mapData",
+    ])
   },
   mounted() {
     this.$store.state.hasSave = false;
@@ -58,110 +64,124 @@ export default {
     this.$store.state.actionStatus = "edit";
   },
   methods: {
-    DrawPicture(data) {
-      const msg2 = new ROSLIB.ServiceRequest({
-        frame_id: "map",
-        map_id: this.$route.query.id * 1,
-        type: "line",
-        data
-      });
-      DrawPicture.callService(
-        msg2,
-        result => {
-          if (result.success) {
-            console.log("[ msg ]-75", result);
-          }
-          console.log("[  DrawPicture OK]-61", result);
-        },
-        result => {
-          console.log("[  DrawPicture ERR]-61", result);
-        }
-      );
-    },
-    getForbidden() {
-      const msg2 = new ROSLIB.ServiceRequest({
-        map_id: this.$route.query.id * 1
-      });
-      ForbiddenGet.callService(
-        msg2,
-        result => {
-          if (result.success) {
-            let msg = [];
-            try {
-              console.log("result.message==>", typeof result.message);
-              if (result.message.length) {
-                msg = result.message;
-                this.initData = true;
-                this.$store.state.linearCurveArrP = msg;
-                this.hasHistory = true;
-              }
-            } catch (error) {
-              this.$message("获取禁行线失败");
-            }
-          } else {
-            this.$message("获取禁行线失败");
-          }
-          console.log("[  getForbidden OK]-61", result);
-        },
-        result => {
-          console.log("[  getForbidden ERR]-61", result);
-        }
-      );
-    },
-    addForbidden(data) {
-      const data_ = data;
-      const msg2 = new ROSLIB.ServiceRequest({
-        map_id: this.$route.query.id * 1,
-        data: JSON.stringify(data_),
-        frame_id: "map",
-        data_type: "forbidden"
-      });
-      ForbiddenAdd.callService(
-        msg2,
-        result => {
-          console.log("[  addForbidden OK]-61", result);
-        },
-        result => {
-          console.log("[  addForbidden ERR]-61", result);
-        }
-      );
-    },
-    updateForbidden(data) {
-      const data_ = data;
-      const msg2 = new ROSLIB.ServiceRequest({
-        id: 1,
-        data: JSON.stringify({
-          map_id: this.$route.query.id * 1,
+    DrawMap (rectangle_array) {
+      const msg2 = new ROSLIB.ServiceRequest(
+        {
           frame_id: "map",
-          point_list: JSON.stringify(data_)
-        }),
-        data_type: "forbidden"
-      });
-      ForbiddenUpdate.callService(
-        msg2,
-        result => {
-          console.log("[  updateForbidden OK]-61", result);
-        },
-        result => {
-          console.log("[  updateForbidden ERR]-61", result);
+          map_id: this.$route.query.id * 1,
+          type: "point",
+          data: [],
+          rectangle_array
         }
       );
+      MapEditor.callService(msg2, (result) => {
+        if (result.success) {
+          console.log('[ msg ]-75', result)
+        }
+        console.log('[  DrawMap OK]-61', result)
+      }, (result) => {
+        console.log('[  DrawMap ERR]-61', result)
+      });
     },
-    onRubber() {
-      this.toolType = "eraser";
+    DrawPicture (data) {
+      const msg2 = new ROSLIB.ServiceRequest(
+        {
+          frame_id: "map",
+          map_id: this.$route.query.id * 1,
+          type: "line",
+          data,
+          rectangle_array:[]
+        }
+      );
+      DrawPicture.callService(msg2, (result) => {
+        if (result.success) {
+          console.log('[ msg ]-75', result)
+        }
+        console.log('[  DrawPicture OK]-61', result)
+      }, (result) => {
+        console.log('[  DrawPicture ERR]-61', result)
+      });
+    },
+    getForbidden () {
+      const msg2 = new ROSLIB.ServiceRequest(
+        {
+          map_id: this.$route.query.id * 1,
+        }
+      );
+      ForbiddenGet.callService(msg2, (result) => {
+        if (result.success) {
+          let msg = []
+          try {
+            console.log('result.message==>', typeof result.message)
+            if (result.message.length) {
+              msg = result.message
+              this.initData = true
+              this.$store.state.linearCurveArrP = msg
+              this.hasHistory = true
+            }
+
+          } catch (error) {
+            this.$message('获取禁行线失败');
+          }
+        } else {
+          this.$message('获取禁行线失败');
+        }
+        console.log('[  getForbidden OK]-61', result)
+      }, (result) => {
+        console.log('[  getForbidden ERR]-61', result)
+      });
+    },
+    addForbidden (data) {
+      const data_ = data
+      const msg2 = new ROSLIB.ServiceRequest(
+        {
+          map_id: this.$route.query.id * 1,
+          data: JSON.stringify(data_),
+          frame_id: 'map',
+          data_type: 'forbidden'
+        }
+      );
+      ForbiddenAdd.callService(msg2, (result) => {
+        console.log('[  addForbidden OK]-61', result)
+      }, (result) => {
+        console.log('[  addForbidden ERR]-61', result)
+      });
+    },
+    updateForbidden (data) {
+      const data_ = data
+      const msg2 = new ROSLIB.ServiceRequest(
+        {
+          id: 1,
+          data: JSON.stringify({
+            map_id: this.$route.query.id * 1,
+            frame_id: 'map',
+            point_list: JSON.stringify(data_)
+          }),
+          data_type: 'forbidden'
+        }
+      );
+      ForbiddenUpdate.callService(msg2, (result) => {
+        console.log('[  updateForbidden OK]-61', result)
+      }, (result) => {
+        console.log('[  updateForbidden ERR]-61', result)
+      });
+    },
+    onRubber () {
+      this.toolType = 'eraser'
       this.rubber = true;
-      this.overText = "完成";
-      this.$store.state.tool = "";
+      this.overText = '完成'
+      this.$store.state.tool = ''
     },
-    onStop() {
-      this.toolType = "stop";
-      this.stop = true;
-      this.overText = "完成";
-      this.$store.state.tool = "";
+    onStop () {
+      this.toolType = 'stop'
+      this.stop = true
+      this.overText = '完成'
+      this.$store.state.tool = ''
     },
-    onOver() {
-      if (this.overText == "保存地图") {
-        console.log("[ this.linearCurveArrP. ]-158", this.linearCurveArrP);
+    onOver () {
+      if (this.overText == '保存地图') {
+        console.log('[ this.linearCurveArrP. ]-158', this.linearCurveArrP)
+        console.log('[ this.eraserArrP. ]-158', this.eraserArrP)
         //禁行线
         if (this.linearCurveArrP.length) {
           if (this.hasHistory) {
@@ -170,6 +190,9 @@ export default {
             this.addForbidden(this.linearCurveArrP);
           }
           this.DrawPicture(this.linearCurveArrP);
+        }
+        if (this.eraserArrP.length) {
+          this.DrawMap(this.eraserArrP)
         }
       } else {
         this.toolType = "";
