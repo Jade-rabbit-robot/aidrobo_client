@@ -42,6 +42,7 @@ const store = new Vuex.Store({
     linearCurveArr:[],//禁行线点位
     linearCurveArrP:[],//禁行线点位
     eraserArr:[],//橡皮擦点位
+    eraserArrP:[],//橡皮擦点位
     mapData:{
       src: "",
       width: 1930,

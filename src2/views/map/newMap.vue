@@ -32,14 +32,14 @@ export default {
       }).then(() => {
         const date = Date.now()
         const msg = new ROSLIB.ServiceRequest({
-          map_file_name: `/root/maps/${date}`
+          map_file_name: `/maps/${date}`
         });
         saveMap.callService(msg, (result) => {
           if (result.success) {
             const msg2 = new ROSLIB.ServiceRequest(
               {
                 map_name: this.mapName,
-                map_file: `/root/maps/${date}`
+                map_file: `/maps/${date}`
               }
             );
             saveMapDb.callService(msg2, (result) => {
@@ -66,7 +66,7 @@ export default {
       }).then(() => {
         this.$router.push({ name: 'map' })
         console.log('[  ]-72',)
-    this.$store.state.actionStatus='idle'
+        this.$store.state.actionStatus='idle'
         const msg = new ROSLIB.ServiceRequest({
           action: 'idle'
         });
