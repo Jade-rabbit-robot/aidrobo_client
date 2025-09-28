@@ -86,6 +86,7 @@ export default {
             }
           }]
         };
+        console.log(point)
         const msg = new ROSLIB.Message(point);
         TalkerPoint.publish(msg);
         this.text = '关闭任务'

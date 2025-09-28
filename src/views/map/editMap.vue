@@ -1,22 +1,47 @@
 <template>
   <div class="newMapBox">
-    <ShowMap class="map" :toolType="toolType" :initData="initData" />
+    <ShowMap class="map" :toolType="toolType" :initData="initData" ref="mapRef" />
     <div class="right">
-      <div v-show="rubber && !stop" class="titleBox">
+      <div
+        v-show="point && !rubber && !stop"
+        class="titleBox"
+        style="margin-bottom: 10px;height: 540px;justify-content: unset;"
+      >
+        <p><img src="@/assets/img/editMap/point.svg" />位置点</p>
+        <div class="navigationPointsList">
+          <div
+            v-for="(item, index) in navigationMapPoints"
+            :key="index"
+            class="navigationPointsList-item"
+            @click="deletePoint(item.id)"
+          >
+            <span>{{ index + 1 }}：{{ item.name }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="point" @click="onPoint()" v-show="!point && !rubber && !stop">
+        <img src="@/assets/img/editMap/point.svg" />
+        <p>位置点</p>
+      </div>
+      <div v-show="rubber && !stop && !point" class="titleBox">
         <p><img src="@/assets/img/editMap/rubber.svg" />橡皮擦</p>
         <p>请使用手指或鼠标进行擦除操作，地图可使用双指或滚轮中键拖动或缩放</p>
       </div>
-      <div class="rubber" @click="onRubber()" v-show="!rubber && !stop">
+      <div
+        class="rubber"
+        @click="onRubber()"
+        v-show="!point && !rubber && !stop"
+      >
         <img src="@/assets/img/editMap/rubber.svg" />
         <p>橡皮擦</p>
       </div>
-      <div v-show="!rubber && stop" class="titleBox">
+      <div v-show="!rubber && stop && !point" class="titleBox">
         <p><img src="@/assets/img/editMap/stop.svg" />禁行线</p>
         <p>
           请使用手指或鼠标点击两点进行连线，地图可使用双指或滚轮中键拖动或缩放
         </p>
       </div>
-      <div class="stop" @click="onStop()" v-show="!rubber && !stop">
+      <div class="stop" @click="onStop()" v-show="!point && !rubber && !stop">
         <img src="@/assets/img/editMap/stop.svg" />
         <p>禁行线</p>
       </div>
@@ -40,8 +65,9 @@ export default {
       overText: "保存地图",
       rubber: false,
       stop: false,
+      point: false, // 管理位置点位的模式
       initData: false,
-      toolType: ""
+      toolType: "",
     };
   },
   computed: {
@@ -51,6 +77,7 @@ export default {
       "linearCurveArr",
       "linearCurveArrP",
       "mapData",
+      "navigationMapPoints"
     ])
   },
   mounted() {
@@ -64,121 +91,157 @@ export default {
     this.$store.state.actionStatus = "edit";
   },
   methods: {
-    DrawMap (rectangle_array) {
-      const msg2 = new ROSLIB.ServiceRequest(
-        {
-          frame_id: "map",
-          map_id: this.$route.query.id * 1,
-          type: "point",
-          data: [],
-          rectangle_array
-        }
-      );
-      MapEditor.callService(msg2, (result) => {
-        if (result.success) {
-          console.log('[ msg ]-75', result)
-        }
-        console.log('[  DrawMap OK]-61', result)
-      }, (result) => {
-        console.log('[  DrawMap ERR]-61', result)
+    DrawMap(rectangle_array) {
+      const msg2 = new ROSLIB.ServiceRequest({
+        frame_id: "map",
+        map_id: this.$route.query.id * 1,
+        type: "point",
+        data: [],
+        rectangle_array
       });
-    },
-    DrawPicture (data) {
-      const msg2 = new ROSLIB.ServiceRequest(
-        {
-          frame_id: "map",
-          map_id: this.$route.query.id * 1,
-          type: "line",
-          data,
-          rectangle_array:[]
-        }
-      );
-      DrawPicture.callService(msg2, (result) => {
-        if (result.success) {
-          console.log('[ msg ]-75', result)
-        }
-        console.log('[  DrawPicture OK]-61', result)
-      }, (result) => {
-        console.log('[  DrawPicture ERR]-61', result)
-      });
-    },
-    getForbidden () {
-      const msg2 = new ROSLIB.ServiceRequest(
-        {
-          map_id: this.$route.query.id * 1,
-        }
-      );
-      ForbiddenGet.callService(msg2, (result) => {
-        if (result.success) {
-          let msg = []
-          try {
-            console.log('result.message==>', typeof result.message)
-            if (result.message.length) {
-              msg = result.message
-              this.initData = true
-              this.$store.state.linearCurveArrP = msg
-              this.hasHistory = true
-            }
-
-          } catch (error) {
-            this.$message('获取禁行线失败');
+      MapEditor.callService(
+        msg2,
+        result => {
+          if (result.success) {
+            console.log("[ msg ]-75", result);
           }
-        } else {
-          this.$message('获取禁行线失败');
+          console.log("[  DrawMap OK]-61", result);
+        },
+        result => {
+          console.log("[  DrawMap ERR]-61", result);
         }
-        console.log('[  getForbidden OK]-61', result)
-      }, (result) => {
-        console.log('[  getForbidden ERR]-61', result)
-      });
+      );
     },
-    addForbidden (data) {
-      const data_ = data
-      const msg2 = new ROSLIB.ServiceRequest(
-        {
+    DrawPicture(data) {
+      const msg2 = new ROSLIB.ServiceRequest({
+        frame_id: "map",
+        map_id: this.$route.query.id * 1,
+        type: "line",
+        data,
+        rectangle_array: []
+      });
+      DrawPicture.callService(
+        msg2,
+        result => {
+          if (result.success) {
+            console.log("[ msg ]-75", result);
+          }
+          console.log("[  DrawPicture OK]-61", result);
+        },
+        result => {
+          console.log("[  DrawPicture ERR]-61", result);
+        }
+      );
+    },
+    getForbidden() {
+      const msg2 = new ROSLIB.ServiceRequest({
+        map_id: this.$route.query.id * 1
+      });
+      ForbiddenGet.callService(
+        msg2,
+        result => {
+          if (result.success) {
+            let msg = [];
+            try {
+              console.log("result.message==>", typeof result.message);
+              if (result.message.length) {
+                msg = result.message;
+                this.initData = true;
+                this.$store.state.linearCurveArrP = msg;
+                this.hasHistory = true;
+              }
+            } catch (error) {
+              this.$message("获取禁行线失败");
+            }
+          } else {
+            this.$message("获取禁行线失败");
+          }
+          console.log("[  getForbidden OK]-61", result);
+        },
+        result => {
+          console.log("[  getForbidden ERR]-61", result);
+        }
+      );
+    },
+    addForbidden(data) {
+      const data_ = data;
+      const msg2 = new ROSLIB.ServiceRequest({
+        map_id: this.$route.query.id * 1,
+        data: JSON.stringify(data_),
+        frame_id: "map",
+        data_type: "forbidden"
+      });
+      ForbiddenAdd.callService(
+        msg2,
+        result => {
+          console.log("[  addForbidden OK]-61", result);
+        },
+        result => {
+          console.log("[  addForbidden ERR]-61", result);
+        }
+      );
+    },
+    updateForbidden(data) {
+      const data_ = data;
+      const msg2 = new ROSLIB.ServiceRequest({
+        id: 1,
+        data: JSON.stringify({
           map_id: this.$route.query.id * 1,
-          data: JSON.stringify(data_),
-          frame_id: 'map',
-          data_type: 'forbidden'
+          frame_id: "map",
+          point_list: JSON.stringify(data_)
+        }),
+        data_type: "forbidden"
+      });
+      ForbiddenUpdate.callService(
+        msg2,
+        result => {
+          console.log("[  updateForbidden OK]-61", result);
+        },
+        result => {
+          console.log("[  updateForbidden ERR]-61", result);
         }
       );
-      ForbiddenAdd.callService(msg2, (result) => {
-        console.log('[  addForbidden OK]-61', result)
-      }, (result) => {
-        console.log('[  addForbidden ERR]-61', result)
-      });
     },
-    updateForbidden (data) {
-      const data_ = data
-      const msg2 = new ROSLIB.ServiceRequest(
-        {
-          id: 1,
-          data: JSON.stringify({
-            map_id: this.$route.query.id * 1,
-            frame_id: 'map',
-            point_list: JSON.stringify(data_)
-          }),
-          data_type: 'forbidden'
+    deletePoint(id) {
+      // this.$store.state.navigationMapPoints.splice(i, 1);
+      // this.$store.state.navigationImgPoints.splice(i, 1);
+      const msg = new ROSLIB.ServiceRequest({
+        id,
+        data_type: "waypoint_node",
+      });
+      NavigationPointDelete.callService(
+        msg,
+        result => {
+          if (result.success) {
+            console.log("[ NavigationPointDelete success ]-75", result);
+            this.$refs.mapRef.getPoints();
+          }
+          console.log("[  NavigationPointDelete OK]-61", result);
+        },
+        result => {
+          console.log("[  NavigationPointDelete ERR]-61", result);
         }
       );
-      ForbiddenUpdate.callService(msg2, (result) => {
-        console.log('[  updateForbidden OK]-61', result)
-      }, (result) => {
-        console.log('[  updateForbidden ERR]-61', result)
-      });
     },
-    onRubber () {
-      this.toolType = 'eraser'
+    onRubber() {
+      this.toolType = "eraser";
       this.rubber = true;
-      this.overText = '完成'
-      this.$store.state.tool = ''
+      this.overText = "完成";
+      this.$store.state.tool = "";
     },
-    onStop () {
-      this.toolType = 'stop'
-      this.stop = true
-      this.overText = '完成'
-      this.$store.state.tool = ''
+    onPoint() {
+      this.toolType = "point";
+      this.point = true;
+      this.overText = "完成";
+      this.$store.state.tool = "";
     },
-    onOver () {
+    onStop() {
+      this.toolType = "stop";
+      this.stop = true;
+      this.overText = "完成";
+      this.$store.state.tool = "";
+    },
+    onOver() {
       if (this.overText == '保存地图') {
         console.log('[ this.linearCurveArrP. ]-158', this.linearCurveArrP)
         console.log('[ this.eraserArrP. ]-158', this.eraserArrP)
@@ -198,6 +261,8 @@ export default {
         this.toolType = "";
         this.rubber = false;
         this.stop = false;
+        this.point = false;
+        this.$store.state.tool = "";
         this.overText = "保存地图";
       }
     },
@@ -254,6 +319,7 @@ export default {
   .titleBox {
     margin-bottom: 80px;
     height: 500px;
+    width: 100%;
     display: flex;
     flex-direction: column;
     text-align: center;
@@ -270,6 +336,39 @@ export default {
   }
 }
 
+.navigationPointsList {
+  margin-top: 20px;
+  overflow-y: auto;
+
+  &-item {
+    width: 319px;
+    height: 100px;
+    border-radius: 10px;
+    opacity: 1;
+    background: #2f3758;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto 0;
+    padding: 0 10px;
+
+    span {
+      width: 100%;
+      max-height: 100%;
+      line-height: 50px;
+      overflow: hidden;
+      word-break: break-all;
+      text-overflow: ellipsis;
+      line-clamp: 2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+  }
+}
+
+.point,
 .rubber,
 .stop {
   display: flex;
@@ -277,7 +376,7 @@ export default {
   align-items: center;
   justify-content: space-evenly;
   width: 300px;
-  height: 200px;
+  height: 150px;
   border-radius: 20px;
   opacity: 1;
   background: linear-gradient(
@@ -292,7 +391,7 @@ export default {
 
 .over {
   width: 300px;
-  height: 120px;
+  height: 100px;
   border-radius: 10px;
   opacity: 1;
   box-shadow: 0px 2px 10px 0px rgba(1, 29, 90, 0.72);

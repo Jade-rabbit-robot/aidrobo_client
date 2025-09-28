@@ -22,7 +22,7 @@
 
 <script>
 import Tc from "@/components/tc";
-import { mapState } from "vuex";
+import {mapMutations, mapState} from "vuex";
 
 export default {
   components: {
@@ -38,8 +38,10 @@ export default {
   },
   mounted() {
     this.getMap();
+    this.resetNavigationMapPoints();
   },
   methods: {
+    ...mapMutations(["resetNavigationMapPoints"]),
     getMap() {
       getMapList.callService(
         null,

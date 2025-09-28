@@ -165,7 +165,7 @@ export default {
 .map {
   position: relative;
   top: 0;
-  height: 1010px;
+  height: calc(100% - 70px);
   width: 1380px;
   border-radius: 5px;
   background: #526CAD;

@@ -15,6 +15,22 @@
         <div class="map_box2">
           <canvas id="operate" ref="operate"></canvas>
         </div>
+        <div
+          v-for="(item, index) in navigationImgPoints"
+          :key="index"
+          class="map_point"
+          v-bind:style="{
+            transform:
+              'translate(' +
+              (item.x * scale - 25) +
+              'px,' +
+              (item.y * scale + -70) +
+              'px)'
+          }"
+        >
+          <img src="../../../static2/img/point.png" width="50px" />
+          <span class="pointNum">{{ index + 1 }}</span>
+        </div>
       </div>
     </div>
     <div class="img2">
@@ -36,11 +52,14 @@
       <img src="@/assets/img/editMap/revocation.png" @click="revocation()" />
       <img src="@/assets/img/editMap/recover.png" @click="recover()" />
     </div>
-    <div class="active" v-if="toolType == 'stop' || toolType == 'eraser'">
+    <div
+      class="active"
+      v-if="toolType == 'stop' || toolType == 'eraser' || toolType == 'point'"
+    >
       <img
         src="@/assets/img/seeMap/active.png"
         @click="changeTool('')"
-        v-if="tool == 'stop' || tool == 'eraser'"
+        v-if="tool == 'stop' || tool == 'eraser' || tool == 'point'"
       />
       <img
         src="@/assets/img/seeMap/disActive.png"
@@ -121,6 +140,8 @@ export default {
       "mapData",
       "head_h",
       "tool",
+      "navigationImgPoints",
+      "navigationMapPoints",
     ])
   },
   watch: {
@@ -161,11 +182,50 @@ export default {
         console.log('[ getMapImage OK]-61', res)
         if (res.success) {
           this.$store.state.mapData = changeStr(res.map)
+          this.getPoints();
         }
       }, (result) => {
         console.log('[ getMapImage ERR]-61', result)
       });
 
+    },
+    getPoints() {
+      const msg = new ROSLIB.ServiceRequest({
+        map_id: this.$route.query.id * 1,
+        data_type: 'waypoint_node'
+      });
+      NavigationPointsGet.callService(
+        msg,
+        result => {
+          try {
+            let points = JSON.parse(result.message);
+            let res = points.map(p => {
+              p.point_list = JSON.parse(p.point_list)
+              return {
+                x: p.point_list.position.x,
+                y: p.point_list.position.y,
+                name: p.point_list.name,
+                id: p.id
+              }
+            })
+            this.$store.state.navigationMapPoints = res;
+            this.$store.state.navigationImgPoints = res.map(it => ({
+              x: mapToImg({ mapData: this.mapData, x: it.x }),
+              y: mapToImg({ mapData: this.mapData, y: it.y }),
+              name: it.name,
+              id: it.id
+            }));
+            console.log("[  NavigationPointsGet OK]-points", res);
+          } catch (error) {
+            console.log(error)
+            this.$message("获取定点导航点位列表失败");
+          }
+          console.log("[  NavigationPointsGet OK]-61", result);
+        },
+        result => {
+          console.log("[  NavigationPointsGet ERR]-61", result);
+        }
+      );
     },
     zoom(type){
       let img_w = this.$refs.img1.width;
@@ -305,6 +365,12 @@ export default {
     rubberend (e) {
       if (this.tool == "stop") {
         this.barrier()
+      } else if(this.tool === 'point') {
+        const _this = this;
+        // 使用延时是因为点击弹框的取消按钮区域时会误触
+        setTimeout(() => {
+          _this.setPoint()
+        }, 50)
       }
     },
     map_move () {
@@ -422,6 +488,51 @@ export default {
         this.stop_chang_data = [];
       }
     },
+    setPoint() {
+      const addInp = document.querySelector("#addInp");
+      addInp && (addInp.value = "");
+      this.$confirm(
+        `<div> 名称：
+        <input id="addInp" placeholder=" 请输入内容" style="height: 70px;" autocomplete="off"></input>
+        </div>`,
+        "点位命名",
+        {
+          dangerouslyUseHTMLString: true,
+          center: true
+        }
+      ).then(() => {
+        const addInp = document.querySelector("#addInp");
+        const pointName = addInp.value;
+        const msg = new ROSLIB.ServiceRequest({
+          map_id: this.$route.query.id * 1,
+          frame_id: "map",
+          data_type: "waypoint_node",
+          data: JSON.stringify({
+            position: {
+              x: imgToMap({ mapData: this.mapData, x: this.circleXY('x') }),
+              y: imgToMap({ mapData: this.mapData, y: this.circleXY('y') }),
+              z: 0.0
+            },
+            orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0},
+            name: pointName
+          }),
+        });
+        NavigationPointAdd.callService(
+          msg,
+          result => {
+            if (result.success) {
+              console.log("[ NavigationPointAdd success ]-75", result);
+              this.getPoints();
+            }
+            console.log("[  NavigationPointAdd OK]-61", result);
+          },
+          result => {
+            console.log("[  NavigationPointAdd ERR]-61", result);
+          }
+        );
+      })
+
+    },
     setLineData (arr) {
       return arr.map(e => {
         return {
@@ -466,6 +577,23 @@ export default {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+.map_point {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.pointNum {
+  display: inline-block;
+  position: absolute;
+  font-size: 1.5rem;
+  color: #000;
+  top: 10px;
+  left: 0;
+  width: 50px;
+  text-align: center;
 }
 
 .map_box2 {

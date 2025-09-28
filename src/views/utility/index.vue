@@ -62,8 +62,9 @@ export default {
           text: "自主巡逻",
           link: "/utility/patrol"
         },
+        { src: require("@/assets/img/uti/uti2.svg"), text: '定点导航', link: "/utility/navigation" },
         // { src: require("@/assets/img/uti/uti4.svg"), text: '返回原点/充电', link: "/utility/charge" },
-        //{ src: require("@/assets/img/uti/uti5.svg"), text: '遥控模式', link: "/utility/telecontrol" },
+        { src: require("@/assets/img/uti/uti5.svg"), text: '遥控模式', link: "/utility/telecontrol" },
         {
           src: require("@/assets/img/uti/uti6.svg"),
           text: "人形跟随",
@@ -95,18 +96,18 @@ export default {
           cmd: "object"
         },
         // { src: require("@/assets/img/uti/uti8.svg"), text: '资源看板' },
-        {
-          src: require("@/assets/img/uti/uti10.svg"),
-          text: "无线投屏",
-          link: "/utility/wireless-screen",
-          shellPath: "/home/aidlux/startAc.sh"
-        },
-        {
-          src: require("@/assets/img/uti/uti11.svg"),
-          text: "快速恢复",
-          link: "/utility/recovery",
-          shellPath: "/home/aidlux/roborestart.bash"
-        }
+        // {
+        //   src: require("@/assets/img/uti/uti10.svg"),
+        //   text: "无线投屏",
+        //   link: "/utility/wireless-screen",
+        //   shellPath: "/home/aidlux/startAc.sh"
+        // },
+        // {
+        //   src: require("@/assets/img/uti/uti11.svg"),
+        //   text: "快速恢复",
+        //   link: "/utility/recovery",
+        //   shellPath: "/home/aidlux/roborestart.bash"
+        // }
       ],
       data: null,
       isSel: null,

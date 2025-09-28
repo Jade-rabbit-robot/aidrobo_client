@@ -43,6 +43,8 @@ const store = new Vuex.Store({
     linearCurveArrP:[],//禁行线点位
     eraserArr:[],//橡皮擦点位
     eraserArrP:[],//橡皮擦点位
+    navigationMapPoints: [],//定点导航的点位(地图所用点位) {x,y,name,id}
+    navigationImgPoints:[],//定点导航的点位(UI展示所用点位)
     mapData:{
       src: "",
       width: 1930,
@@ -68,6 +70,10 @@ const store = new Vuex.Store({
     },
     rubber_chang_data1(state, e) {//构建修改值得方法
       e != undefined ? state.rubber_data1 = e : state.rubber_data1 = !state.rubber_data1;
+    },
+    resetNavigationMapPoints(state) {
+      state.navigationMapPoints = [];
+      state.navigationImgPoints = [];
     }
   }
 })

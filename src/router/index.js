@@ -10,6 +10,7 @@ import Utility from '@/views/utility/index'
 
 import relocation from '@/views/utility/relocation'
 import goPoint from '@/views/utility/goPoint'
+import navigation from '@/views/utility/navigation'
 import patrol from '@/views/utility/patrol'
 import charge from '@/views/utility/charge'
 import telecontrol from '@/views/utility/telecontrol'
@@ -97,6 +98,11 @@ export default new Router({
       path: '/utility/goPoint',
       name:'goPoint',
       component: goPoint,
+    },
+    {
+      path: '/utility/navigation',
+      name:'navigation',
+      component: navigation,
     },
     {
       path: '/utility/patrol',
