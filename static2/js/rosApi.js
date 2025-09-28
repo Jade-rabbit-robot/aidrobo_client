@@ -200,7 +200,7 @@ const GetStrings = new ROSLIB.Service({
 /** 获取电量信息 */
 const BatteryState = new ROSLIB.Topic({
   ros: ros,
-  name: '/battery_data',
+  name: '/battery_state',
   serviceType: 'sensor_msgs/msg/BatteryState'
 });
 /** 编辑地图 */
