@@ -1,6 +1,6 @@
 const ros = new ROSLIB.Ros();
-const rosURL = 'ws://192.168.8.188:9090';
-// const rosURL = 'ws://192.168.111.237:9090'
+const rosURL = 'ws://192.168.1.120:9090';
+// const rosURL = 'ws://192.168.111.52:9090'
 
 /* ros 的 connect 连接逻辑移动到 headArea.vue 组件中进行 */
 
@@ -157,7 +157,42 @@ const patrolState = new ROSLIB.Service({
   name: '/patrol_control',
   serviceType: 'aid_robot_msgs/srv/PatrolControl'
 });
-
+/*新增定点导航点位*/
+const NavigationPointAdd = new ROSLIB.Service({
+  ros: ros,
+  name: '/add_point',
+  serviceType: 'aid_robot_msgs/srv/OperationAdd'
+});
+/*修改定点导航点位*/
+const NavigationPointUpdate = new ROSLIB.Service({
+  ros: ros,
+  name: '/update_point',
+  serviceType: 'aid_robot_msgs/srv/OperationUpdate'
+});
+/*删除定点导航点位*/
+const NavigationPointDelete = new ROSLIB.Service({
+  ros: ros,
+  name: '/delete_point',
+  serviceType: 'aid_robot_msgs/srv/OperationDelete'
+});
+/*获取定点导航点位列表*/
+const NavigationPointsGet = new ROSLIB.Service({
+  ros: ros,
+  name: '/get_map_point_list',
+  serviceType: 'aid_robot_msgs/srv/MapLinkedDataList'
+});
+/*开始定点导航*/
+const StartNavigation = new ROSLIB.Topic({
+  ros: ros,
+  name: '/nav_to_pose',
+  messageType: 'geometry_msgs/msg/PoseStamped'
+})
+/*机器人任务状态*/
+const RobotTaskStatus = new ROSLIB.Topic({
+  ros: ros,
+  name: '/task_status',
+  messageType: 'aid_robot_msgs/msg/AidTaskStatus'
+})
 
 
 

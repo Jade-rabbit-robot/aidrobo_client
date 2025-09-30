@@ -49,6 +49,7 @@
 
 <script>
 import fullscreenLoading from "../../components/fullscreenLoading.js";
+import {mapMutations} from "vuex";
 
 export default {
   data() {
@@ -128,7 +129,13 @@ export default {
       return res;
     }
   },
+  mounted() {
+    // 重置状态
+    this.resetNavigationMapPoints();
+    this.$store.state.tool = "";
+  },
   methods: {
+    ...mapMutations(["resetNavigationMapPoints"]),
     changePage(direction, disabled) {
       if (disabled) return;
       switch (direction) {

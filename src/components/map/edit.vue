@@ -75,7 +75,7 @@ import { mapState, mapMutations } from "vuex";
 import { changeStr, mapToImg, imgToMap } from "@/assets/common"
 
 export default {
-  props: ['toolType', 'initData'],
+  props: ['toolType', 'initData', 'navigationPoint'],
   data () {
     return {
       recoverArr: [],
@@ -182,7 +182,7 @@ export default {
         console.log('[ getMapImage OK]-61', res)
         if (res.success) {
           this.$store.state.mapData = changeStr(res.map)
-          this.getPoints();
+          this.$props.navigationPoint && this.getPoints();
         }
       }, (result) => {
         console.log('[ getMapImage ERR]-61', result)

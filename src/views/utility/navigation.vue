@@ -1,109 +1,119 @@
 <template>
   <div class="newMapBox">
-    <ShowMap />
+    <ShowMap :navigationPoint="true" />
     <div class="right point">
-      <div v-if="false">
-        <p>选择位置点</p>
-        <p>请点击想前往的位置</p>
+      <div class="titleBox" v-if="$store.state.navigationMapPoints.length">
+        <p><img src="@/assets/img/editMap/point.svg" />位置点</p>
+        <div class="navigationPointsList">
+          <div
+            v-for="(item, index) in navigationMapPoints"
+            :key="index"
+            class="navigationPointsList-item"
+            @click="onStart(item)"
+          >
+            <span>{{ index + 1 }}：{{ item.name }}</span>
+          </div>
+        </div>
       </div>
-      <div class="titleBox" v-if="$store.state.patrol_arr.length">
-        <p>选择位置点:</p>
-        <p class="mapName">({{ ($store.state.patrol_arr[0].x).toFixed(2) }},{{ ($store.state.patrol_arr[0].y).toFixed(2)
-        }})</p>
+      <div v-show="robotTaskStatus.navigate && (robotTaskStatus.working || robotTaskStatus.suspend)" class="goPoint" @click="onClose">
+        关闭任务
       </div>
-      <div class="titleBox">
-        <p>机器人当前位置:</p>
-        <p class="mapName">({{ ($store.state.robotPoint.x).toFixed(2) }},{{ ($store.state.robotPoint.y).toFixed(2) }})</p>
-      </div>
-      <div class="goPoint" @click="onBegin()" v-loading="!text">{{ text }}</div>
-      <!-- <div class="goPoint">{{ text }}</div> -->
     </div>
   </div>
 </template>
 
 <script>
 import ShowMap from "@/components/map/pointMap";
+import {mapState} from "vuex";
 
 export default {
   components: {
     ShowMap
   },
   data () {
-    return {
-      text: '选择位置',
-    }
+    return {}
+  },
+  computed: {
+    ...mapState([
+      "navigationMapPoints",
+      'robotTaskStatus'
+    ]),
   },
   mounted () {
-    this.$store.state.hasSave = false;
-    this.$store.state.patrol_arr = []
     // 状态机
-    this.$store.state.actionStatus='point'
+    // this.$store.state.actionStatus='point'
     const type = new ROSLIB.ServiceRequest({
       action: 'patrol'
     });
     robotMode.callService(type, (result) => {
       if (result.message!=='ok') {
         this.$message('状态切换失败');
-        this.text = ''
       }
       console.log('[ robotMode OK]-61', result)
     }, (result) => {
       this.$message('状态切换失败');
-      this.text = ''
       console.log('[ robotMode ERR]-61', result)
     });
   },
   methods: {
-    onBegin () {
-      if (this.text === '选择位置') {
-        this.$store.state.tool = 'point'
-        this.text = '前往位置'
-      } else if (this.text === '前往位置') {
-        if (!this.$store.state.patrol_arr.length) {
-          return false;
+    onStart(point) {
+      this.$confirm(
+        `<p style="line-height: 48px">将要导航到位置点“${point.name}”，请确认是否执行操作。</p>`,
+        `定点导航`,
+        {
+          dangerouslyUseHTMLString: true,
+          center: true,
+          confirmButtonText: "是",
+          confirmButtonClass: "recovery-confirm",
+          cancelButtonText: "否",
+          cancelButtonClass: "recovery-cancel"
         }
-        const point = {
-          poses: [{
-            header: {
-              stamp: {
-                sec: 0,
-                nanosec: 0
-              },
-              frame_id: "map"
-            },
-            pose: {
-              position: {
-                x: this.$store.state.patrol_arr[0].x,
-                y: this.$store.state.patrol_arr[0].y,
-                z: 0.0
-              },
-              orientation: {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-                w: 1.0
-              }
-            }
-          }]
-        };
-        console.log(point)
-        const msg = new ROSLIB.Message(point);
-        TalkerPoint.publish(msg);
-        this.text = '关闭任务'
-      } else {
-        const type = new ROSLIB.ServiceRequest({
-          cmd: 'cancel'
-        });
-        patrolState.callService(type, (res) => {
-          console.log('[ patrol_control ok]-61', res)
-        }, (res) => {
-          console.log('[ patrol_control ERR]-61', res)
-        });
-        this.$router.push({ name: 'utility' })
-      }
+      ).then(() => {
+        if (this.robotTaskStatus.working || this.robotTaskStatus.suspend) {
+          // 先取消上次的巡逻或导航，在开始本次的导航
+          const type = new ROSLIB.ServiceRequest({
+            cmd: 'cancel'
+          });
+          patrolState.callService(type, (res) => {
+            console.log('[ patrol_control cancel ok]-61', res)
+            this.onStartNavigation(point)
+          }, (res) => {
+            console.log('[ patrol_control cancel ERR]-61', res)
+          });
+        } else {
+          this.onStartNavigation(point)
+        }
+      })
     },
+    onStartNavigation(point) {
+      const msg = new ROSLIB.Message({
+        header: {
+          stamp: {sec: 0, nanosec: 0},
+          frame_id: "map"
+        },
+        pose: {
+          position: {
+            x: point.x,
+            y: point.y,
+            z: 0.0
+          },
+          orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+        }
+      });
+      StartNavigation.publish(msg);
+    },
+    onClose() {
+      const type = new ROSLIB.ServiceRequest({
+        cmd: 'cancel'
+      });
+      patrolState.callService(type, (res) => {
+        console.log('[ patrol_control cancel ok]-61', res)
+      }, (res) => {
+        console.log('[ patrol_control cancel ERR]-61', res)
+      });
+      this.$router.push({ name: 'utility' })
+    }
   }
-
 }
 </script>
 
@@ -127,7 +137,6 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-evenly;
   line-height: 50px;
   margin-left: 30px;
   margin-top: 30px;
@@ -141,21 +150,53 @@ export default {
 }
 
 .titleBox {
+  height: 600px;
+  width: 100%;
   display: flex;
   flex-direction: column;
+  text-align: center;
   justify-content: space-between;
-  height: 146px;
+  padding: 0 40px;
+  margin: 55px 0;
+  line-height: 50px;
 
-  .mapName {
-    width: 329px;
-    height: 80px;
+  p:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    font-size: 50px;
+  }
+}
+
+.navigationPointsList {
+  margin-top: 20px;
+  overflow-y: auto;
+
+  &-item {
+    width: 319px;
+    height: 100px;
     border-radius: 10px;
     opacity: 1;
-    background: #2F3758;
+    background: #2f3758;
     backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
-    justify-content: space-around;
+    justify-content: center;
+    margin: 20px auto 0;
+    padding: 0 10px;
+
+    span {
+      width: 100%;
+      max-height: 100%;
+      line-height: 50px;
+      overflow: hidden;
+      word-break: break-all;
+      text-overflow: ellipsis;
+      line-clamp: 2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
   }
 }
 

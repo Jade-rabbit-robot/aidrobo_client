@@ -51,7 +51,7 @@ import { mapState, mapMutations } from "vuex";
 import { routerObj } from "@/assets/common";
 export default {
   computed: {
-    ...mapState(["showMsg", "hasSave", "actionStatus"])
+    ...mapState(["showMsg", "hasSave", "actionStatus", 'robotTaskStatus'])
   },
   data() {
     return {
@@ -66,21 +66,31 @@ export default {
     };
   },
   watch: {
-    actionStatus: function(n) {
-      if (n === "patrolStart") {
-        this.cmd = "巡逻中...";
-      } else if (n === "patrolPause") {
-        this.cmd = "恢复巡逻";
-      }
-    },
     $route(to, from) {
       this.routerN = to.path;
       this.routerTxt = routerObj[to.name];
       // console.log('//从哪来',from.path);
       // console.log('//到哪去', to);
+    },
+    robotTaskStatus: {
+      handler(val) {
+        this.cmd = ''
+        if(val.working) {
+          this.cmd = val.patrol ? '巡逻中...': '导航中...'
+        } else if(val.suspend) {
+          this.cmd = val.patrol ?'恢复巡逻' : '恢复导航'
+        }
+      },
+      deep: true
     }
   },
   methods: {
+    ...mapMutations(["changeRobotTaskStatus"]),
+    subscribeTaskStatus() {
+      RobotTaskStatus.subscribe(res => {
+        this.changeRobotTaskStatus(res)
+      });
+    },
     refreshFun() {
       window.location.reload();
     },
@@ -126,7 +136,7 @@ export default {
       PoseStamped.publish(pose_msg);
     },
     patrolAction() {
-      if (this.actionStatus === "patrolStart") {
+      if (this.robotTaskStatus.working) {
         const type = new ROSLIB.ServiceRequest({
           cmd: "pause"
         });
@@ -244,6 +254,7 @@ export default {
         _this.reconnectFlag = true;
         _this.$nextTick(() => {
           _this.$refs.relocationRef.click();
+          _this.subscribeTaskStatus();
         });
       }
     });

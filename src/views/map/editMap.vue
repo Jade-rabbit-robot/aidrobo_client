@@ -1,6 +1,6 @@
 <template>
   <div class="newMapBox">
-    <ShowMap class="map" :toolType="toolType" :initData="initData" ref="mapRef" />
+    <ShowMap class="map" :toolType="toolType" :initData="initData" :navigationPoint="true" ref="mapRef" />
     <div class="right">
       <div
         v-show="point && !rubber && !stop"

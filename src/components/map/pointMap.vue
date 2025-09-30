@@ -24,7 +24,7 @@
           }"
         ></div>
         <div
-          v-for="(item, index) in patrol_arr_area"
+          v-for="(item, index) in pointsInMapImage"
           :key="index"
           class="map_point"
           v-bind:style="{
@@ -59,7 +59,7 @@
       <img src="@/assets/img/seeMap/fda.png" @click="zoom('f')" />
       <img src="@/assets/img/seeMap/sxiao.png" @click="zoom('s')" />
     </div>
-    <div class="active">
+    <div class="active" v-if="!navigationPoint">
       <img
         src="@/assets/img/seeMap/active.png"
         @click="changeTool('')"
@@ -79,7 +79,7 @@ import { mapState, mapMutations } from "vuex";
 import { changeStr, mapToImg, imgToMap } from "@/assets/common"
 
 export default {
-  props: ["initData"],
+  props: ["initData", 'navigationPoint'],
   data() {
     return {
       mapData: {
@@ -131,7 +131,11 @@ export default {
       "stop_point",
       "charge_po",
       "map_img_w",
-    ])
+      "navigationImgPoints",
+    ]),
+    pointsInMapImage () {
+      return this.$props.navigationPoint ? this.navigationImgPoints : this.patrol_arr_area
+    }
   },
   watch: {
     robotPoint: function (n) {
@@ -171,6 +175,7 @@ export default {
         console.log('[ getMapImage OK]-61', res)
         if (res.success) {
           this.mapData = changeStr(res.map)
+          this.$props.navigationPoint && this.getPoints();
         }
       }, (result) => {
         console.log('[ getMapImage ERR]-61', result)
@@ -367,6 +372,44 @@ export default {
         return { x: imgToMap({ mapData: this.mapData, x: e.x }), y: imgToMap({ mapData: this.mapData, y: e.y }) };
       });
       this.$store.state.patrol_arr = xx_yy;
+    },
+    getPoints() {
+      const msg = new ROSLIB.ServiceRequest({
+        map_id: this.$store.state.nowMap.id * 1,
+        data_type: 'waypoint_node'
+      });
+      NavigationPointsGet.callService(
+        msg,
+        result => {
+          try {
+            let points = JSON.parse(result.message);
+            let res = points.map(p => {
+              p.point_list = JSON.parse(p.point_list)
+              return {
+                x: p.point_list.position.x,
+                y: p.point_list.position.y,
+                name: p.point_list.name,
+                id: p.id
+              }
+            })
+            this.$store.state.navigationMapPoints = res;
+            this.$store.state.navigationImgPoints = res.map(it => ({
+              x: mapToImg({ mapData: this.mapData, x: it.x }),
+              y: mapToImg({ mapData: this.mapData, y: it.y }),
+              name: it.name,
+              id: it.id
+            }));
+            console.log("[  NavigationPointsGet OK]-points", res);
+          } catch (error) {
+            console.log(error)
+            this.$message("获取定点导航点位列表失败");
+          }
+          console.log("[  NavigationPointsGet OK]-61", result);
+        },
+        result => {
+          console.log("[  NavigationPointsGet ERR]-61", result);
+        }
+      );
     },
   }
 };
