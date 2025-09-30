@@ -38,9 +38,9 @@
             >{{ $store.state.percentage }}%</span
           >
         </div>
-        <div class="chat">
-          <img src="@/assets/img/home/chat.png" @click="openChat" />
-        </div>
+<!--        <div class="chat">-->
+<!--          <img src="@/assets/img/home/chat.png" @click="openChat" />-->
+<!--        </div>-->
       </div>
     </div>
   </div>
