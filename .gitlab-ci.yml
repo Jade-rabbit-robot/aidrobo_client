@@ -1,0 +1,20 @@
+stages:
+  - sync
+
+sync_upstream:
+  stage: sync
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache git openssh
+    # 设置 Git 用户信息（防止 CI 报错）
+    - git config --global user.email "bot@example.com"
+    - git config --global user.name "sync-bot"
+  script:
+    - git remote add upstream http://192.168.110.22:8880/aidrobo/aidbot_app/aidrobo_client.git || true
+    - git fetch upstream
+    - git checkout main
+    - git merge --ff-only upstream/main || git rebase upstream/main
+    - git push http://$CI_JOB_TOKEN:@192.168.110.22:8880/aidrobo/haier-s01/aidrobo_client.git main
+  only:
+    - schedules
+
