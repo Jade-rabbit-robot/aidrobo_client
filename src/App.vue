@@ -94,7 +94,7 @@ export default {
       }
       var run_msg = new ROSLIB.Message({ linear, angular });
       console.log("[ run_msg ]-86", run_msg);
-      controlRobot.publish(run_msg);
+      // controlRobot.publish(run_msg);
     },
     moveEnd() {
       // 机器人语音ai页面打开时，不执行
@@ -118,7 +118,7 @@ export default {
       };
       var run_msg = new ROSLIB.Message({ linear, angular });
       console.log("[ run_msg ]-86-end", run_msg);
-      controlRobot.publish(run_msg);
+      // controlRobot.publish(run_msg);
     }
   },
   components: {

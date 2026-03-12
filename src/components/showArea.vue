@@ -22,10 +22,12 @@
           v-bind:style="{
             transform:
               'translate(' +
-              (robotXY.x * scale - 6) +
+              (robotXY.x * scale - 10) +
               'px,' +
-              (robotXY.y * scale - 6) +
-              'px)',
+              (robotXY.y * scale - 10) +
+              'px) rotate(' +
+              (90 - robotYaw) +
+              'deg)',
           }"
         >
         </div>
@@ -87,6 +89,7 @@ export default {
   data() {
     return {
       robotXY: { x: 0, y: 0 },
+      robotYaw: 0,
       scale: 1,
       left: 0,
       top: 0,
@@ -167,11 +170,27 @@ export default {
   mounted() {
     this.robotXY = { x: this.xx2(0.5), y: this.yy2(-2) };
     this.$store.state.map_width = this.$refs.map.offsetWidth;
+    const quaternionToYawDeg = (orientation = {}) => {
+      const x = Number(orientation.x || 0);
+      const y = Number(orientation.y || 0);
+      const z = Number(orientation.z || 0);
+      const w = Number(orientation.w || 1);
+      const sinyCosp = 2 * (w * z + x * y);
+      const cosyCosp = 1 - 2 * (y * y + z * z);
+      return (Math.atan2(sinyCosp, cosyCosp) * 180) / Math.PI;
+    };
     robotPosition.subscribe(message => {
-      if (message.pose) {
-        const position = message.pose.pose.position;
+      const pose = message && message.pose
+        ? (message.pose.pose || message.pose)
+        : null;
+      if (pose && pose.position) {
+        const position = pose.position;
         this.robotXY = { x: this.xx2(position.x), y: this.yy2(position.y) };
         this.$store.state.robotPoint = { x: position.x, y: position.y };
+      }
+      if (pose && pose.orientation) {
+        this.robotYaw = quaternionToYawDeg(pose.orientation);
+        this.$store.state.robotYaw = this.robotYaw;
       }
     });
   },
@@ -622,19 +641,20 @@ export default {
 }
 .robot {
   position: absolute;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  width: 20px;
+  height: 20px;
   top: 0;
   left: 0;
   z-index: 11;
+  transform-origin: 50% 50%;
   background: linear-gradient(
-    135deg,
-    rgb(255 172 85) 0%,
-    rgb(255 13 52 / 81%) 100%
+    180deg,
+    rgb(255, 239, 133) 0%,
+    rgb(255, 84, 84) 100%
   );
-  box-shadow: -1px -2px 3px -5px rgb(249 249 249),
-    4px 4px 10px -5px rgb(0 0 0 / 30%);
+  clip-path: polygon(50% 0%, 100% 100%, 50% 74%, 0% 100%);
+  box-shadow: -1px -2px 3px -5px rgb(249, 249, 249),
+    4px 4px 10px -5px rgba(0, 0, 0, 0.3);
 }
 .pointNum {
   display: inline-block;

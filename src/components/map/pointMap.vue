@@ -17,10 +17,12 @@
           v-bind:style="{
             transform:
               'translate(' +
-              (robotXY.x * scale - 15) +
+              (robotXY.x * scale - 12) +
               'px,' +
-              (robotXY.y * scale - 15) +
-              'px)'
+              (robotXY.y * scale - 12) +
+              'px) rotate(' +
+              (90 - robotYaw) +
+              'deg)'
           }"
         ></div>
         <div
@@ -111,6 +113,7 @@ export default {
   computed: {
     ...mapState([
       "robotPoint",
+      "robotYaw",
       "mcode",
       "rubber_data1",
       "rubber_data2",
@@ -545,19 +548,20 @@ export default {
 
 .robot {
   position: absolute;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
   top: 0;
   left: 0;
   z-index: 11;
+  transform-origin: 50% 50%;
   background: linear-gradient(
-    135deg,
-    rgb(255 172 85) 0%,
-    rgb(255 13 52 / 81%) 100%
+    180deg,
+    rgb(255, 239, 133) 0%,
+    rgb(255, 84, 84) 100%
   );
-  box-shadow: -1px -2px 3px -5px rgb(249 249 249),
-    4px 4px 10px -5px rgb(0 0 0 / 30%);
+  clip-path: polygon(50% 0%, 100% 100%, 50% 74%, 0% 100%);
+  box-shadow: -1px -2px 3px -5px rgb(249, 249, 249),
+    4px 4px 10px -5px rgba(0, 0, 0, 0.3);
 }
 
 .pointNum {

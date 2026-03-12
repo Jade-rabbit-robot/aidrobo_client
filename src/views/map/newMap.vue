@@ -38,7 +38,7 @@ export default {
       ).then(() => {
         const date = Date.now();
         const msg = new ROSLIB.ServiceRequest({
-          map_file_name: `/root/maps/${date}`
+          map_file_name: `/maps/${date}`
         });
         saveMap.callService(
           msg,
@@ -46,7 +46,7 @@ export default {
             if (result.success) {
               const msg2 = new ROSLIB.ServiceRequest({
                 map_name: this.mapName,
-                map_file: `/root/maps/${date}`
+                map_file: `/maps/${date}`
               });
               saveMapDb.callService(
                 msg2,
