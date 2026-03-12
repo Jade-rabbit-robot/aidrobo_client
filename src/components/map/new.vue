@@ -12,10 +12,12 @@
           v-bind:style="{
             transform:
               'translate(' +
-              (xx2(robotPoint.x) * scale - 15) +
+              (xx2(robotPoint.x) * scale - 12) +
               'px,' +
-              (yy2(robotPoint.y) * scale - 15) +
-              'px)'
+              (yy2(robotPoint.y) * scale - 12) +
+              'px) rotate(' +
+                (90 - robotYaw) +
+              'deg)'
           }"
           v-if="showType != 'see'"
         ></div>
@@ -67,6 +69,7 @@ export default {
   computed: {
     ...mapState([
       "robotPoint",
+      "robotYaw"
     ])
   },
   mounted () {
@@ -133,13 +136,18 @@ export default {
 
 .robot {
   position: absolute;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
   top: 0;
   left: 0;
   z-index: 11;
-  background: #ff9b44;
+  transform-origin: 50% 50%;
+  background: linear-gradient(
+    180deg,
+    rgb(255, 239, 133) 0%,
+    rgb(255, 84, 84) 100%
+  );
+  clip-path: polygon(50% 0%, 100% 100%, 50% 74%, 0% 100%);
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
 }
 

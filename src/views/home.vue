@@ -45,11 +45,26 @@ export default {
   },
   mounted() {
     this.$store.state.tool = "";
+    const quaternionToYawDeg = (orientation = {}) => {
+      const x = Number(orientation.x || 0);
+      const y = Number(orientation.y || 0);
+      const z = Number(orientation.z || 0);
+      const w = Number(orientation.w || 1);
+      const sinyCosp = 2 * (w * z + x * y);
+      const cosyCosp = 1 - 2 * (y * y + z * z);
+      return (Math.atan2(sinyCosp, cosyCosp) * 180) / Math.PI;
+    };
     // 全局订阅机器人位置
     robotPosition.subscribe((message) => {
-      if (message.pose) {
-        const position = message.pose.position;
+      const pose = message && message.pose
+        ? (message.pose.pose || message.pose)
+        : null;
+      if (pose && pose.position) {
+        const position = pose.position;
         this.$store.state.robotPoint = { x: position.x, y: position.y };
+      }
+      if (pose && pose.orientation) {
+        this.$store.state.robotYaw = quaternionToYawDeg(pose.orientation);
       }
     });
     // 获取当前地图id

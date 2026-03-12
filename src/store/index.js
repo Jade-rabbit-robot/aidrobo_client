@@ -32,6 +32,7 @@ const store = new Vuex.Store({
     prepro_val:0,//孤立点大小值
     charge_po:[],//充电桩位置
     robotPoint:{x:0,y:0},
+    robotYaw: 0,
     mapSrc: '',
     help: false,//帮助栏开关
     map_img_w:0,//屏幕地图宽
