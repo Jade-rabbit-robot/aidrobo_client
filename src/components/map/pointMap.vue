@@ -12,6 +12,15 @@
       >
         <img id="img1" :src="mapData.src" @load="init" ref="img1" />
         <!-- <img id="img1" src="../../../static2/img/map2.png" @load="init" ref="img1" /> -->
+        <svg
+          v-if="planEnabled && planSvgPoints"
+          class="plan_path"
+          :viewBox="'0 0 ' + mapData.width + ' ' + mapData.height"
+          :width="mapData.width * scale"
+          :height="mapData.height * scale"
+        >
+          <polyline :points="planSvgPoints" />
+        </svg>
         <div
           class="robot"
           v-bind:style="{
@@ -81,7 +90,7 @@ import { mapState, mapMutations } from "vuex";
 import { changeStr, mapToImg, imgToMap } from "@/assets/common"
 
 export default {
-  props: ["initData", 'navigationPoint'],
+  props: ["initData", 'navigationPoint', 'showPlan'],
   data() {
     return {
       mapData: {
@@ -107,7 +116,9 @@ export default {
       touch_data: null, //触摸点
       screen_w: 1380,
       yEnd: 0,
-      xEnd: 0
+      xEnd: 0,
+      planMapPoints: [],
+      planListener: null
     };
   },
   computed: {
@@ -138,6 +149,24 @@ export default {
     ]),
     pointsInMapImage () {
       return this.$props.navigationPoint ? this.navigationImgPoints : this.patrol_arr_area
+    },
+    planEnabled () {
+      return !!(this.navigationPoint || this.showPlan)
+    },
+    planImgPoints () {
+      if (!this.mapData.resolution) {
+        return []
+      }
+      return this.planMapPoints.map(point => ({
+        x: mapToImg({ mapData: this.mapData, x: point.x }),
+        y: mapToImg({ mapData: this.mapData, y: point.y })
+      }))
+    },
+    planSvgPoints () {
+      return this.planImgPoints
+        .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))
+        .map(point => `${point.x},${point.y}`)
+        .join(' ')
     }
   },
   watch: {
@@ -154,9 +183,30 @@ export default {
   },
   mounted() {
     this.$store.state.map_width = this.$refs.map.offsetWidth;
+    this.subscribePlan()
     this.getMap()
   },
+  beforeDestroy() {
+    this.unsubscribePlan()
+  },
   methods: {
+    subscribePlan() {
+      if (!this.planEnabled || this.planListener) {
+        return
+      }
+      this.planListener = message => {
+        this.planMapPoints = (message.poses || []).map(item => item.pose.position)
+      }
+      NavigationPlan.subscribe(this.planListener)
+    },
+    unsubscribePlan() {
+      if (!this.planListener) {
+        return
+      }
+      NavigationPlan.unsubscribe(this.planListener)
+      this.planListener = null
+      this.planMapPoints = []
+    },
     changeTool(type) {
       if (!type) {
         this.$store.state.tool = ''
@@ -449,6 +499,24 @@ export default {
   top: 0;
   left: 0;
   z-index: 2;
+}
+
+.plan_path {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.plan_path polyline {
+  fill: none;
+  stroke: #37f2ff;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
 }
 
 .rubber_sel {

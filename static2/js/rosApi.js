@@ -1,5 +1,5 @@
 const ros = new ROSLIB.Ros();
-const rosURL = 'ws://192.168.1.120:9090';
+const rosURL = 'ws://127.0.0.1:9090';
 // const rosURL = 'ws://192.168.111.52:9090'
 
 /* ros 的 connect 连接逻辑移动到 headArea.vue 组件中进行 */
@@ -186,6 +186,12 @@ const StartNavigation = new ROSLIB.Topic({
   ros: ros,
   name: '/nav_to_pose',
   messageType: 'geometry_msgs/msg/PoseStamped'
+})
+/*导航规划路径*/
+const NavigationPlan = new ROSLIB.Topic({
+  ros: ros,
+  name: '/plan',
+  messageType: 'nav_msgs/msg/Path'
 })
 /*机器人任务状态*/
 const RobotTaskStatus = new ROSLIB.Topic({

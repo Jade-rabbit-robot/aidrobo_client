@@ -15,18 +15,18 @@ export const changeStr = function (res) {
   }
 }
 export const mapToImg = ({ mapData, y, x }) => {
-  if (y) {
+  if (y !== undefined) {
     return mapData.height - (y - mapData.positionY) / mapData.resolution;
   }
-  if (x) {
+  if (x !== undefined) {
     return (x - mapData.positionX) / mapData.resolution;
   }
 }
 export const imgToMap = ({ mapData, y, x }) => {
-  if (y) {
+  if (y !== undefined) {
     return(mapData.height - y) * mapData.resolution + mapData.positionY;
   }
-  if (x) {
+  if (x !== undefined) {
     return  x * mapData.resolution +  mapData.positionX;
   }
 }
