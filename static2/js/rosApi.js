@@ -84,11 +84,25 @@ const getCurrentMapId = new ROSLIB.Service({
   name: '/get_current_map_id',
   serviceType: 'aid_robot_msgs/srv/GetCurrentMap'
 });
-/** 机器人在地图中位置*/
-const robotPosition = new ROSLIB.Topic({
+
+
+/** 激光扫描 */
+const RobotScan = new ROSLIB.Topic({
   ros: ros,
-  name: '/base_link_pose',
-  messageType: 'geometry_msgs/msg/PoseStamped'
+  name: '/scan',
+  messageType: 'sensor_msgs/msg/LaserScan'
+});
+/** TF 动态变换 */
+const RobotTF = new ROSLIB.Topic({
+  ros: ros,
+  name: '/tf',
+  messageType: 'tf2_msgs/msg/TFMessage'
+});
+/** TF 静态变换 */
+const RobotTFStatic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/tf_static',
+  messageType: 'tf2_msgs/msg/TFMessage'
 });
 /** 重定位*/
 const PoseStamped = new ROSLIB.Topic({

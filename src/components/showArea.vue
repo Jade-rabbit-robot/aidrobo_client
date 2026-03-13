@@ -179,20 +179,6 @@ export default {
       const cosyCosp = 1 - 2 * (y * y + z * z);
       return (Math.atan2(sinyCosp, cosyCosp) * 180) / Math.PI;
     };
-    robotPosition.subscribe(message => {
-      const pose = message && message.pose
-        ? (message.pose.pose || message.pose)
-        : null;
-      if (pose && pose.position) {
-        const position = pose.position;
-        this.robotXY = { x: this.xx2(position.x), y: this.yy2(position.y) };
-        this.$store.state.robotPoint = { x: position.x, y: position.y };
-      }
-      if (pose && pose.orientation) {
-        this.robotYaw = quaternionToYawDeg(pose.orientation);
-        this.$store.state.robotYaw = this.robotYaw;
-      }
-    });
   },
   methods: {
     map_pinchstart() {

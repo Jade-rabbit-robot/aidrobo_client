@@ -54,19 +54,6 @@ export default {
       const cosyCosp = 1 - 2 * (y * y + z * z);
       return (Math.atan2(sinyCosp, cosyCosp) * 180) / Math.PI;
     };
-    // 全局订阅机器人位置
-    robotPosition.subscribe((message) => {
-      const pose = message && message.pose
-        ? (message.pose.pose || message.pose)
-        : null;
-      if (pose && pose.position) {
-        const position = pose.position;
-        this.$store.state.robotPoint = { x: position.x, y: position.y };
-      }
-      if (pose && pose.orientation) {
-        this.$store.state.robotYaw = quaternionToYawDeg(pose.orientation);
-      }
-    });
     // 获取当前地图id
     getCurrentMapId.callService(
       null,

@@ -21,6 +21,21 @@
         >
           <polyline :points="planSvgPoints" />
         </svg>
+        <svg
+          v-if="scanEnabled && scanSvgPoints.length"
+          class="scan_layer"
+          :viewBox="'0 0 ' + mapData.width + ' ' + mapData.height"
+          :width="mapData.width * scale"
+          :height="mapData.height * scale"
+        >
+          <circle
+            v-for="(point, index) in scanSvgPoints"
+            :key="'scan-' + index"
+            :cx="point.x"
+            :cy="point.y"
+            :r="scanPointRadius"
+          />
+        </svg>
         <div
           class="robot"
           v-bind:style="{
@@ -87,10 +102,10 @@
 
 <script type="text/ecmascript-6">
 import { mapState, mapMutations } from "vuex";
-import { changeStr, mapToImg, imgToMap } from "@/assets/common"
+import { applyTransformToPoint, changeStr, mapToImg, imgToMap, normalizeFrameId, quaternionToYawDeg, resolveTransform, updateTransformGraph } from "@/assets/common"
 
 export default {
-  props: ["initData", 'navigationPoint', 'showPlan'],
+  props: ["initData", 'navigationPoint', 'showPlan', 'showScan'],
   data() {
     return {
       mapData: {
@@ -118,7 +133,16 @@ export default {
       yEnd: 0,
       xEnd: 0,
       planMapPoints: [],
-      planListener: null
+      planListener: null,
+      scanMapPoints: [],
+      scanListener: null,
+      robotTfListener: null,
+      robotTransform: null,
+      scanFrameId: '',
+      scanTransform: null,
+      tfMessageListener: null,
+      tfStaticListener: null,
+      tfGraph: {}
     };
   },
   computed: {
@@ -153,6 +177,9 @@ export default {
     planEnabled () {
       return !!(this.navigationPoint || this.showPlan)
     },
+    scanEnabled () {
+      return !!this.showScan
+    },
     planImgPoints () {
       if (!this.mapData.resolution) {
         return []
@@ -167,6 +194,20 @@ export default {
         .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))
         .map(point => `${point.x},${point.y}`)
         .join(' ')
+    },
+    scanSvgPoints () {
+      if (!this.mapData.resolution) {
+        return []
+      }
+      return this.scanMapPoints
+        .map(point => ({
+          x: mapToImg({ mapData: this.mapData, x: point.x }),
+          y: mapToImg({ mapData: this.mapData, y: point.y })
+        }))
+        .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))
+    },
+    scanPointRadius () {
+      return this.scale > 1 ? 1 : 1.2
     }
   },
   watch: {
@@ -183,13 +224,60 @@ export default {
   },
   mounted() {
     this.$store.state.map_width = this.$refs.map.offsetWidth;
+    this.subscribeTfMessages()
     this.subscribePlan()
+    this.subscribeScan()
     this.getMap()
   },
   beforeDestroy() {
+    this.unsubscribeTfMessages()
     this.unsubscribePlan()
+    this.unsubscribeScan()
   },
   methods: {
+    subscribeTfMessages() {
+      if (this.tfMessageListener || this.tfStaticListener) {
+        return
+      }
+      this.tfMessageListener = message => {
+        updateTransformGraph(this.tfGraph, message.transforms || [])
+        this.refreshResolvedTransforms()
+      }
+      this.tfStaticListener = message => {
+        updateTransformGraph(this.tfGraph, message.transforms || [])
+        this.refreshResolvedTransforms()
+      }
+      RobotTF.subscribe(this.tfMessageListener)
+      RobotTFStatic.subscribe(this.tfStaticListener)
+    },
+    unsubscribeTfMessages() {
+      if (this.tfMessageListener) {
+        RobotTF.unsubscribe(this.tfMessageListener)
+      }
+      if (this.tfStaticListener) {
+        RobotTFStatic.unsubscribe(this.tfStaticListener)
+      }
+      this.tfMessageListener = null
+      this.tfStaticListener = null
+      this.robotTfListener = null
+      this.robotTransform = null
+      this.scanTransform = null
+      this.tfGraph = {}
+    },
+    refreshResolvedTransforms() {
+      const baseLinkTransform = resolveTransform(this.tfGraph, 'map', 'base_link')
+      if (baseLinkTransform) {
+        this.robotTransform = baseLinkTransform
+        this.$store.state.robotPoint = {
+          x: Number(baseLinkTransform.translation.x || 0),
+          y: Number(baseLinkTransform.translation.y || 0)
+        }
+        this.$store.state.robotYaw = quaternionToYawDeg(baseLinkTransform.rotation)
+      }
+      if (this.scanFrameId) {
+        this.scanTransform = resolveTransform(this.tfGraph, 'map', this.scanFrameId)
+      }
+    },
     subscribePlan() {
       if (!this.planEnabled || this.planListener) {
         return
@@ -206,6 +294,66 @@ export default {
       NavigationPlan.unsubscribe(this.planListener)
       this.planListener = null
       this.planMapPoints = []
+    },
+    subscribeScan() {
+      if (!this.scanEnabled || this.scanListener) {
+        return
+      }
+      this.scanListener = message => {
+        this.ensureScanFrameSubscription(message && message.header ? message.header.frame_id : '')
+        this.scanMapPoints = this.convertScanToMapPoints(message)
+      }
+      RobotScan.subscribe(this.scanListener)
+    },
+    unsubscribeScan() {
+      if (!this.scanListener) {
+        return
+      }
+      RobotScan.unsubscribe(this.scanListener)
+      this.scanListener = null
+      this.scanMapPoints = []
+    },
+    ensureScanFrameSubscription(frameId) {
+      const nextFrameId = normalizeFrameId(frameId)
+      if (!nextFrameId || nextFrameId === this.scanFrameId) {
+        return
+      }
+      this.scanFrameId = nextFrameId
+      this.scanTransform = resolveTransform(this.tfGraph, 'map', nextFrameId)
+    },
+    convertScanToMapPoints(message) {
+      const ranges = Array.isArray(message && message.ranges) ? message.ranges : []
+      if (!ranges.length) {
+        return []
+      }
+
+      const scanFrameId = normalizeFrameId(message && message.header ? message.header.frame_id : '')
+      const isMapFrame = scanFrameId === 'map'
+      if (!isMapFrame && !this.scanTransform) {
+        return []
+      }
+
+      const angleMin = Number(message.angle_min || 0)
+      const angleIncrement = Number(message.angle_increment || 0)
+      const rangeMin = Number(message.range_min || 0)
+      const rangeMax = Number(message.range_max || Infinity)
+      const points = []
+
+      for (let index = 0; index < ranges.length; index += 1) {
+        const range = Number(ranges[index])
+        if (!Number.isFinite(range) || range < rangeMin || range > rangeMax) {
+          continue
+        }
+        const angle = angleMin + angleIncrement * index
+        const localPoint = {
+          x: range * Math.cos(angle),
+          y: range * Math.sin(angle),
+          z: 0
+        }
+        points.push(isMapFrame ? localPoint : applyTransformToPoint(localPoint, this.scanTransform))
+      }
+
+      return points
     },
     changeTool(type) {
       if (!type) {
@@ -517,6 +665,19 @@ export default {
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0.9;
+}
+
+.scan_layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.scan_layer circle {
+  fill: rgba(255, 196, 61, 0.35);
 }
 
 .rubber_sel {

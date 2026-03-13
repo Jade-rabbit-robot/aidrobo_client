@@ -1,6 +1,6 @@
 <template>
   <div class="newMapBox">
-    <ShowMap :initData="initData" :showPlan="true" />
+    <ShowMap :initData="initData" :showPlan="true" :showScan="true" />
     <div class="right point">
       <div class="step1" v-if="step == 1">
         <div class="rText" v-if="!$store.state.patrol_arr.length">
