@@ -1,5 +1,67 @@
 const ros = new ROSLIB.Ros();
-const rosURL = 'ws://127.0.0.1:9090';
+const defaultRosURL = 'ws://127.0.0.1:9090';
+const appConfig = window.AIDROBO_APP_CONFIG || {};
+const rosURLStorageKey = 'aidrobo.rosURL';
+
+function normalizeRosURL(url) {
+  const value = (url || '').trim();
+  if (!value) {
+    return '';
+  }
+  if (/^wss?:\/\//i.test(value)) {
+    return value;
+  }
+  return `ws://${value}`;
+}
+
+function getRosURL() {
+  return normalizeRosURL(window.localStorage.getItem(rosURLStorageKey) || appConfig.rosURL || defaultRosURL) || defaultRosURL;
+}
+
+function setRosURL(url) {
+  const nextURL = normalizeRosURL(url);
+  if (!nextURL) {
+    return getRosURL();
+  }
+  window.localStorage.setItem(rosURLStorageKey, nextURL);
+  return nextURL;
+}
+
+function resetRosURL() {
+  window.localStorage.removeItem(rosURLStorageKey);
+  return getRosURL();
+}
+
+function reconnectRos(url) {
+  if (url !== undefined) {
+    setRosURL(url);
+  }
+  const nextURL = getRosURL();
+  try {
+    ros.close();
+  } catch (error) {
+    console.warn('[ ros close warn ]', error);
+  }
+  window.setTimeout(() => {
+    try {
+      ros.connect(nextURL);
+    } catch (error) {
+      console.error('[ ros reconnect err ]', error);
+    }
+  }, 150);
+  return nextURL;
+}
+
+window.AIDROBO_ROS_CONFIG = {
+  defaultRosURL,
+  getRosURL,
+  setRosURL,
+  resetRosURL,
+  reconnectRos,
+  normalizeRosURL,
+};
+
+const rosURL = getRosURL();
 // const rosURL = 'ws://192.168.111.52:9090'
 
 /* ros 的 connect 连接逻辑移动到 headArea.vue 组件中进行 */

@@ -86,6 +86,17 @@ export default {
   },
   methods: {
     ...mapMutations(["changeRobotTaskStatus"]),
+    getCurrentRosURL() {
+      if (window.AIDROBO_ROS_CONFIG && window.AIDROBO_ROS_CONFIG.getRosURL) {
+        return window.AIDROBO_ROS_CONFIG.getRosURL();
+      }
+      return rosURL;
+    },
+    connectRos() {
+      const targetURL = this.getCurrentRosURL();
+      console.log("[ ros connect ]", targetURL);
+      ros.connect(targetURL);
+    },
     subscribeTaskStatus() {
       RobotTaskStatus.subscribe(res => {
         this.changeRobotTaskStatus(res)
@@ -225,7 +236,7 @@ export default {
   },
   created() {
     const _this = this;
-    ros.connect(rosURL);
+    this.connectRos();
 
     // 重连
     let reconnectBegin; // 重连的开始时间
@@ -244,7 +255,7 @@ export default {
         _this.$message.error({ message: "机器人启动失败", center: true });
       } else {
         console.log("正在重连...", gap);
-        ros.connect(rosURL);
+        _this.connectRos();
       }
     });
 

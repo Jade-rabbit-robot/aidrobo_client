@@ -4,3 +4,7 @@
 3. npm install 
 4. npm run dev
 
+## 安卓打包
+
+查看 Android 打包和使用说明：`docs/android-app.md`
+

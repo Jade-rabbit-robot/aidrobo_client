@@ -1,0 +1,9 @@
+{
+  "appId": "com.aidrobo.client",
+  "appName": "Aidrobo Client",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}

@@ -1,6 +1,28 @@
 <template>
   <div class="main">
     <div class="box">
+      <div>
+        <div class="title">连接设置</div>
+        <div>
+          <div class="item rosItem">
+            <span>ROS WebSocket</span>
+            <div class="inputWrap">
+              <el-input
+                v-model.trim="rosURLInput"
+                placeholder="ws://192.168.1.120:9090"
+              ></el-input>
+            </div>
+          </div>
+          <div class="itemTip">地址会保存到当前设备，下次启动继续使用。</div>
+          <div class="itemTip">支持输入完整地址，或直接输入 IP:端口。</div>
+          <div class="actionRow">
+            <el-button type="primary" @click="saveRosURL">保存</el-button>
+            <el-button type="primary" @click="saveAndReconnect">保存并重连</el-button>
+            <el-button @click="resetToDefault">恢复默认</el-button>
+          </div>
+          <div class="currentUrl">当前保存地址：{{ currentRosURL }}</div>
+        </div>
+      </div>
       <div v-for="(item, i) in box" :key="i">
         <div class="title">{{ item.title }}</div>
         <!-- 基础设置 -->
@@ -24,7 +46,8 @@ export default {
   data () {
     return {
       value: true,
-      input: '',
+      rosURLInput: '',
+      currentRosURL: '',
       box: [
         // {
         //   title: "表情锁屏"
@@ -48,6 +71,57 @@ export default {
         },
 
       ]
+    }
+  },
+  created () {
+    this.loadRosURL()
+  },
+  methods: {
+    getRosConfig () {
+      return window.AIDROBO_ROS_CONFIG || {}
+    },
+    loadRosURL () {
+      const rosConfig = this.getRosConfig()
+      const currentURL = rosConfig.getRosURL ? rosConfig.getRosURL() : ''
+      this.rosURLInput = currentURL
+      this.currentRosURL = currentURL
+    },
+    validateRosURL () {
+      const rosConfig = this.getRosConfig()
+      const normalizedURL = rosConfig.normalizeRosURL
+        ? rosConfig.normalizeRosURL(this.rosURLInput)
+        : (this.rosURLInput || '').trim()
+      if (!normalizedURL || !/^wss?:\/\/.+/i.test(normalizedURL)) {
+        this.$message.error('请输入正确的 ROS WebSocket 地址')
+        return ''
+      }
+      return normalizedURL
+    },
+    saveRosURL () {
+      const nextURL = this.validateRosURL()
+      if (!nextURL) {
+        return
+      }
+      const rosConfig = this.getRosConfig()
+      this.currentRosURL = rosConfig.setRosURL ? rosConfig.setRosURL(nextURL) : nextURL
+      this.rosURLInput = this.currentRosURL
+      this.$message.success('ROS 地址已保存')
+    },
+    saveAndReconnect () {
+      const nextURL = this.validateRosURL()
+      if (!nextURL) {
+        return
+      }
+      const rosConfig = this.getRosConfig()
+      this.currentRosURL = rosConfig.reconnectRos ? rosConfig.reconnectRos(nextURL) : nextURL
+      this.rosURLInput = this.currentRosURL
+      this.$message.success('ROS 地址已保存，正在重连')
+    },
+    resetToDefault () {
+      const rosConfig = this.getRosConfig()
+      this.currentRosURL = rosConfig.resetRosURL ? rosConfig.resetRosURL() : ''
+      this.rosURLInput = this.currentRosURL
+      this.$message.success('已恢复默认 ROS 地址')
     }
   }
 }
@@ -101,6 +175,25 @@ export default {
         font-size: 28px;
         color: #C1C1C1;
       }
+
+      .actionRow {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-top: 30px;
+      }
+
+      .currentUrl {
+        margin-top: 30px;
+        font-size: 28px;
+        color: #C1C1C1;
+        line-height: 1.5;
+        word-break: break-all;
+      }
+
+      .inputWrap {
+        width: 430px;
+      }
     }
   }
 }
@@ -143,5 +236,12 @@ export default {
   height: 70px;
   border-radius: 10px;
 
+}
+
+.actionRow>>>.el-button {
+  min-width: 170px;
+  height: 70px;
+  font-size: 28px;
+  border-radius: 35px;
 }
 </style>

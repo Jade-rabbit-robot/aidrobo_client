@@ -12,3 +12,9 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+
+# Android generated files
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/local.properties
