@@ -76,9 +76,17 @@ const robotMode = new ROSLIB.Service({
 /** 指令控制 */
 const controlRobot = new ROSLIB.Topic({
   ros: ros,
-  name: '/cmd_vel_remote_ctrl',
+  name: '/cmd_vel',
   messageType: 'geometry_msgs/msg/Twist'
 });
+
+
+
+function publishControlTwist(message) {
+  controlRobot.publish(message);
+}
+
+window.publishControlTwist = publishControlTwist;
 
 /** 建图订阅 */
 const robotMap = new ROSLIB.Topic({

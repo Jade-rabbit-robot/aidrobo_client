@@ -62,12 +62,13 @@ export default {
   },
   data() {
     return {
+      hasHistory: false,
       overText: "保存地图",
       rubber: false,
       stop: false,
       point: false, // 管理位置点位的模式
       initData: false,
-      toolType: "",
+      toolType: ""
     };
   },
   computed: {
