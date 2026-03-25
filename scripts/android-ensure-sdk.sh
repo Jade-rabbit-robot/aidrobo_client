@@ -19,23 +19,31 @@ get_required_api_level() {
 }
 
 detect_sdk_dir() {
+  local required_platform="$1"
+  local candidates=()
+
   if [[ -n "${ANDROID_HOME:-}" && -d "${ANDROID_HOME}" ]]; then
-    printf '%s\n' "$ANDROID_HOME"
-    return 0
+    candidates+=("$ANDROID_HOME")
   fi
 
-  if [[ -n "${ANDROID_SDK_ROOT:-}" && -d "${ANDROID_SDK_ROOT}" ]]; then
-    printf '%s\n' "$ANDROID_SDK_ROOT"
-    return 0
+  if [[ -n "${ANDROID_SDK_ROOT:-}" && -d "${ANDROID_SDK_ROOT}" && "${ANDROID_SDK_ROOT}" != "${ANDROID_HOME:-}" ]]; then
+    candidates+=("$ANDROID_SDK_ROOT")
   fi
 
-  local candidates=(
+  candidates+=(
+    "$HOME/Android/Sdk"
     "/usr/lib/android-sdk"
     "/opt/android-sdk"
-    "$HOME/Android/Sdk"
   )
 
   local candidate
+  for candidate in "${candidates[@]}"; do
+    if [[ -d "$candidate/platforms/$required_platform" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
   for candidate in "${candidates[@]}"; do
     if [[ -d "$candidate" ]]; then
       printf '%s\n' "$candidate"
@@ -66,7 +74,7 @@ main() {
   required_api_level="$(get_required_api_level)"
   required_platform="android-$required_api_level"
 
-  if ! sdk_dir="$(detect_sdk_dir)"; then
+  if ! sdk_dir="$(detect_sdk_dir "$required_platform")"; then
     echo "[android:sdk] Android SDK not found."
     echo "[android:sdk] Set ANDROID_HOME or install Android Studio / Android SDK first."
     exit 1
