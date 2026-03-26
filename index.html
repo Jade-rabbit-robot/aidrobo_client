@@ -3,8 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport"
-    content="width=device-width,initial-scale=1.0,maximun-sacle=1.0,minimum-scale=1.0,user-scalable=no">
+  <meta id="app-viewport" name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no,viewport-fit=cover">
 
   <link rel="stylesheet" type="text/css" href="./static2/css/reset.css">
   <link rel="stylesheet" type="text/css" href="./static2/css/style.css">
@@ -12,6 +11,30 @@
   <script src="./static2/js/easeljs.js"></script>
   <script src="./static2/js/appConfig.js"></script>
   <script src="./static2/js/rosApi.js"></script>
+  <script>
+    (function () {
+      var DESIGN_HEIGHT = 1080;
+      var viewport = document.getElementById('app-viewport');
+      if (!viewport) return;
+
+      var ua = navigator.userAgent || '';
+      var isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+      var screenHeight = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0);
+
+      // Keep desktop behavior unchanged, but scale fixed-width UI for mobile WebView.
+        if (isMobile && screenHeight > 0 && screenHeight < DESIGN_HEIGHT) {
+        var scale = screenHeight / DESIGN_HEIGHT;
+        viewport.setAttribute(
+          'content',
+          'width=' + DESIGN_HEIGHT +
+            ',initial-scale=' + scale +
+            ',maximum-scale=' + scale +
+            ',minimum-scale=' + scale +
+            ',user-scalable=no,viewport-fit=cover'
+        );
+      }
+    })();
+  </script>
   <title>robot</title>
 </head>
 
