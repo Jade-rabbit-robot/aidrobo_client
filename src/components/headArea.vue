@@ -62,7 +62,9 @@ export default {
       routerN: "",
       routerTxt: "",
       voice: 0,
-      reconnectFlag: false
+      reconnectStopped: false,
+      reconnectBegin: null,
+      taskStatusSubscribed: false
     };
   },
   watch: {
@@ -239,35 +241,40 @@ export default {
     this.connectRos();
 
     // 重连
-    let reconnectBegin; // 重连的开始时间
     ros.on("close", () => {
-      if (_this.reconnectFlag) return;
+      if (_this.reconnectStopped) return;
 
-      if (!reconnectBegin) {
-        reconnectBegin = Date.now();
+      if (!_this.reconnectBegin) {
+        _this.reconnectBegin = Date.now();
       }
       const LimitTime = 30 * 1000; // 限制重连时间为30s
-      const gap = Date.now() - reconnectBegin;
+      const gap = Date.now() - _this.reconnectBegin;
       if (gap > LimitTime) {
-        _this.reconnectFlag = true;
-        reconnectBegin = null;
+        _this.reconnectStopped = true;
+        _this.reconnectBegin = null;
         console.log("重连失败，已断开连接");
         _this.$message.error({ message: "机器人启动失败", center: true });
       } else {
         console.log("正在重连...", gap);
-        _this.connectRos();
+        window.setTimeout(() => {
+          _this.connectRos();
+        }, 300);
       }
     });
 
     ros.on("connection", function() {
       console.log("rosOk!!!");
-      if (!_this.reconnectFlag) {
-        _this.reconnectFlag = true;
-        _this.$nextTick(() => {
+      _this.reconnectStopped = false;
+      _this.reconnectBegin = null;
+      _this.$nextTick(() => {
+        if (_this.$refs.relocationRef) {
           _this.$refs.relocationRef.click();
+        }
+        if (!_this.taskStatusSubscribed) {
           _this.subscribeTaskStatus();
-        });
-      }
+          _this.taskStatusSubscribed = true;
+        }
+      });
     });
   },
   mounted() {

@@ -105,7 +105,7 @@ export default {
       const rosConfig = this.getRosConfig()
       this.currentRosURL = rosConfig.setRosURL ? rosConfig.setRosURL(nextURL) : nextURL
       this.rosURLInput = this.currentRosURL
-      this.$message.success('ROS 地址已保存')
+      this.$message.success('ROS 地址已保存，请点击“保存并重连”生效')
     },
     saveAndReconnect () {
       const nextURL = this.validateRosURL()
