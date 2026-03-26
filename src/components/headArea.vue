@@ -94,9 +94,25 @@ export default {
       }
       return rosURL;
     },
+    isAndroid() {
+      return /Android/i.test(navigator.userAgent || '');
+    },
     connectRos() {
       const targetURL = this.getCurrentRosURL();
       console.log("[ ros connect ]", targetURL);
+      // 安卓设备上 127.0.0.1 指向手机本身，无法连接机器人
+      if (this.isAndroid() && /127\.0\.0\.1/.test(targetURL)) {
+        this.$message({
+          message: '请先在"设置"页填写机器人的局域网 IP 地址',
+          type: 'warning',
+          duration: 0,
+          showClose: true
+        });
+        if (this.$router.history.current.path !== '/site') {
+          this.$router.push('/site');
+        }
+        return;
+      }
       ros.connect(targetURL);
     },
     subscribeTaskStatus() {

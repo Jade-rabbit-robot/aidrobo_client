@@ -5,6 +5,7 @@ import android.os.Build;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
+import android.webkit.WebSettings;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -17,6 +18,8 @@ public class MainActivity extends BridgeActivity {
 			getBridge().getWebView().getSettings().setTextZoom(100);
 			getBridge().getWebView().getSettings().setUseWideViewPort(true);
 			getBridge().getWebView().getSettings().setLoadWithOverviewMode(true);
+			// 允许 https://localhost 页面发起 ws:// 连接（Mixed Content）
+			getBridge().getWebView().getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 		}
 		hideSystemBars();
 	}

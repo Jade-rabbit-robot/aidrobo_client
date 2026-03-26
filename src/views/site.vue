@@ -15,6 +15,7 @@
           </div>
           <div class="itemTip">地址会保存到当前设备，下次启动继续使用。</div>
           <div class="itemTip">支持输入完整地址，或直接输入 IP:端口。</div>
+          <div class="itemTip itemTipWarn">⚠ 安卓 App 中请填写机器人的局域网 IP（如 192.168.1.120:9090），不能用 127.0.0.1。</div>
           <div class="actionRow">
             <el-button type="primary" @click="saveRosURL">保存</el-button>
             <el-button type="primary" @click="saveAndReconnect">保存并重连</el-button>
@@ -174,6 +175,11 @@ export default {
       .itemTip {
         font-size: 28px;
         color: #C1C1C1;
+      }
+
+      .itemTipWarn {
+        color: #f0a020;
+        margin-top: 12px;
       }
 
       .actionRow {
