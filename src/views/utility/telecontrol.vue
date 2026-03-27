@@ -459,25 +459,36 @@ export default {
   flex-direction: column;
   align-items: center;
   height: 100%;
-  padding: 40px 0 60px;
+  padding: clamp(16px, 4vw, 40px) 16px clamp(24px, 6vw, 60px);
+  box-sizing: border-box;
 
   &>div {
-    margin-top: 40px;
+    margin-top: clamp(20px, 4vw, 40px);
   }
 }
 
 .hero {
   display: flex;
   align-items: center;
-  gap: 40px;
+  flex-wrap: wrap;
+  gap: clamp(16px, 3vw, 40px);
+  width: 100%;
+  max-width: 1200px;
+  justify-content: center;
+}
+
+.hero img {
+  width: clamp(120px, 18vw, 220px);
+  height: auto;
 }
 
 .heroText {
-  width: 760px;
+  width: 100%;
+  max-width: 760px;
 }
 
 .title {
-  font-size: 54px;
+  font-size: clamp(24px, 4vw, 54px);
   line-height: 1.2;
 }
 
@@ -490,8 +501,13 @@ export default {
   position: relative;
   width: 100%;
   max-width: 1800px;
-  min-height: 500px;
+  min-height: 420px;
   transition: opacity 0.2s ease;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(16px, 2vw, 24px);
+  align-items: flex-start;
 
   &.disabled {
     opacity: 0.45;
@@ -499,14 +515,18 @@ export default {
 }
 
 .joystickCard {
-  width: 430px;
-  padding: 32px 24px 36px;
-  border-radius: 24px;
+  width: 100%;
+  max-width: 430px;
+  padding: clamp(18px, 2vw, 32px) clamp(14px, 2vw, 24px) clamp(18px, 2vw, 36px);
+  border-radius: clamp(14px, 1.5vw, 24px);
   background: linear-gradient(145deg, rgba(24, 38, 82, 0.92) 0%, rgba(70, 92, 154, 0.45) 100%);
   box-shadow: 0px 12px 36px rgba(1, 29, 90, 0.32);
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  left: 0;
+  top: 0;
 }
 
 .draggableCard {
@@ -550,9 +570,11 @@ export default {
 
 .joystick {
   position: relative;
-  width: 240px;
-  height: 240px;
-  margin-top: 28px;
+  width: 80vw;
+  height: 80vw;
+  max-width: 240px;
+  max-height: 240px;
+  margin-top: clamp(20px, 4vw, 28px);
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.14) 0%, rgba(9, 15, 36, 0.55) 70%, rgba(3, 8, 24, 0.9) 100%);
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08), 0 10px 30px rgba(4, 12, 38, 0.35);
@@ -619,10 +641,10 @@ export default {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 92px;
-  height: 92px;
-  margin-left: -46px;
-  margin-top: -46px;
+  width: clamp(64px, 20%, 92px);
+  height: clamp(64px, 20%, 92px);
+  margin-left: calc(clamp(64px, 20%, 92px) / -2);
+  margin-top: calc(clamp(64px, 20%, 92px) / -2);
   border-radius: 50%;
   background: radial-gradient(circle at 30% 30%, #ffffff 0%, #7fd6ff 18%, #3f78ff 58%, #2041a2 100%);
   box-shadow: 0 10px 24px rgba(14, 35, 103, 0.45);
@@ -630,18 +652,23 @@ export default {
 }
 
 .statusBar {
-  width: 920px;
+  width: 100%;
+  max-width: 920px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  padding: 22px 32px;
+  gap: clamp(8px, 2vw, 18px);
+  padding: clamp(14px, 2vw, 22px) clamp(16px, 3vw, 32px);
   border-radius: 18px;
   background: rgba(18, 31, 72, 0.55);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .btn {
-  width: 380px;
+  width: 100%;
+  max-width: 380px;
   height: 120px;
+  max-height: 16vw;
   border-radius: 10px;
   opacity: 1;
   background: linear-gradient(106deg, #596AB5 10%, rgba(66, 82, 146, 0.53) 89%);
@@ -650,5 +677,8 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: clamp(18px, 3vw, 30px);
+  font-weight: 600;
 }
+
 </style>
