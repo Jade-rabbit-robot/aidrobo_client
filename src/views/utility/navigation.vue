@@ -1,47 +1,67 @@
 <template>
   <div class="newMapBox">
-    <ShowMap :navigationPoint="true" />
+    <ShowMap
+      :showPlan="true"
+      :showScan="true"
+      :navigationTargetMode="true"
+      @navigation-target-selected="onNavigationTargetSelected"
+    />
     <div class="right point">
-      <div class="titleBox" v-if="$store.state.navigationMapPoints.length">
-        <p><img src="@/assets/img/editMap/point.svg" />位置点</p>
-        <div class="navigationPointsList">
-          <div
-            v-for="(item, index) in navigationMapPoints"
-            :key="index"
-            class="navigationPointsList-item"
-            @click="onStart(item)"
-          >
-            <span>{{ index + 1 }}：{{ item.name }}</span>
-          </div>
+      <div class="titleBox">
+        <div class="pageTitle">
+          <img src="@/assets/img/editMap/point.svg" />
+          <span>定点导航</span>
+        </div>
+        <div class="card">
+          <p class="cardTitle">当前机器人位置</p>
+          <p class="cardValue">({{ robotPoint.x.toFixed(2) }}, {{ robotPoint.y.toFixed(2) }})</p>
+        </div>
+        <div class="card instruction">
+          <p class="cardTitle">操作说明</p>
+          <p class="cardText">在地图上点击目标位置后，沿目标朝向滑动一小段距离，系统会立即发送单个导航目标点。</p>
+        </div>
+        <div class="card" v-if="targetPose">
+          <p class="cardTitle">最近一次导航目标</p>
+          <p class="cardValue">({{ targetPose.x.toFixed(2) }}, {{ targetPose.y.toFixed(2) }})</p>
+          <p class="cardSub">角度 {{ targetYaw.toFixed(1) }}°</p>
         </div>
       </div>
-      <div v-show="robotTaskStatus.navigate && (robotTaskStatus.working || robotTaskStatus.suspend)" class="goPoint" @click="onClose">
-        关闭任务
-      </div>
+      <div class="goPoint" @click="onExit">退出导航</div>
     </div>
   </div>
 </template>
 
 <script>
 import ShowMap from "@/components/map/pointMap";
-import {mapState} from "vuex";
+import { mapState } from "vuex";
+import { quaternionToYawDeg } from "@/assets/common";
 
 export default {
   components: {
     ShowMap
   },
   data () {
-    return {}
+    return {
+      targetPose: null,
+    }
   },
   computed: {
     ...mapState([
-      "navigationMapPoints",
+      "robotPoint",
       'robotTaskStatus'
     ]),
+    targetYaw() {
+      if (!this.targetPose || !this.targetPose.orientation) {
+        return 0;
+      }
+      return quaternionToYawDeg(this.targetPose.orientation);
+    }
   },
   mounted () {
-    // 状态机
-    // this.$store.state.actionStatus='point'
+    this.$store.state.hasSave = false;
+    this.$store.state.tool = 'navigation-target';
+    this.$store.state.patrol_arr = [];
+    this.$store.state.patrol_arr_area = [];
     const type = new ROSLIB.ServiceRequest({
       action: 'patrol'
     });
@@ -55,37 +75,13 @@ export default {
       console.log('[ robotMode ERR]-61', result)
     });
   },
+  beforeDestroy() {
+    if (this.$store.state.tool === 'navigation-target') {
+      this.$store.state.tool = '';
+    }
+  },
   methods: {
-    onStart(point) {
-      this.$confirm(
-        `<p style="line-height: 48px">将要导航到位置点“${point.name}”，请确认是否执行操作。</p>`,
-        `定点导航`,
-        {
-          dangerouslyUseHTMLString: true,
-          center: true,
-          confirmButtonText: "是",
-          confirmButtonClass: "recovery-confirm",
-          cancelButtonText: "否",
-          cancelButtonClass: "recovery-cancel"
-        }
-      ).then(() => {
-        if (this.robotTaskStatus.working || this.robotTaskStatus.suspend) {
-          // 先取消上次的巡逻或导航，在开始本次的导航
-          const type = new ROSLIB.ServiceRequest({
-            cmd: 'cancel'
-          });
-          patrolState.callService(type, (res) => {
-            console.log('[ patrol_control cancel ok]-61', res)
-            this.onStartNavigation(point)
-          }, (res) => {
-            console.log('[ patrol_control cancel ERR]-61', res)
-          });
-        } else {
-          this.onStartNavigation(point)
-        }
-      })
-    },
-    onStartNavigation(point) {
+    publishNavigation(point) {
       const msg = new ROSLIB.Message({
         header: {
           stamp: {sec: 0, nanosec: 0},
@@ -95,22 +91,44 @@ export default {
           position: {
             x: point.x,
             y: point.y,
-            z: 0.0
+            z: point.z || 0.0
           },
-          orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+          orientation: point.orientation || {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
         }
       });
       StartNavigation.publish(msg);
+      this.$message('已发送导航目标点');
     },
-    onClose() {
-      const type = new ROSLIB.ServiceRequest({
-        cmd: 'cancel'
-      });
-      patrolState.callService(type, (res) => {
-        console.log('[ patrol_control cancel ok]-61', res)
-      }, (res) => {
-        console.log('[ patrol_control cancel ERR]-61', res)
-      });
+    onNavigationTargetSelected(point) {
+      this.targetPose = point;
+      if (this.robotTaskStatus.working || this.robotTaskStatus.suspend) {
+        const type = new ROSLIB.ServiceRequest({
+          cmd: 'cancel'
+        });
+        patrolState.callService(type, (res) => {
+          console.log('[ patrol_control cancel ok]-61', res)
+          this.publishNavigation(point)
+        }, (res) => {
+          console.log('[ patrol_control cancel ERR]-61', res)
+        });
+      } else {
+        this.publishNavigation(point)
+      }
+    },
+    onExit() {
+      if (this.robotTaskStatus.navigate && (this.robotTaskStatus.working || this.robotTaskStatus.suspend)) {
+        const type = new ROSLIB.ServiceRequest({
+          cmd: 'cancel'
+        });
+        patrolState.callService(type, (res) => {
+          console.log('[ patrol_control cancel ok]-61', res)
+        }, (res) => {
+          console.log('[ patrol_control cancel ERR]-61', res)
+        });
+      }
+      this.$store.state.tool = '';
+      this.$store.state.patrol_arr = [];
+      this.$store.state.patrol_arr_area = [];
       this.$router.push({ name: 'utility' })
     }
   }
@@ -137,67 +155,84 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  line-height: 50px;
   margin-left: 30px;
   margin-top: 30px;
-
-  &>p {
-    text-align: center;
-    text-align: center;
-    line-height: 50px;
-    padding: 0px 40px;
-  }
+  overflow: hidden;
 }
 
 .titleBox {
-  height: 600px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  text-align: center;
-  justify-content: space-between;
-  padding: 0 40px;
-  margin: 55px 0;
-  line-height: 50px;
+  align-items: center;
+  padding: 40px 32px 0;
+  gap: 18px;
+  overflow-y: auto;
+  flex: 1;
+}
 
-  p:first-child {
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-    font-size: 50px;
+.pageTitle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 600;
+  margin-bottom: 4px;
+
+  img {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
   }
 }
 
-.navigationPointsList {
-  margin-top: 20px;
-  overflow-y: auto;
+.card {
+  width: 100%;
+  max-width: 338px;
+  min-height: 100px;
+  border-radius: 10px;
+  opacity: 1;
+  background: #2f3758;
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 20px;
+  line-height: 1.5;
+  text-align: center;
+  box-sizing: border-box;
+}
 
-  &-item {
-    width: 319px;
-    height: 100px;
-    border-radius: 10px;
-    opacity: 1;
-    background: #2f3758;
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 20px auto 0;
-    padding: 0 10px;
+.cardTitle {
+  font-size: 24px;
+  line-height: 1.3;
+  margin-bottom: 10px;
+}
 
-    span {
-      width: 100%;
-      max-height: 100%;
-      line-height: 50px;
-      overflow: hidden;
-      word-break: break-all;
-      text-overflow: ellipsis;
-      line-clamp: 2;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-  }
+.cardValue {
+  font-size: 24px;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.cardText {
+  font-size: 20px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.cardSub {
+  font-size: 20px;
+  line-height: 1.4;
+  opacity: 0.8;
+}
+
+.instruction {
+  align-items: stretch;
 }
 
 .goPoint {
@@ -210,9 +245,7 @@ export default {
   align-items: center;
   justify-content: center;
   box-shadow: 0px 2px 10px 0px rgba(1, 29, 90, 0.72);
-}
-
-.readyBtn {
-  background: linear-gradient(110deg, rgba(55, 89, 238, 0.64) 11%, rgba(30, 157, 244, 0.37) 89%) !important;
+  margin: 24px 0 40px;
+  flex-shrink: 0;
 }
 </style>

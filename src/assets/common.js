@@ -272,6 +272,7 @@ export const routerObj={
   'utility':"应用功能",
   'relocation':"重定位",
   'goPoint':"去位置点",
+  'navigation':"定点导航",
   'telecontrol':"遥控",
   'screen': "展示大屏",
 }
