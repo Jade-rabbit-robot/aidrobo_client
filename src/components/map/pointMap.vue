@@ -182,7 +182,7 @@
 
 <script type="text/ecmascript-6">
 import { mapState, mapMutations } from "vuex";
-import { applyTransformToPoint, changeStr, createQuaternionFromYaw, imgToMap, mapToImg, normalizeFrameId, normalizePatrolPoints, quaternionToYawDeg, resolvePatrolPointYaw, resolveTransform, updateTransformGraph } from "@/assets/common"
+import { applyTransformToPoint, changeStr, composeTransforms, createQuaternionFromYaw, imgToMap, invertTransform, mapToImg, normalizeFrameId, normalizePatrolPoints, quaternionToYawDeg, quaternionToYawRad, resolvePatrolPointYaw, resolveTransform, updateTransformGraph } from "@/assets/common"
 
 export default {
   props: ["initData", 'navigationPoint', 'showPlan', 'showScan', 'relocationMode', 'navigationTargetMode'],
@@ -218,11 +218,13 @@ export default {
       planMapPoints: [],
       planListener: null,
       scanMapPoints: [],
+      latestScanMessage: null,
       scanListener: null,
       robotTfListener: null,
       robotTransform: null,
       scanFrameId: '',
       scanTransform: null,
+      relocationPreviewPose: null,
       tfMessageListener: null,
       tfStaticListener: null,
       tfGraph: {}
@@ -401,6 +403,7 @@ export default {
       }
       if (this.scanFrameId) {
         this.scanTransform = resolveTransform(this.tfGraph, 'map', this.scanFrameId)
+        this.updateScanMapPoints()
       }
     },
     subscribePlan() {
@@ -425,8 +428,9 @@ export default {
         return
       }
       this.scanListener = message => {
+        this.latestScanMessage = message
         this.ensureScanFrameSubscription(message && message.header ? message.header.frame_id : '')
-        this.scanMapPoints = this.convertScanToMapPoints(message)
+        this.updateScanMapPoints()
       }
       RobotScan.subscribe(this.scanListener)
     },
@@ -436,6 +440,7 @@ export default {
       }
       RobotScan.unsubscribe(this.scanListener)
       this.scanListener = null
+      this.latestScanMessage = null
       this.scanMapPoints = []
     },
     ensureScanFrameSubscription(frameId) {
@@ -454,7 +459,8 @@ export default {
 
       const scanFrameId = normalizeFrameId(message && message.header ? message.header.frame_id : '')
       const isMapFrame = scanFrameId === 'map'
-      if (!isMapFrame && !this.scanTransform) {
+      const activeScanTransform = isMapFrame ? null : this.getActiveScanTransform()
+      if (!isMapFrame && !activeScanTransform) {
         return []
       }
 
@@ -475,10 +481,38 @@ export default {
           y: range * Math.sin(angle),
           z: 0
         }
-        points.push(isMapFrame ? localPoint : applyTransformToPoint(localPoint, this.scanTransform))
+        points.push(isMapFrame ? localPoint : applyTransformToPoint(localPoint, activeScanTransform))
       }
 
       return points
+    },
+    updateScanMapPoints() {
+      this.scanMapPoints = this.convertScanToMapPoints(this.latestScanMessage)
+    },
+    getActiveScanTransform() {
+      if (!this.relocationMode || !this.relocationPreviewPose || !this.robotTransform || !this.scanTransform) {
+        return this.scanTransform
+      }
+
+      const baseLinkToScanTransform = composeTransforms(
+        invertTransform(this.robotTransform),
+        this.scanTransform
+      )
+
+      return composeTransforms(
+        this.createTransformFromPose(this.relocationPreviewPose),
+        baseLinkToScanTransform
+      )
+    },
+    createTransformFromPose(pose = {}) {
+      return {
+        translation: {
+          x: Number(pose.x || 0),
+          y: Number(pose.y || 0),
+          z: Number(pose.z || 0)
+        },
+        rotation: pose.orientation || createQuaternionFromYaw(Number(pose.yaw || 0))
+      }
     },
     changeTool(type) {
       this.clearDirectionDraft()
@@ -619,6 +653,7 @@ export default {
           endX: startPoint.x,
           endY: startPoint.y
         }
+        this.updateRelocationPreviewPose(this.directionDraft)
       }
     },
     yy2(y) {
@@ -648,6 +683,7 @@ export default {
           endX: currentPoint.x,
           endY: currentPoint.y
         }
+        this.updateRelocationPreviewPose(this.directionDraft)
       }
     },
     rubberend(e) {
@@ -743,6 +779,50 @@ export default {
     },
     clearDirectionDraft() {
       this.directionDraft = null
+      if (this.relocationPreviewPose) {
+        this.relocationPreviewPose = null
+        this.updateScanMapPoints()
+      }
+    },
+    updateRelocationPreviewPose(draft) {
+      if (!this.relocationMode) {
+        return
+      }
+
+      this.relocationPreviewPose = this.buildRelocationPreviewPose(draft)
+      this.updateScanMapPoints()
+    },
+    buildRelocationPreviewPose(draft) {
+      if (!draft || !this.mapData.resolution) {
+        return null
+      }
+
+      const startPoint = { x: draft.startX, y: draft.startY }
+      const endPoint = { x: draft.endX, y: draft.endY }
+      const mapStartPoint = {
+        x: imgToMap({ mapData: this.mapData, x: startPoint.x }),
+        y: imgToMap({ mapData: this.mapData, y: startPoint.y })
+      }
+
+      let yaw = this.robotTransform ? quaternionToYawRad(this.robotTransform.rotation) : 0
+      if (this.getGestureDistance(startPoint, endPoint) >= 2) {
+        const mapEndPoint = {
+          x: imgToMap({ mapData: this.mapData, x: endPoint.x }),
+          y: imgToMap({ mapData: this.mapData, y: endPoint.y })
+        }
+        yaw = Math.atan2(
+          mapEndPoint.y - mapStartPoint.y,
+          mapEndPoint.x - mapStartPoint.x
+        )
+      }
+
+      return {
+        x: mapStartPoint.x,
+        y: mapStartPoint.y,
+        z: Number((((this.robotTransform || {}).translation || {}).z) || 0),
+        yaw,
+        orientation: createQuaternionFromYaw(yaw)
+      }
     },
     getTouchFromEvent(event) {
       if (!event) {
