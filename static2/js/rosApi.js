@@ -175,10 +175,10 @@ const RobotTFStatic = new ROSLIB.Topic({
   messageType: 'tf2_msgs/msg/TFMessage'
 });
 /** 重定位*/
-const PoseStamped = new ROSLIB.Topic({
+const InitialPose = new ROSLIB.Topic({
   ros: ros,
-  name: '/goal_pose_',
-  messageType: 'geometry_msgs/msg/PoseStamped'
+  name: '/initialpose',
+  messageType: 'geometry_msgs/msg/PoseWithCovarianceStamped'
 });
 /** 获取巡逻点列表 */
 const getMapLinkedDataList = new ROSLIB.Service({

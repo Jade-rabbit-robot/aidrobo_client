@@ -270,6 +270,7 @@ export const routerObj={
   'seeMap':"查看地图",
   'site':"设置",
   'utility':"应用功能",
+  'relocation':"重定位",
   'goPoint':"去位置点",
   'telecontrol':"遥控",
   'screen': "展示大屏",

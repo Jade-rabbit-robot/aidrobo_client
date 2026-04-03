@@ -123,8 +123,7 @@ export default {
     refreshFun() {
       window.location.reload();
     },
-    relocation() {
-      console.log("头部点击定位");
+    resetLocalizationToOrigin(showMessage = false) {
       const modeMsg = new ROSLIB.ServiceRequest({
         action: "localization"
       });
@@ -132,11 +131,15 @@ export default {
         modeMsg,
         result => {
           console.log("[ robotMode OK]-61", result);
-          this.$message("定位复位成功");
+          if (showMessage) {
+            this.$message("定位复位成功");
+          }
         },
         result => {
           console.log("[ robotMode ERR]-61", result);
-          this.$message("定位复位失败");
+          if (showMessage) {
+            this.$message("定位复位失败");
+          }
         }
       );
       const point = {
@@ -148,21 +151,37 @@ export default {
           frame_id: "map"
         },
         pose: {
-          position: {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0
+          pose: {
+            position: {
+              x: 0.0,
+              y: 0.0,
+              z: 0.0
+            },
+            orientation: {
+              x: 0.0,
+              y: 0.0,
+              z: 0.0,
+              w: 1.0
+            }
           },
-          orientation: {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-            w: 1.0
-          }
+          covariance: [
+            0.25, 0, 0, 0, 0, 0,
+            0, 0.25, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0.06853891945200942
+          ]
         }
       };
       var pose_msg = new ROSLIB.Message(point);
-      PoseStamped.publish(pose_msg);
+      InitialPose.publish(pose_msg);
+    },
+    relocation() {
+      console.log("头部点击定位");
+      if (this.$route.path !== "/utility/relocation") {
+        this.$router.push({ name: "relocation" });
+      }
     },
     patrolAction() {
       if (this.robotTaskStatus.working) {
@@ -283,9 +302,7 @@ export default {
       _this.reconnectStopped = false;
       _this.reconnectBegin = null;
       _this.$nextTick(() => {
-        if (_this.$refs.relocationRef) {
-          _this.$refs.relocationRef.click();
-        }
+        _this.resetLocalizationToOrigin(false);
         if (!_this.taskStatusSubscribed) {
           _this.subscribeTaskStatus();
           _this.taskStatusSubscribed = true;

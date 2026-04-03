@@ -37,7 +37,7 @@
           />
         </svg>
         <svg
-          v-if="!navigationPoint && (patrolDirectionSegments.length || draftDirectionSegment)"
+          v-if="showDirectionOverlay && (patrolDirectionSegments.length || draftDirectionSegment)"
           class="direction_layer"
           :viewBox="'0 0 ' + mapData.width + ' ' + mapData.height"
           :width="mapData.width * scale"
@@ -165,15 +165,15 @@
       <img src="@/assets/img/seeMap/fda.png" @click="zoom('f')" />
       <img src="@/assets/img/seeMap/sxiao.png" @click="zoom('s')" />
     </div>
-    <div class="active" v-if="!navigationPoint">
+    <div class="active" v-if="showActiveToggle">
       <img
         src="@/assets/img/seeMap/active.png"
         @click="changeTool('')"
-        v-if="tool == 'patrol' || tool == 'point'"
+        v-if="tool == 'patrol' || tool == 'point' || tool == 'relocation'"
       />
       <img
         src="@/assets/img/seeMap/disActive.png"
-        @click="changeTool('patrol')"
+        @click="changeTool(defaultToolType)"
         v-else
       />
     </div>
@@ -185,7 +185,7 @@ import { mapState, mapMutations } from "vuex";
 import { applyTransformToPoint, changeStr, createQuaternionFromYaw, imgToMap, mapToImg, normalizeFrameId, normalizePatrolPoints, quaternionToYawDeg, resolvePatrolPointYaw, resolveTransform, updateTransformGraph } from "@/assets/common"
 
 export default {
-  props: ["initData", 'navigationPoint', 'showPlan', 'showScan'],
+  props: ["initData", 'navigationPoint', 'showPlan', 'showScan', 'relocationMode'],
   data() {
     return {
       mapData: {
@@ -292,6 +292,18 @@ export default {
     scanPointRadius () {
       return this.scale > 1 ? 1 : 1.2
     },
+    defaultToolType() {
+      if (this.relocationMode) {
+        return 'relocation'
+      }
+      return window.location.hash.includes('patrol') ? 'patrol' : 'point'
+    },
+    showActiveToggle() {
+      return !this.navigationPoint && !this.relocationMode
+    },
+    showDirectionOverlay() {
+      return !this.navigationPoint
+    },
     patrolDirectionSegments () {
       if (this.navigationPoint) {
         return []
@@ -327,7 +339,7 @@ export default {
       }
     },
     tool: function (n) {
-      if (n !== 'patrol') {
+      if (n !== 'patrol' && n !== 'relocation') {
         this.clearDirectionDraft()
       }
     }
@@ -467,14 +479,14 @@ export default {
     },
     changeTool(type) {
       this.clearDirectionDraft()
+      if (this.relocationMode) {
+        this.$store.state.tool = 'relocation'
+        return
+      }
       if (!type) {
         this.$store.state.tool = ''
       } else {
-        if (window.location.hash.includes('patrol')) {
-          this.$store.state.tool = 'patrol'
-        } else {
-          this.$store.state.tool = 'point'
-        }
+        this.$store.state.tool = type || this.defaultToolType
       }
 
     },
@@ -588,7 +600,7 @@ export default {
         this.yEnd = Math.round(
           (this.touch_data.pageY - this.head_h) / this.scale
         );
-      } else if (this.tool == "patrol") {
+      } else if (this.tool == "patrol" || this.tool == "relocation") {
         const touch = this.getTouchFromEvent(e)
         const startPoint = this.getImagePointFromTouch(touch)
         if (!startPoint) {
@@ -618,7 +630,7 @@ export default {
       e != undefined
         ? (this.touch_data = e.touches[0])
         : (this.touch_data = this.touch_data);
-      if (this.tool == 'patrol' && this.directionDraft) {
+      if ((this.tool == 'patrol' || this.tool == 'relocation') && this.directionDraft) {
         const touch = this.getTouchFromEvent(e)
         const currentPoint = this.getImagePointFromTouch(touch)
         if (!currentPoint) {
@@ -642,6 +654,9 @@ export default {
       } else if (this.tool == "patrol") {
         const touch = this.getTouchFromEvent(e)
         this.selectPatrolPoint(touch)
+      } else if (this.tool == "relocation") {
+        const touch = this.getTouchFromEvent(e)
+        this.selectRelocationPoint(touch)
       }
     },
     map_move() {
@@ -901,6 +916,26 @@ export default {
       const nextPoint = this.buildPatrolPointFromGesture(startPoint, endPoint)
       this.$store.state.patrol_arr_area.push(nextPoint.imagePoint)
       this.$store.state.patrol_arr.push(nextPoint.mapPoint)
+    },
+    selectRelocationPoint(touch) {
+      const endPoint = this.getImagePointFromTouch(touch)
+      const draft = this.directionDraft
+      this.clearDirectionDraft()
+
+      if (!draft || !endPoint) {
+        return
+      }
+
+      const startPoint = { x: draft.startX, y: draft.startY }
+      if (this.getGestureDistance(startPoint, endPoint) < this.patrolDirectionMinDistance) {
+        this.$message('请按住点位后滑动一小段距离来确定重定位角度')
+        return
+      }
+
+      const nextPoint = this.buildPatrolPointFromGesture(startPoint, endPoint)
+      this.$store.state.patrol_arr_area = [nextPoint.imagePoint]
+      this.$store.state.patrol_arr = [nextPoint.mapPoint]
+      this.$emit('relocation-selected', nextPoint.mapPoint)
     },
     getPoints() {
       const msg = new ROSLIB.ServiceRequest({
