@@ -36,6 +36,85 @@
             :r="scanPointRadius"
           />
         </svg>
+        <svg
+          v-if="!navigationPoint && (patrolDirectionSegments.length || draftDirectionSegment)"
+          class="direction_layer"
+          :viewBox="'0 0 ' + mapData.width + ' ' + mapData.height"
+          :width="mapData.width * scale"
+          :height="mapData.height * scale"
+        >
+          <g
+            v-for="(segment, index) in patrolDirectionSegments"
+            :key="'direction-' + index"
+          >
+            <defs>
+              <linearGradient
+                :id="'direction-gradient-' + index"
+                gradientUnits="userSpaceOnUse"
+                :x1="segment.startX"
+                :y1="segment.startY"
+                :x2="segment.gradientX2"
+                :y2="segment.gradientY2"
+              >
+                <stop offset="0%" stop-color=" #4f78ff" />
+                <stop offset="100%" stop-color="#ffffff" />
+              </linearGradient>
+            </defs>
+            <line
+              class="direction_line"
+              :x1="segment.startX"
+              :y1="segment.startY"
+              :x2="segment.endX"
+              :y2="segment.endY"
+              :stroke="'url(#direction-gradient-' + index + ')'"
+            />
+            <polygon
+              class="direction_arrow"
+              :points="segment.arrowPoints"
+              :fill="'url(#direction-gradient-' + index + ')'"
+            />
+            <circle
+              class="direction_badge"
+              :cx="segment.badgeX"
+              :cy="segment.badgeY"
+              :r="segment.badgeRadius"
+            />
+            <text
+              class="direction_label"
+              :x="segment.badgeX"
+              :y="segment.badgeY"
+              :style="{ fontSize: getDirectionLabelFontSize(segment, index + 1) + 'px' }"
+            >{{ index + 1 }}</text>
+          </g>
+          <g v-if="draftDirectionSegment">
+            <defs>
+              <linearGradient
+                id="direction-gradient-draft"
+                gradientUnits="userSpaceOnUse"
+                :x1="draftDirectionSegment.startX"
+                :y1="draftDirectionSegment.startY"
+                :x2="draftDirectionSegment.gradientX2"
+                :y2="draftDirectionSegment.gradientY2"
+              >
+                <stop offset="0%" stop-color="#4f78ff" />
+                <stop offset="100%" stop-color="#42f4aa" />
+              </linearGradient>
+            </defs>
+            <line
+              class="direction_line direction_preview"
+              :x1="draftDirectionSegment.startX"
+              :y1="draftDirectionSegment.startY"
+              :x2="draftDirectionSegment.endX"
+              :y2="draftDirectionSegment.endY"
+              stroke="url(#direction-gradient-draft)"
+            />
+            <polygon
+              class="direction_arrow direction_preview"
+              :points="draftDirectionSegment.arrowPoints"
+              fill="url(#direction-gradient-draft)"
+            />
+          </g>
+        </svg>
         <div
           class="robot"
           v-bind:style="{
@@ -50,6 +129,7 @@
           }"
         ></div>
         <div
+          v-if="navigationPoint"
           v-for="(item, index) in pointsInMapImage"
           :key="index"
           class="map_point"
@@ -102,7 +182,7 @@
 
 <script type="text/ecmascript-6">
 import { mapState, mapMutations } from "vuex";
-import { applyTransformToPoint, changeStr, mapToImg, imgToMap, normalizeFrameId, quaternionToYawDeg, resolveTransform, updateTransformGraph } from "@/assets/common"
+import { applyTransformToPoint, changeStr, createQuaternionFromYaw, imgToMap, mapToImg, normalizeFrameId, normalizePatrolPoints, quaternionToYawDeg, resolvePatrolPointYaw, resolveTransform, updateTransformGraph } from "@/assets/common"
 
 export default {
   props: ["initData", 'navigationPoint', 'showPlan', 'showScan'],
@@ -132,6 +212,9 @@ export default {
       screen_w: 1380,
       yEnd: 0,
       xEnd: 0,
+      directionDraft: null,
+      directionArrowLength: 1,
+      patrolDirectionMinDistance: 24,
       planMapPoints: [],
       planListener: null,
       scanMapPoints: [],
@@ -208,6 +291,25 @@ export default {
     },
     scanPointRadius () {
       return this.scale > 1 ? 1 : 1.2
+    },
+    patrolDirectionSegments () {
+      if (this.navigationPoint) {
+        return []
+      }
+
+      return this.patrol_arr_area
+        .map(point => this.createDirectionSegmentFromPoint(point))
+        .filter(Boolean)
+    },
+    draftDirectionSegment () {
+      if (!this.directionDraft) {
+        return null
+      }
+
+      return this.buildDirectionSegment(
+        { x: this.directionDraft.startX, y: this.directionDraft.startY },
+        { x: this.directionDraft.endX, y: this.directionDraft.endY }
+      )
     }
   },
   watch: {
@@ -216,9 +318,17 @@ export default {
     },
     initData: function (n) {
       if (n) {
-        this.$store.state.patrol_arr_area = this.patrol_arr.map(e => {
-          return { x: mapToImg({ mapData: this.mapData, x: e.x }), y: mapToImg({ mapData: this.mapData, y: e.y }) }
-        })
+        this.syncPatrolImagePoints()
+      }
+    },
+    'mapData.resolution': function (n) {
+      if (n && this.initData) {
+        this.syncPatrolImagePoints()
+      }
+    },
+    tool: function (n) {
+      if (n !== 'patrol') {
+        this.clearDirectionDraft()
       }
     }
   },
@@ -356,6 +466,7 @@ export default {
       return points
     },
     changeTool(type) {
+      this.clearDirectionDraft()
       if (!type) {
         this.$store.state.tool = ''
       } else {
@@ -376,6 +487,7 @@ export default {
         console.log('[ getMapImage OK]-61', res)
         if (res.success) {
           this.mapData = changeStr(res.map)
+          this.initData && this.syncPatrolImagePoints()
           this.$props.navigationPoint && this.getPoints();
         }
       }, (result) => {
@@ -476,6 +588,18 @@ export default {
         this.yEnd = Math.round(
           (this.touch_data.pageY - this.head_h) / this.scale
         );
+      } else if (this.tool == "patrol") {
+        const touch = this.getTouchFromEvent(e)
+        const startPoint = this.getImagePointFromTouch(touch)
+        if (!startPoint) {
+          return
+        }
+        this.directionDraft = {
+          startX: startPoint.x,
+          startY: startPoint.y,
+          endX: startPoint.x,
+          endY: startPoint.y
+        }
       }
     },
     yy2(y) {
@@ -494,10 +618,30 @@ export default {
       e != undefined
         ? (this.touch_data = e.touches[0])
         : (this.touch_data = this.touch_data);
+      if (this.tool == 'patrol' && this.directionDraft) {
+        const touch = this.getTouchFromEvent(e)
+        const currentPoint = this.getImagePointFromTouch(touch)
+        if (!currentPoint) {
+          return
+        }
+        this.directionDraft = {
+          ...this.directionDraft,
+          endX: currentPoint.x,
+          endY: currentPoint.y
+        }
+      }
     },
     rubberend(e) {
-      if (this.mcode <= 1 && (this.tool == "point" || this.tool == "patrol")) {
-        this.patrol(e);
+      if (this.mcode > 1) {
+        return
+      }
+
+      if (this.tool == "point") {
+        const touch = this.getTouchFromEvent(e)
+        this.selectPointFromTouch(touch)
+      } else if (this.tool == "patrol") {
+        const touch = this.getTouchFromEvent(e)
+        this.selectPatrolPoint(touch)
       }
     },
     map_move() {
@@ -555,24 +699,208 @@ export default {
       } catch (e) {
       }
     },
-    patrol(e) {
-      if (this.tool == "point") {
-        this.$store.state.patrol_arr_area = []
+    syncPatrolImagePoints() {
+      if (!this.mapData.resolution) {
+        return
       }
-      let circleX = Math.round(
-        (this.touch_data.pageX - 30 - this.left) / this.scale
-      );
-      let circleY = Math.round(
-        (this.touch_data.pageY - 150 - this.top) / this.scale
-      );
-      this.$store.state.patrol_arr_area.push({
-        x: circleX,
-        y: circleY
-      });
-      const xx_yy = this.patrol_arr_area.map(e => {
-        return { x: imgToMap({ mapData: this.mapData, x: e.x }), y: imgToMap({ mapData: this.mapData, y: e.y }) };
-      });
-      this.$store.state.patrol_arr = xx_yy;
+
+      if (!this.patrol_arr.length) {
+        this.$store.state.patrol_arr_area = []
+        return
+      }
+
+      this.$store.state.patrol_arr_area = normalizePatrolPoints(this.patrol_arr).map(point => ({
+        x: mapToImg({ mapData: this.mapData, x: point.x }),
+        y: mapToImg({ mapData: this.mapData, y: point.y }),
+        yaw: point.yaw,
+        orientation: point.orientation
+      }))
+    },
+    clearDirectionDraft() {
+      this.directionDraft = null
+    },
+    getTouchFromEvent(event) {
+      if (!event) {
+        return null
+      }
+
+      if (event.changedTouches && event.changedTouches.length) {
+        return event.changedTouches[0]
+      }
+
+      if (event.touches && event.touches.length) {
+        return event.touches[0]
+      }
+
+      return null
+    },
+    clampImagePoint(point) {
+      return {
+        x: Math.max(0, Math.min(this.mapData.width, Math.round(point.x))),
+        y: Math.max(0, Math.min(this.mapData.height, Math.round(point.y)))
+      }
+    },
+    getImagePointFromTouch(touch) {
+      if (!touch || !this.$refs.map_box1) {
+        return null
+      }
+
+      const rect = this.$refs.map_box1.getBoundingClientRect()
+      return this.clampImagePoint({
+        x: (touch.clientX - rect.left) / this.scale,
+        y: (touch.clientY - rect.top) / this.scale
+      })
+    },
+    getGestureDistance(startPoint, endPoint) {
+      return Math.hypot(endPoint.x - startPoint.x, endPoint.y - startPoint.y)
+    },
+    buildDirectionSegment(startPoint, endPoint) {
+      if (!startPoint || !endPoint) {
+        return null
+      }
+
+      const angle = Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x)
+      const headLength = 18
+      const headAngle = Math.PI / 7
+      const forwardX = Math.cos(angle)
+      const forwardY = Math.sin(angle)
+      const perpendicularX = -forwardY
+      const perpendicularY = forwardX
+      const baseHalfWidth = headLength * Math.tan(headAngle)
+      const tipPoint = {
+        x: endPoint.x + forwardX * ((headLength * 2) / 3),
+        y: endPoint.y + forwardY * ((headLength * 2) / 3)
+      }
+      const baseCenterPoint = {
+        x: endPoint.x - forwardX * (headLength / 3),
+        y: endPoint.y - forwardY * (headLength / 3)
+      }
+      const leftBasePoint = {
+        x: baseCenterPoint.x + perpendicularX * baseHalfWidth,
+        y: baseCenterPoint.y + perpendicularY * baseHalfWidth
+      }
+      const rightBasePoint = {
+        x: baseCenterPoint.x - perpendicularX * baseHalfWidth,
+        y: baseCenterPoint.y - perpendicularY * baseHalfWidth
+      }
+      const sideA = Math.hypot(rightBasePoint.x - leftBasePoint.x, rightBasePoint.y - leftBasePoint.y)
+      const sideB = Math.hypot(rightBasePoint.x - tipPoint.x, rightBasePoint.y - tipPoint.y)
+      const sideC = Math.hypot(leftBasePoint.x - tipPoint.x, leftBasePoint.y - tipPoint.y)
+      const perimeter = sideA + sideB + sideC
+      const doubleArea = Math.abs(
+        tipPoint.x * (leftBasePoint.y - rightBasePoint.y) +
+        leftBasePoint.x * (rightBasePoint.y - tipPoint.y) +
+        rightBasePoint.x * (tipPoint.y - leftBasePoint.y)
+      )
+      const badgeRadius = perimeter ? (doubleArea / 2) / (perimeter / 2) : 0
+      const badgeX = perimeter
+        ? (sideA * tipPoint.x + sideB * leftBasePoint.x + sideC * rightBasePoint.x) / perimeter
+        : endPoint.x
+      const badgeY = perimeter
+        ? (sideA * tipPoint.y + sideB * leftBasePoint.y + sideC * rightBasePoint.y) / perimeter
+        : endPoint.y
+
+      return {
+        startX: startPoint.x,
+        startY: startPoint.y,
+        endX: endPoint.x,
+        endY: endPoint.y,
+        gradientX2: tipPoint.x,
+        gradientY2: tipPoint.y,
+        badgeX,
+        badgeY,
+        badgeRadius,
+        arrowPoints: [
+          `${tipPoint.x},${tipPoint.y}`,
+          `${leftBasePoint.x},${leftBasePoint.y}`,
+          `${rightBasePoint.x},${rightBasePoint.y}`
+        ].join(' ')
+      }
+    },
+    createDirectionSegmentFromPoint(point) {
+      if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+        return null
+      }
+
+      const yaw = resolvePatrolPointYaw(point)
+      const endPoint = {
+        x: point.x + this.directionArrowLength * Math.cos(yaw),
+        y: point.y - this.directionArrowLength * Math.sin(yaw)
+      }
+
+      return this.buildDirectionSegment(point, endPoint)
+    },
+    getDirectionLabelFontSize(segment, label) {
+      const text = String(label || '')
+      const textLength = Math.max(text.length, 1)
+      const maxDiameter = (segment.badgeRadius || 0) * 2
+      const estimatedWidthFactor = 0.62
+      const maxByWidth = maxDiameter / (textLength * estimatedWidthFactor)
+      const maxByHeight = (segment.badgeRadius || 0) * 1.15
+
+      return Math.max(7, Math.min(maxByWidth, maxByHeight))
+    },
+    buildPatrolPointFromGesture(startPoint, endPoint) {
+      const mapStartPoint = {
+        x: imgToMap({ mapData: this.mapData, x: startPoint.x }),
+        y: imgToMap({ mapData: this.mapData, y: startPoint.y })
+      }
+      const mapEndPoint = {
+        x: imgToMap({ mapData: this.mapData, x: endPoint.x }),
+        y: imgToMap({ mapData: this.mapData, y: endPoint.y })
+      }
+      const yaw = Math.atan2(
+        mapEndPoint.y - mapStartPoint.y,
+        mapEndPoint.x - mapStartPoint.x
+      )
+      const orientation = createQuaternionFromYaw(yaw)
+
+      return {
+        mapPoint: {
+          x: mapStartPoint.x,
+          y: mapStartPoint.y,
+          z: 0,
+          yaw,
+          orientation
+        },
+        imagePoint: {
+          x: startPoint.x,
+          y: startPoint.y,
+          yaw,
+          orientation
+        }
+      }
+    },
+    selectPointFromTouch(touch) {
+      const point = this.getImagePointFromTouch(touch)
+      if (!point) {
+        return
+      }
+
+      this.$store.state.patrol_arr_area = [point]
+      this.$store.state.patrol_arr = [{
+        x: imgToMap({ mapData: this.mapData, x: point.x }),
+        y: imgToMap({ mapData: this.mapData, y: point.y })
+      }]
+    },
+    selectPatrolPoint(touch) {
+      const endPoint = this.getImagePointFromTouch(touch)
+      const draft = this.directionDraft
+      this.clearDirectionDraft()
+
+      if (!draft || !endPoint) {
+        return
+      }
+
+      const startPoint = { x: draft.startX, y: draft.startY }
+      if (this.getGestureDistance(startPoint, endPoint) < this.patrolDirectionMinDistance) {
+        this.$message('请按住点位后滑动一小段距离来确定方向')
+        return
+      }
+
+      const nextPoint = this.buildPatrolPointFromGesture(startPoint, endPoint)
+      this.$store.state.patrol_arr_area.push(nextPoint.imagePoint)
+      this.$store.state.patrol_arr.push(nextPoint.mapPoint)
     },
     getPoints() {
       const msg = new ROSLIB.ServiceRequest({
@@ -678,6 +1006,41 @@ export default {
 
 .scan_layer circle {
   fill: rgba(255, 196, 61, 0.35);
+}
+
+.direction_layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.direction_line {
+  stroke-width: 2
+  ;
+  stroke-linecap: round;
+}
+
+.direction_arrow {
+  stroke: none;
+}
+
+.direction_badge {
+  fill: rgba(235, 255, 244, 0.96);
+}
+
+.direction_label {
+  fill: #350af4;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+.direction_preview {
+  opacity: 0.95;
 }
 
 .rubber_sel {

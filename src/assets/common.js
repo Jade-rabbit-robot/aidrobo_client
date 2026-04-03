@@ -32,15 +32,78 @@ export const imgToMap = ({ mapData, y, x }) => {
 }
 export const normalizeFrameId = (frameId = '') => String(frameId).replace(/^\//, '')
 
-export const quaternionToYawDeg = (orientation = {}) => {
+export const quaternionToYawRad = (orientation = {}) => {
   const x = Number(orientation.x || 0)
   const y = Number(orientation.y || 0)
   const z = Number(orientation.z || 0)
   const w = Number(orientation.w || 1)
   const sinyCosp = 2 * (w * z + x * y)
   const cosyCosp = 1 - 2 * (y * y + z * z)
-  return (Math.atan2(sinyCosp, cosyCosp) * 180) / Math.PI
+  return Math.atan2(sinyCosp, cosyCosp)
 }
+
+export const quaternionToYawDeg = (orientation = {}) => {
+  return (quaternionToYawRad(orientation) * 180) / Math.PI
+}
+
+export const createQuaternionFromYaw = (yaw = 0) => {
+  const angle = Number(yaw || 0)
+  return {
+    x: 0,
+    y: 0,
+    z: Math.sin(angle / 2),
+    w: Math.cos(angle / 2)
+  }
+}
+
+export const resolvePatrolPointYaw = (point = {}, nextPoint = null, previousPoint = null) => {
+  const yaw = Number(point.yaw)
+  if (Number.isFinite(yaw)) {
+    return yaw
+  }
+
+  const angle = Number(point.angle)
+  if (Number.isFinite(angle)) {
+    return angle
+  }
+
+  const orientation = point.orientation
+  if (orientation) {
+    return quaternionToYawRad(orientation)
+  }
+
+  if (nextPoint) {
+    return Math.atan2(Number(nextPoint.y) - Number(point.y), Number(nextPoint.x) - Number(point.x))
+  }
+
+  if (previousPoint) {
+    return Math.atan2(Number(point.y) - Number(previousPoint.y), Number(point.x) - Number(previousPoint.x))
+  }
+
+  return 0
+}
+
+export const normalizePatrolPoint = (point = {}, nextPoint = null, previousPoint = null) => {
+  const normalizedPoint = {
+    ...point,
+    x: Number(point.x || 0),
+    y: Number(point.y || 0),
+    z: Number(point.z || 0)
+  }
+  const yaw = resolvePatrolPointYaw(normalizedPoint, nextPoint, previousPoint)
+
+  return {
+    ...normalizedPoint,
+    yaw,
+    orientation: createQuaternionFromYaw(yaw)
+  }
+}
+
+export const normalizePatrolPoints = (points = []) => points.map((point, index) => normalizePatrolPoint(
+  point,
+  points[index + 1] || null,
+  points[index - 1] || null
+))
 
 export const rotatePointByQuaternion = (point, quaternion = {}) => {
   const vector = {

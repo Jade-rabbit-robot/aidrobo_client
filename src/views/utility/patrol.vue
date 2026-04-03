@@ -5,7 +5,7 @@
       <div class="step1" v-if="step == 1">
         <div class="rText" v-if="!$store.state.patrol_arr.length">
           <p>选择位置点</p>
-          <p>请依次在地图中点击想巡逻的位置点</p>
+          <p>请依次在地图中点击位置，然后沿目标朝向滑动一小段距离</p>
         </div>
         <div class="titleBox" v-else>
           <p>选择位置点:</p>
@@ -16,7 +16,7 @@
               class="mapName"
               @click="onDelOne(i)"
             >
-              ({{ e.x.toFixed(2) }},{{ e.y.toFixed(2) }})
+              点位 {{ i + 1 }}
             </p>
           </div>
         </div>
@@ -46,6 +46,7 @@
 import ShowMap from "@/components/map/pointMap";
 import { mapState, mapMutations } from "vuex";
 import fullscreenLoading from "@/components/fullscreenLoading.js";
+import { normalizePatrolPoints } from "@/assets/common";
 
 export default {
   components: {
@@ -115,9 +116,7 @@ export default {
       this.step = 1;
     },
     addPoint(data) {
-      const data_ = data.map(e => {
-        return { x: e.x, y: e.y, z: 0 };
-      });
+      const data_ = this.normalizePatrolPoints(data);
       const msg2 = new ROSLIB.ServiceRequest({
         map_id: this.$store.state.nowMap.id,
         data: JSON.stringify(data_),
@@ -135,9 +134,7 @@ export default {
       );
     },
     updatePoint(data) {
-      const data_ = data.map(e => {
-        return { x: e.x, y: e.y, z: 0 };
-      });
+      const data_ = this.normalizePatrolPoints(data);
       const msg2 = new ROSLIB.ServiceRequest({
         id: this.patrolId,
         data: JSON.stringify({
@@ -171,7 +168,7 @@ export default {
               msg = JSON.parse(result.message);
               this.initData = true;
               this.patrolId = msg[0].id;
-              this.$store.state.patrol_arr = JSON.parse(msg[0].point_list);
+              this.$store.state.patrol_arr = this.normalizePatrolPoints(JSON.parse(msg[0].point_list));
               this.text = "开始巡逻";
               this.hasHistory = true;
               this.step = 2;
@@ -208,6 +205,30 @@ export default {
       this.step = 2;
       this.action = 1;
     },
+    normalizePatrolPoints(points) {
+      return normalizePatrolPoints(points);
+    },
+    createPatrolPath(points) {
+      return {
+        poses: this.normalizePatrolPoints(points).map(point => ({
+          header: {
+            stamp: {
+              sec: 0,
+              nanosec: 0
+            },
+            frame_id: "map"
+          },
+          pose: {
+            position: {
+              x: point.x,
+              y: point.y,
+              z: point.z
+            },
+            orientation: point.orientation
+          }
+        }))
+      };
+    },
     onBegin() {
       if (this.action === 2) {
         const type = new ROSLIB.ServiceRequest({
@@ -223,33 +244,7 @@ export default {
           }
         );
       } else {
-        const point = { poses: [] };
-        let mapPoint = this.$store.state.patrol_arr;
-        mapPoint.map(e => {
-          point.poses.push({
-            header: {
-              stamp: {
-                sec: 0,
-                nanosec: 0
-              },
-              frame_id: "map"
-            },
-            pose: {
-              position: {
-                x: e.x,
-                y: e.y,
-                z: 0.0
-              },
-              orientation: {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-                w: 1.0
-              }
-            }
-          });
-        });
-        const msg = new ROSLIB.Message(point);
+        const msg = new ROSLIB.Message(this.createPatrolPath(this.$store.state.patrol_arr));
         TalkerPoint.publish(msg);
       }
       this.action = 0;
@@ -284,32 +279,7 @@ export default {
         } else {
           this.addPoint(this.$store.state.patrol_arr);
         }
-        const point = { poses: [] };
-        this.$store.state.patrol_arr.map(e => {
-          point.poses.push({
-            header: {
-              stamp: {
-                sec: 0,
-                nanosec: 0
-              },
-              frame_id: "map"
-            },
-            pose: {
-              position: {
-                x: e.x,
-                y: e.y,
-                z: 0.0
-              },
-              orientation: {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-                w: 1.0
-              }
-            }
-          });
-        });
-        const msg = new ROSLIB.Message(point);
+        const msg = new ROSLIB.Message(this.createPatrolPath(this.$store.state.patrol_arr));
         TalkerPoint.publish(msg);
         this.text = "暂停巡逻";
       } else if (this.text === "暂停巡逻") {
