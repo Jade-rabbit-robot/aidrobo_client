@@ -32,6 +32,17 @@ export const imgToMap = ({ mapData, y, x }) => {
 }
 export const normalizeFrameId = (frameId = '') => String(frameId).replace(/^\//, '')
 
+export const rosTimeToMillis = (stamp = {}) => {
+  const sec = Number(stamp.sec !== undefined ? stamp.sec : stamp.secs || 0)
+  const nanosec = Number(stamp.nanosec !== undefined ? stamp.nanosec : stamp.nsecs || 0)
+
+  if (!Number.isFinite(sec) || !Number.isFinite(nanosec)) {
+    return null
+  }
+
+  return sec * 1000 + nanosec / 1000000
+}
+
 export const quaternionToYawRad = (orientation = {}) => {
   const x = Number(orientation.x || 0)
   const y = Number(orientation.y || 0)
@@ -182,7 +193,7 @@ export const composeTransforms = (left = {}, right = {}) => ({
   rotation: composeQuaternions(left.rotation, right.rotation)
 })
 
-export const buildTransformFromStamped = (transformStamped = {}) => ({
+export const buildTransformFromStamped = (transformStamped = {}, options = {}) => ({
   translation: {
     x: Number((((transformStamped.transform || {}).translation || {}).x) || 0),
     y: Number((((transformStamped.transform || {}).translation || {}).y) || 0),
@@ -193,23 +204,117 @@ export const buildTransformFromStamped = (transformStamped = {}) => ({
     y: Number((((transformStamped.transform || {}).rotation || {}).y) || 0),
     z: Number((((transformStamped.transform || {}).rotation || {}).z) || 0),
     w: Number((((transformStamped.transform || {}).rotation || {}).w) || 1)
-  }
+  },
+  timestampMs: rosTimeToMillis((transformStamped.header || {}).stamp),
+  isStatic: !!options.isStatic
 })
 
-export const updateTransformGraph = (graph, transforms = []) => {
+const TF_HISTORY_LIMIT = 120
+
+const getTransformSamples = (entry) => {
+  if (!entry) {
+    return []
+  }
+
+  if (Array.isArray(entry.samples)) {
+    return entry.samples
+  }
+
+  if (entry.translation && entry.rotation) {
+    return [entry]
+  }
+
+  return []
+}
+
+const selectTransformSample = (entry, timestampMs = null) => {
+  const samples = getTransformSamples(entry)
+  if (!samples.length) {
+    return null
+  }
+
+  if (timestampMs === null || timestampMs === undefined || entry.isStatic) {
+    return samples[samples.length - 1]
+  }
+
+  let nearestSample = null
+  let nearestDelta = Infinity
+
+  for (let index = 0; index < samples.length; index += 1) {
+    const sample = samples[index]
+    if (!Number.isFinite(sample.timestampMs)) {
+      continue
+    }
+
+    const delta = Math.abs(sample.timestampMs - timestampMs)
+    if (delta < nearestDelta) {
+      nearestSample = sample
+      nearestDelta = delta
+    }
+  }
+
+  return nearestSample || samples[samples.length - 1]
+}
+
+export const updateTransformGraph = (graph, transforms = [], options = {}) => {
+  const maxSamples = Number(options.maxSamples || TF_HISTORY_LIMIT)
+  const isStatic = !!options.isStatic
+
   transforms.forEach(item => {
     const parent = normalizeFrameId((item.header || {}).frame_id)
     const child = normalizeFrameId(item.child_frame_id)
     if (!parent || !child) {
       return
     }
-    graph[`${parent}->${child}`] = buildTransformFromStamped(item)
+
+    const key = `${parent}->${child}`
+    const nextSample = buildTransformFromStamped(item, { isStatic })
+
+    if (isStatic) {
+      graph[key] = {
+        isStatic: true,
+        samples: [nextSample]
+      }
+      return
+    }
+
+    const samples = getTransformSamples(graph[key]).slice()
+    const lastSample = samples[samples.length - 1]
+
+    if (
+      lastSample &&
+      Number.isFinite(lastSample.timestampMs) &&
+      Number.isFinite(nextSample.timestampMs) &&
+      lastSample.timestampMs === nextSample.timestampMs
+    ) {
+      samples[samples.length - 1] = nextSample
+    } else {
+      samples.push(nextSample)
+    }
+
+    if (samples.length > 1) {
+      samples.sort((left, right) => {
+        const leftStamp = Number.isFinite(left.timestampMs) ? left.timestampMs : Number.MAX_SAFE_INTEGER
+        const rightStamp = Number.isFinite(right.timestampMs) ? right.timestampMs : Number.MAX_SAFE_INTEGER
+        return leftStamp - rightStamp
+      })
+    }
+
+    if (samples.length > maxSamples) {
+      samples.splice(0, samples.length - maxSamples)
+    }
+
+    graph[key] = {
+      isStatic: false,
+      samples
+    }
   })
 }
 
-export const resolveTransform = (graph, fromFrame, toFrame) => {
+export const resolveTransform = (graph, fromFrame, toFrame, options = {}) => {
   const start = normalizeFrameId(fromFrame)
   const target = normalizeFrameId(toFrame)
+  const timestampMs = typeof options === 'number' ? options : options.timestampMs
   if (!start || !target) {
     return null
   }
@@ -236,13 +341,14 @@ export const resolveTransform = (graph, fromFrame, toFrame) => {
 
       if (parent === frame) {
         nextFrame = child
-        edgeTransform = graph[key]
+        edgeTransform = selectTransformSample(graph[key], timestampMs)
       } else if (child === frame) {
         nextFrame = parent
-        edgeTransform = invertTransform(graph[key])
+        const sample = selectTransformSample(graph[key], timestampMs)
+        edgeTransform = sample ? invertTransform(sample) : null
       }
 
-      if (!nextFrame || visited.has(nextFrame)) {
+      if (!nextFrame || !edgeTransform || visited.has(nextFrame)) {
         continue
       }
 

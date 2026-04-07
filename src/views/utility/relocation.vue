@@ -59,7 +59,7 @@ export default {
     this.$store.state.tool = "relocation";
     this.$store.state.patrol_arr = [];
     this.$store.state.patrol_arr_area = [];
-    this.enterLocalizationMode();
+    //this.enterLocalizationMode();
   },
   beforeDestroy() {
     if (this.$store.state.tool === "relocation") {

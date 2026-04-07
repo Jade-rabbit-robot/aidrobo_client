@@ -76,7 +76,7 @@ const robotMode = new ROSLIB.Service({
 /** 指令控制 */
 const controlRobot = new ROSLIB.Topic({
   ros: ros,
-  name: '/cmd_vel',
+  name: '/cmd_vel_remote_ctrl',
   messageType: 'geometry_msgs/msg/Twist'
 });
 

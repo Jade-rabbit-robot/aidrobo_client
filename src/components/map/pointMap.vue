@@ -22,21 +22,6 @@
           <polyline :points="planSvgPoints" />
         </svg>
         <svg
-          v-if="scanEnabled && scanSvgPoints.length"
-          class="scan_layer"
-          :viewBox="'0 0 ' + mapData.width + ' ' + mapData.height"
-          :width="mapData.width * scale"
-          :height="mapData.height * scale"
-        >
-          <circle
-            v-for="(point, index) in scanSvgPoints"
-            :key="'scan-' + index"
-            :cx="point.x"
-            :cy="point.y"
-            :r="scanPointRadius"
-          />
-        </svg>
-        <svg
           v-if="showDirectionOverlay && (patrolDirectionSegments.length || draftDirectionSegment)"
           class="direction_layer"
           :viewBox="'0 0 ' + mapData.width + ' ' + mapData.height"
@@ -182,7 +167,7 @@
 
 <script type="text/ecmascript-6">
 import { mapState, mapMutations } from "vuex";
-import { applyTransformToPoint, changeStr, composeTransforms, createQuaternionFromYaw, imgToMap, invertTransform, mapToImg, normalizeFrameId, normalizePatrolPoints, quaternionToYawDeg, quaternionToYawRad, resolvePatrolPointYaw, resolveTransform, updateTransformGraph } from "@/assets/common"
+import { applyTransformToPoint, changeStr, composeTransforms, createQuaternionFromYaw, imgToMap, invertTransform, mapToImg, normalizeFrameId, normalizePatrolPoints, quaternionToYawDeg, quaternionToYawRad, resolvePatrolPointYaw, resolveTransform, rosTimeToMillis, updateTransformGraph } from "@/assets/common"
 
 export default {
   props: ["initData", 'navigationPoint', 'showPlan', 'showScan', 'relocationMode', 'navigationTargetMode'],
@@ -219,6 +204,7 @@ export default {
       planListener: null,
       scanMapPoints: [],
       latestScanMessage: null,
+      scanRenderFrameId: null,
       scanListener: null,
       robotTfListener: null,
       robotTransform: null,
@@ -279,20 +265,6 @@ export default {
         .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))
         .map(point => `${point.x},${point.y}`)
         .join(' ')
-    },
-    scanSvgPoints () {
-      if (!this.mapData.resolution) {
-        return []
-      }
-      return this.scanMapPoints
-        .map(point => ({
-          x: mapToImg({ mapData: this.mapData, x: point.x }),
-          y: mapToImg({ mapData: this.mapData, y: point.y })
-        }))
-        .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))
-    },
-    scanPointRadius () {
-      return this.scale > 1 ? 1 : 1.2
     },
     defaultToolType() {
       if (this.relocationMode) {
@@ -357,6 +329,10 @@ export default {
     this.getMap()
   },
   beforeDestroy() {
+    if (this.scanRenderFrameId) {
+      cancelAnimationFrame(this.scanRenderFrameId)
+      this.scanRenderFrameId = null
+    }
     this.unsubscribeTfMessages()
     this.unsubscribePlan()
     this.unsubscribeScan()
@@ -367,11 +343,11 @@ export default {
         return
       }
       this.tfMessageListener = message => {
-        updateTransformGraph(this.tfGraph, message.transforms || [])
+        updateTransformGraph(this.tfGraph, message.transforms || [], { isStatic: false })
         this.refreshResolvedTransforms()
       }
       this.tfStaticListener = message => {
-        updateTransformGraph(this.tfGraph, message.transforms || [])
+        updateTransformGraph(this.tfGraph, message.transforms || [], { isStatic: true })
         this.refreshResolvedTransforms()
       }
       RobotTF.subscribe(this.tfMessageListener)
@@ -403,7 +379,9 @@ export default {
       }
       if (this.scanFrameId) {
         this.scanTransform = resolveTransform(this.tfGraph, 'map', this.scanFrameId)
-        this.updateScanMapPoints()
+        if (this.relocationPreviewPose) {
+          this.updateScanMapPoints()
+        }
       }
     },
     subscribePlan() {
@@ -429,7 +407,10 @@ export default {
       }
       this.scanListener = message => {
         this.latestScanMessage = message
-        this.ensureScanFrameSubscription(message && message.header ? message.header.frame_id : '')
+        this.ensureScanFrameSubscription(
+          message && message.header ? message.header.frame_id : '',
+          this.getMessageTimestampMs(message)
+        )
         this.updateScanMapPoints()
       }
       RobotScan.subscribe(this.scanListener)
@@ -442,14 +423,15 @@ export default {
       this.scanListener = null
       this.latestScanMessage = null
       this.scanMapPoints = []
+      this.scheduleScanRender()
     },
-    ensureScanFrameSubscription(frameId) {
+    ensureScanFrameSubscription(frameId, timestampMs = null) {
       const nextFrameId = normalizeFrameId(frameId)
-      if (!nextFrameId || nextFrameId === this.scanFrameId) {
+      if (!nextFrameId) {
         return
       }
       this.scanFrameId = nextFrameId
-      this.scanTransform = resolveTransform(this.tfGraph, 'map', nextFrameId)
+      this.scanTransform = resolveTransform(this.tfGraph, 'map', nextFrameId, { timestampMs })
     },
     convertScanToMapPoints(message) {
       const ranges = Array.isArray(message && message.ranges) ? message.ranges : []
@@ -458,8 +440,9 @@ export default {
       }
 
       const scanFrameId = normalizeFrameId(message && message.header ? message.header.frame_id : '')
+      const timestampMs = this.getMessageTimestampMs(message)
       const isMapFrame = scanFrameId === 'map'
-      const activeScanTransform = isMapFrame ? null : this.getActiveScanTransform()
+      const activeScanTransform = isMapFrame ? null : this.getActiveScanTransform(timestampMs)
       if (!isMapFrame && !activeScanTransform) {
         return []
       }
@@ -488,15 +471,25 @@ export default {
     },
     updateScanMapPoints() {
       this.scanMapPoints = this.convertScanToMapPoints(this.latestScanMessage)
+      this.scheduleScanRender()
     },
-    getActiveScanTransform() {
-      if (!this.relocationMode || !this.relocationPreviewPose || !this.robotTransform || !this.scanTransform) {
-        return this.scanTransform
+    getMessageTimestampMs(message) {
+      return rosTimeToMillis((((message || {}).header || {}).stamp) || {})
+    },
+    getActiveScanTransform(timestampMs = null) {
+      const scanTransform = resolveTransform(this.tfGraph, 'map', this.scanFrameId, { timestampMs }) || this.scanTransform
+      if (!this.relocationMode || !this.relocationPreviewPose || !scanTransform) {
+        return scanTransform
+      }
+
+      const robotTransform = resolveTransform(this.tfGraph, 'map', 'base_link', { timestampMs }) || this.robotTransform
+      if (!robotTransform) {
+        return scanTransform
       }
 
       const baseLinkToScanTransform = composeTransforms(
-        invertTransform(this.robotTransform),
-        this.scanTransform
+        invertTransform(robotTransform),
+        scanTransform
       )
 
       return composeTransforms(
@@ -513,6 +506,54 @@ export default {
         },
         rotation: pose.orientation || createQuaternionFromYaw(Number(pose.yaw || 0))
       }
+    },
+    scheduleScanRender() {
+      if (this.scanRenderFrameId) {
+        cancelAnimationFrame(this.scanRenderFrameId)
+      }
+
+      this.scanRenderFrameId = requestAnimationFrame(() => {
+        this.scanRenderFrameId = null
+        this.drawScanLayer()
+      })
+    },
+    drawScanLayer() {
+      if (!this.operate_txc || !this.$refs.operate) {
+        return
+      }
+
+      const canvas = this.$refs.operate
+      const ctx = this.operate_txc
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      if (!this.scanEnabled || !this.mapData.resolution || !this.scanMapPoints.length) {
+        return
+      }
+
+      const maxRenderedPoints = this.scale > 2 ? 1400 : 900
+      const step = Math.max(1, Math.ceil(this.scanMapPoints.length / maxRenderedPoints))
+      const pointSize = this.scale > 1 ? 1 : 1.2
+
+      ctx.save()
+      ctx.fillStyle = 'rgba(255, 196, 61, 0.35)'
+
+      for (let index = 0; index < this.scanMapPoints.length; index += step) {
+        const point = this.scanMapPoints[index]
+        const x = mapToImg({ mapData: this.mapData, x: point.x })
+        const y = mapToImg({ mapData: this.mapData, y: point.y })
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+          continue
+        }
+
+        if (x < 0 || y < 0 || x > this.mapData.width || y > this.mapData.height) {
+          continue
+        }
+
+        ctx.fillRect(x - pointSize / 2, y - pointSize / 2, pointSize, pointSize)
+      }
+
+      ctx.restore()
     },
     changeTool(type) {
       this.clearDirectionDraft()
@@ -595,6 +636,7 @@ export default {
           }
         }
       }
+      this.scheduleScanRender()
     },
     touchStart(e, n) {
       this.$store.state.init_img_data = false;
@@ -609,7 +651,6 @@ export default {
     init() {
       this.top = this.left = this.img2_top = this.img2_left = 0;
       this.scale = 1;
-      this.$refs.operate.style.transform = "scale(" + this.scale + ")";
       let img1 = document.getElementById("img1");
 
       const sc = 1380 / this.mapData.width
@@ -623,10 +664,12 @@ export default {
       // 获取的图片进行等比适配
       this.$store.state.map_img_w = this.d_width = operate.width =this.mapData.width;
       this.d_height = operate.height =  this.mapData.height;
+      this.$refs.operate.style.transform = "scale(" + this.scale + ")";
       this.$refs.img2.width = img1.width / 11;
       this.$refs.show_img.style.width = this.$refs.map.offsetWidth / 11 + "px";
       this.$refs.show_img.style.height =
         this.$refs.map.offsetHeight / 11 + "px";
+      this.scheduleScanRender()
     },
     rubberstart(e) {
       let set_time = 0;
@@ -1119,7 +1162,7 @@ export default {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 2;
+  z-index: 4;
 }
 
 .plan_path {
@@ -1138,19 +1181,6 @@ export default {
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0.9;
-}
-
-.scan_layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 4;
-  overflow: visible;
-  pointer-events: none;
-}
-
-.scan_layer circle {
-  fill: rgba(255, 196, 61, 0.35);
 }
 
 .direction_layer {
@@ -1209,6 +1239,7 @@ export default {
 
 #operate {
   transform-origin: left top;
+  pointer-events: none;
 }
 
 #operate2 {
