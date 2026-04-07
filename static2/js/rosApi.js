@@ -304,6 +304,12 @@ const getFollowStatus = new ROSLIB.Topic({
   name: '/follow_status',
   messageType: 'std_msgs/msg/Bool'
 })
+/** 后置相机图像 */
+const rearCameraImageTopic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/rear_camera/image_compressed',
+  messageType: 'sensor_msgs/msg/Image'
+});
 /** 特征跟随-开始跟随 */
 const startFollow = new ROSLIB.Service({
   ros: ros,
@@ -333,5 +339,49 @@ const MapEditor = new ROSLIB.Service({
   ros: ros,
   name: '/map_editor',
   serviceType: 'aid_robot_msgs/srv/DrawPicture'
+});
+
+/** rgbd下标定服务 */
+const DownCalibService = new ROSLIB.Service({
+  ros: ros,
+  name: '/calibrate_down_rgbd',
+  serviceType: 'std_srvs/srv/Trigger'
+});
+/** rgbd上标定服务 */
+const UpCalibService = new ROSLIB.Service({
+  ros: ros,
+  name: '/calibrate_up_rgbd',
+  serviceType: 'std_srvs/srv/Trigger'
+});
+/* 上标定的状态 */
+const rgbdCalibStatusTopic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/rgbd_calib_status',
+  messageType: 'std_msgs/UInt8'
+});
+
+/**回充接口*/
+const dockService = new ROSLIB.Service({
+  ros: ros,
+  name: '/cmd_dock',
+  serviceType: 'aid_robot_msgs/srv/SetString'
+});
+/**获取充电桩位置*/
+const getDockPoseService = new ROSLIB.Service({
+  ros: ros,
+  name: '/get_dock_pose',
+  serviceType: 'aid_robot_msgs/srv/GetDockPose'
+});
+// 充电状态监听
+const dockStateTopic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/dock_state',
+  messageType: 'std_msgs/msg/String'
+});
+/**充电结果订阅*/
+const dockResultTopic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/dock_result',
+  messageType: 'std_msgs/msg/String'
 });
 

@@ -64,7 +64,8 @@ export default {
           link: "/utility/patrol"
         },
         { src: require("@/assets/img/uti/uti2.svg"), text: '定点导航', link: "/utility/navigation" },
-        // { src: require("@/assets/img/uti/uti4.svg"), text: '返回原点/充电', link: "/utility/charge" },
+        { src: require("@/assets/img/uti/uti4.svg"), text: '回充测试', link: "/utility/charge" },
+        { src: require("@/assets/img/uti/calibration.svg"), text: '相机标定', link: "/utility/calibration" },
         { src: require("@/assets/img/uti/uti5.svg"), text: '遥控模式', link: "/utility/telecontrol" },
         {
           src: require("@/assets/img/uti/uti6.svg"),
