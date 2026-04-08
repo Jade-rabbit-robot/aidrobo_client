@@ -69,7 +69,9 @@ export default {
       cameraError: "",
       cameraFrameReady: false,
       cameraFrameWidth: 0,
-      cameraFrameHeight: 0
+      cameraFrameHeight: 0,
+      cameraRenderToken: 0,
+      cameraSubscribed: false
     };
   },
   computed: {
@@ -151,13 +153,21 @@ export default {
       this.stopRearCameraSubscription();
     },
     startRearCameraSubscription() {
+      if (this.cameraSubscribed) {
+        return;
+      }
       this.cameraError = "";
       this.cameraFrameReady = false;
-      rearCameraImageTopic.unsubscribe(this.handleRearCameraMessage);
+      this.cameraRenderToken++;
       rearCameraImageTopic.subscribe(this.handleRearCameraMessage);
+      this.cameraSubscribed = true;
     },
     stopRearCameraSubscription() {
-      rearCameraImageTopic.unsubscribe(this.handleRearCameraMessage);
+      if (this.cameraSubscribed) {
+        rearCameraImageTopic.unsubscribe();
+        this.cameraSubscribed = false;
+      }
+      this.cameraRenderToken++;
       this.cameraFrameReady = false;
       this.cameraFrameWidth = 0;
       this.cameraFrameHeight = 0;
@@ -176,6 +186,10 @@ export default {
         if (!canvas || !this.cameraEnabled) {
           return;
         }
+        if (this.isCompressedImageMessage(message)) {
+          this.renderCompressedImageFrame(message, canvas);
+          return;
+        }
         const frame = this.normalizeImageFrame(message);
         if (!frame) {
           return;
@@ -192,6 +206,56 @@ export default {
         console.error("rear camera render error", error);
         this.cameraError = error.message || "相机画面渲染失败";
       }
+    },
+    isCompressedImageMessage(message) {
+      return !!(message && message.data && typeof message.format === "string" && !message.width && !message.height);
+    },
+    renderCompressedImageFrame(message, canvas) {
+      const bytes = this.normalizeImageDataArray(message.data);
+      if (!bytes.length) {
+        this.cameraError = "压缩相机消息没有图像数据";
+        return;
+      }
+      const mimeType = this.getCompressedImageMimeType(message.format);
+      const blob = new Blob([bytes], { type: mimeType });
+      const imageUrl = window.URL.createObjectURL(blob);
+      const image = new Image();
+      const renderToken = this.cameraRenderToken;
+      image.onload = () => {
+        window.URL.revokeObjectURL(imageUrl);
+        if (!this.cameraEnabled || renderToken !== this.cameraRenderToken) {
+          return;
+        }
+        const context = canvas.getContext("2d");
+        const width = image.naturalWidth || image.width;
+        const height = image.naturalHeight || image.height;
+        canvas.width = width;
+        canvas.height = height;
+        context.clearRect(0, 0, width, height);
+        context.drawImage(image, 0, 0, width, height);
+        this.cameraFrameWidth = width;
+        this.cameraFrameHeight = height;
+        this.cameraFrameReady = true;
+        this.cameraError = "";
+      };
+      image.onerror = () => {
+        window.URL.revokeObjectURL(imageUrl);
+        if (renderToken !== this.cameraRenderToken) {
+          return;
+        }
+        this.cameraError = `压缩相机画面解码失败，format: ${message.format || "unknown"}`;
+      };
+      image.src = imageUrl;
+    },
+    getCompressedImageMimeType(format) {
+      const normalized = (format || "").toLowerCase();
+      if (normalized.includes("png")) {
+        return "image/png";
+      }
+      if (normalized.includes("webp")) {
+        return "image/webp";
+      }
+      return "image/jpeg";
     },
     normalizeImageFrame(message) {
       if (!message || !message.width || !message.height) {

@@ -307,8 +307,8 @@ const getFollowStatus = new ROSLIB.Topic({
 /** 后置相机图像 */
 const rearCameraImageTopic = new ROSLIB.Topic({
   ros: ros,
-  name: '/rear_camera/image_compressed',
-  messageType: 'sensor_msgs/msg/Image'
+  name: '/rear_camera/image_raw/compressed',
+  messageType: 'sensor_msgs/msg/CompressedImage'
 });
 /** 特征跟随-开始跟随 */
 const startFollow = new ROSLIB.Service({
