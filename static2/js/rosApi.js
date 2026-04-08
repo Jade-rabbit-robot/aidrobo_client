@@ -310,6 +310,12 @@ const rearCameraImageTopic = new ROSLIB.Topic({
   name: '/rear_camera/image_raw/compressed',
   messageType: 'sensor_msgs/msg/CompressedImage'
 });
+/** 标签检测图像 */
+const tagDetectionsImageTopic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/tag_detections_image/compressed',
+  messageType: 'sensor_msgs/msg/CompressedImage'
+});
 /** 特征跟随-开始跟随 */
 const startFollow = new ROSLIB.Service({
   ros: ros,

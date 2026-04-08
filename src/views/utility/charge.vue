@@ -7,16 +7,30 @@
       <div>状态：{{ dockStatusLabel }}</div>
     </div>
     <div class="camera-bar">
-      <div class="camera-switch">
-        <span class="camera-label">后置相机</span>
-        <el-switch
-          v-model="cameraEnabled"
-          active-text="打开"
-          inactive-text="关闭"
-          @change="handleCameraToggle"
-        />
+      <div class="camera-switch-group">
+        <div class="camera-switch">
+          <span class="camera-label">后置相机</span>
+          <el-switch
+            v-model="cameraEnabled"
+            active-text="打开"
+            inactive-text="关闭"
+            @change="handleCameraToggle"
+          />
+        </div>
+        <div class="camera-switch">
+          <span class="camera-label">标签检测图</span>
+          <el-switch
+            v-model="tagCameraEnabled"
+            active-text="打开"
+            inactive-text="关闭"
+            @change="handleTagCameraToggle"
+          />
+        </div>
       </div>
-      <div v-if="cameraEnabled" class="camera-status">{{ cameraStatusText }}</div>
+      <div class="camera-status-group">
+        <div v-if="cameraEnabled" class="camera-status">后置相机：{{ cameraStatusText }}</div>
+        <div v-if="tagCameraEnabled" class="camera-status">标签检测图：{{ tagCameraStatusText }}</div>
+      </div>
     </div>
     <div class="btns">
       <el-button
@@ -42,9 +56,17 @@
         {{ item.label }}
       </el-button>
     </div>
-    <div v-if="cameraEnabled" class="camera-panel">
-      <canvas ref="rearCameraCanvas" class="camera-canvas"></canvas>
-      <div v-if="cameraError" class="camera-error">{{ cameraError }}</div>
+    <div v-if="cameraEnabled || tagCameraEnabled" class="camera-grid">
+      <div v-if="cameraEnabled" class="camera-panel">
+        <div class="camera-title">后置相机</div>
+        <canvas ref="rearCameraCanvas" class="camera-canvas"></canvas>
+        <div v-if="cameraError" class="camera-error">{{ cameraError }}</div>
+      </div>
+      <div v-if="tagCameraEnabled" class="camera-panel">
+        <div class="camera-title">标签检测图</div>
+        <canvas ref="tagCameraCanvas" class="camera-canvas"></canvas>
+        <div v-if="tagCameraError" class="camera-error">{{ tagCameraError }}</div>
+      </div>
     </div>
   </div>
 </template>
@@ -71,7 +93,14 @@ export default {
       cameraFrameWidth: 0,
       cameraFrameHeight: 0,
       cameraRenderToken: 0,
-      cameraSubscribed: false
+      cameraSubscribed: false,
+      tagCameraEnabled: false,
+      tagCameraError: "",
+      tagCameraFrameReady: false,
+      tagCameraFrameWidth: 0,
+      tagCameraFrameHeight: 0,
+      tagCameraRenderToken: 0,
+      tagCameraSubscribed: false
     };
   },
   computed: {
@@ -90,6 +119,15 @@ export default {
       }
       if (this.cameraFrameReady) {
         return `已接收画面 ${this.cameraFrameWidth} x ${this.cameraFrameHeight}`;
+      }
+      return "等待相机画面...";
+    },
+    tagCameraStatusText() {
+      if (this.tagCameraError) {
+        return this.tagCameraError;
+      }
+      if (this.tagCameraFrameReady) {
+        return `已接收画面 ${this.tagCameraFrameWidth} x ${this.tagCameraFrameHeight}`;
       }
       return "等待相机画面...";
     }
@@ -122,6 +160,7 @@ export default {
   },
   beforeDestroy() {
     this.stopRearCameraSubscription();
+    this.stopTagCameraSubscription();
   },
   methods: {
     getDockPose() {
@@ -152,6 +191,13 @@ export default {
       }
       this.stopRearCameraSubscription();
     },
+    handleTagCameraToggle(enabled) {
+      if (enabled) {
+        this.startTagCameraSubscription();
+        return;
+      }
+      this.stopTagCameraSubscription();
+    },
     startRearCameraSubscription() {
       if (this.cameraSubscribed) {
         return;
@@ -161,6 +207,16 @@ export default {
       this.cameraRenderToken++;
       rearCameraImageTopic.subscribe(this.handleRearCameraMessage);
       this.cameraSubscribed = true;
+    },
+    startTagCameraSubscription() {
+      if (this.tagCameraSubscribed) {
+        return;
+      }
+      this.tagCameraError = "";
+      this.tagCameraFrameReady = false;
+      this.tagCameraRenderToken++;
+      tagDetectionsImageTopic.subscribe(this.handleTagCameraMessage);
+      this.tagCameraSubscribed = true;
     },
     stopRearCameraSubscription() {
       if (this.cameraSubscribed) {
@@ -174,56 +230,101 @@ export default {
       this.cameraError = "";
       this.clearRearCameraCanvas();
     },
+    stopTagCameraSubscription() {
+      if (this.tagCameraSubscribed) {
+        tagDetectionsImageTopic.unsubscribe();
+        this.tagCameraSubscribed = false;
+      }
+      this.tagCameraRenderToken++;
+      this.tagCameraFrameReady = false;
+      this.tagCameraFrameWidth = 0;
+      this.tagCameraFrameHeight = 0;
+      this.tagCameraError = "";
+      this.clearTagCameraCanvas();
+    },
     clearRearCameraCanvas() {
       const canvas = this.$refs.rearCameraCanvas;
       if (!canvas) return;
       const context = canvas.getContext("2d");
       context.clearRect(0, 0, canvas.width, canvas.height);
     },
+    clearTagCameraCanvas() {
+      const canvas = this.$refs.tagCameraCanvas;
+      if (!canvas) return;
+      const context = canvas.getContext("2d");
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    },
     handleRearCameraMessage(message) {
       try {
-        const canvas = this.$refs.rearCameraCanvas;
-        if (!canvas || !this.cameraEnabled) {
-          return;
-        }
-        if (this.isCompressedImageMessage(message)) {
-          this.renderCompressedImageFrame(message, canvas);
-          return;
-        }
-        const frame = this.normalizeImageFrame(message);
-        if (!frame) {
-          return;
-        }
-        const context = canvas.getContext("2d");
-        canvas.width = frame.width;
-        canvas.height = frame.height;
-        context.putImageData(frame.imageData, 0, 0);
-        this.cameraFrameWidth = frame.width;
-        this.cameraFrameHeight = frame.height;
-        this.cameraFrameReady = true;
-        this.cameraError = "";
+        this.handleCameraMessage(message, {
+          canvasRef: "rearCameraCanvas",
+          enabledKey: "cameraEnabled",
+          errorKey: "cameraError",
+          frameReadyKey: "cameraFrameReady",
+          frameWidthKey: "cameraFrameWidth",
+          frameHeightKey: "cameraFrameHeight",
+          renderTokenKey: "cameraRenderToken"
+        });
       } catch (error) {
         console.error("rear camera render error", error);
         this.cameraError = error.message || "相机画面渲染失败";
       }
     },
+    handleTagCameraMessage(message) {
+      try {
+        this.handleCameraMessage(message, {
+          canvasRef: "tagCameraCanvas",
+          enabledKey: "tagCameraEnabled",
+          errorKey: "tagCameraError",
+          frameReadyKey: "tagCameraFrameReady",
+          frameWidthKey: "tagCameraFrameWidth",
+          frameHeightKey: "tagCameraFrameHeight",
+          renderTokenKey: "tagCameraRenderToken"
+        });
+      } catch (error) {
+        console.error("tag camera render error", error);
+        this.tagCameraError = error.message || "标签检测图渲染失败";
+      }
+    },
+    handleCameraMessage(message, options) {
+      const canvas = this.$refs[options.canvasRef];
+      if (!canvas || !this[options.enabledKey]) {
+        return;
+      }
+      if (this.isCompressedImageMessage(message)) {
+        this.renderCompressedImageFrame(message, canvas, options);
+        return;
+      }
+      const frame = this.normalizeImageFrame(message, options.errorKey);
+      if (!frame) {
+        return;
+      }
+      const context = canvas.getContext("2d");
+      canvas.width = frame.width;
+      canvas.height = frame.height;
+      context.putImageData(frame.imageData, 0, 0);
+      this[options.frameWidthKey] = frame.width;
+      this[options.frameHeightKey] = frame.height;
+      this[options.frameReadyKey] = true;
+      this[options.errorKey] = "";
+    },
     isCompressedImageMessage(message) {
       return !!(message && message.data && typeof message.format === "string" && !message.width && !message.height);
     },
-    renderCompressedImageFrame(message, canvas) {
+    renderCompressedImageFrame(message, canvas, options) {
       const bytes = this.normalizeImageDataArray(message.data);
       if (!bytes.length) {
-        this.cameraError = "压缩相机消息没有图像数据";
+        this[options.errorKey] = "压缩相机消息没有图像数据";
         return;
       }
       const mimeType = this.getCompressedImageMimeType(message.format);
       const blob = new Blob([bytes], { type: mimeType });
       const imageUrl = window.URL.createObjectURL(blob);
       const image = new Image();
-      const renderToken = this.cameraRenderToken;
+      const renderToken = this[options.renderTokenKey];
       image.onload = () => {
         window.URL.revokeObjectURL(imageUrl);
-        if (!this.cameraEnabled || renderToken !== this.cameraRenderToken) {
+        if (!this[options.enabledKey] || renderToken !== this[options.renderTokenKey]) {
           return;
         }
         const context = canvas.getContext("2d");
@@ -233,17 +334,17 @@ export default {
         canvas.height = height;
         context.clearRect(0, 0, width, height);
         context.drawImage(image, 0, 0, width, height);
-        this.cameraFrameWidth = width;
-        this.cameraFrameHeight = height;
-        this.cameraFrameReady = true;
-        this.cameraError = "";
+        this[options.frameWidthKey] = width;
+        this[options.frameHeightKey] = height;
+        this[options.frameReadyKey] = true;
+        this[options.errorKey] = "";
       };
       image.onerror = () => {
         window.URL.revokeObjectURL(imageUrl);
-        if (renderToken !== this.cameraRenderToken) {
+        if (renderToken !== this[options.renderTokenKey]) {
           return;
         }
-        this.cameraError = `压缩相机画面解码失败，format: ${message.format || "unknown"}`;
+        this[options.errorKey] = `压缩相机画面解码失败，format: ${message.format || "unknown"}`;
       };
       image.src = imageUrl;
     },
@@ -257,9 +358,9 @@ export default {
       }
       return "image/jpeg";
     },
-    normalizeImageFrame(message) {
+    normalizeImageFrame(message, errorKey) {
       if (!message || !message.width || !message.height) {
-        this.cameraError = "相机消息缺少宽高信息";
+        this[errorKey] = "相机消息缺少宽高信息";
         return null;
       }
       const encoding = (message.encoding || "rgb8").toLowerCase();
@@ -268,7 +369,7 @@ export default {
       const step = message.step || 0;
       const source = this.normalizeImageDataArray(message.data);
       if (!source.length) {
-        this.cameraError = "相机消息没有图像数据";
+        this[errorKey] = "相机消息没有图像数据";
         return null;
       }
 
@@ -473,30 +574,53 @@ export default {
 }
 .camera-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 0 50px 40px;
   color: #fff;
+}
+.camera-switch-group {
+  display: flex;
+  gap: 70px;
 }
 .camera-switch {
   display: flex;
   align-items: center;
 }
+.camera-status-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
 .camera-label {
-  margin-right: 20px;
-  font-size: 32px;
+  margin-right: 28px;
+  font-size: 40px;
+  line-height: 1;
 }
 .camera-status {
   font-size: 26px;
   color: #cfe0ff;
+}
+.camera-switch :deep(.el-switch) {
+  transform: scale(1.35);
+  transform-origin: left center;
+}
+.camera-switch :deep(.el-switch__label) {
+  font-size: 24px;
 }
 .btns {
   padding: 0 50px;
   display: flex;
   justify-content: space-around;
 }
-.camera-panel {
+.camera-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px;
   margin: 60px 50px 0;
+}
+.camera-panel {
   padding: 30px;
   border-radius: 20px;
   background: linear-gradient(
@@ -506,6 +630,11 @@ export default {
     rgba(53, 92, 119, 0.14) 93%
   );
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
+}
+.camera-title {
+  margin-bottom: 18px;
+  color: #fff;
+  font-size: 30px;
 }
 .camera-canvas {
   display: block;
