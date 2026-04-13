@@ -4,12 +4,22 @@
     <div class="right">
       <p>IP:{{ $store.state.IP || "--" }}</p>
       <p>
-        请使用无线键盘方向键或手机遥控App，控制机器人行走建图，完成扫描后点击完成扫描进入下一步
+        请使用手机遥控控制机器人行走建图，完成扫描后点击完成扫描进入下一步
       </p>
-      <p>注意：起始位置为起始点或充电桩，建图需完成回环后回到该位置</p>
-      <div class="joystickBox">
-        <div class="joystickTitle">摇杆控制</div>
-        <div class="joystickDesc">发送 cmd_vel</div>
+      <div class="pushModeBox">
+        <div class="pushModeText">
+          <div class="pushModeTitle">手推建图</div>
+        </div>
+        <el-switch
+          v-model="pushMappingEnabled"
+          :disabled="motorModeLoading"
+          active-text="开"
+          inactive-text="关"
+          @change="onPushMappingChange"
+        />
+      </div>
+      <div v-if="!pushMappingEnabled" class="joystickBox">
+        <div class="joystickDesc">摇杆控制</div>
         <div
           ref="joystick"
           class="joystick"
@@ -52,7 +62,9 @@ export default {
       lastCmdVel: {
         linearX: 0,
         angularZ: 0
-      }
+      },
+      pushMappingEnabled: false,
+      motorModeLoading: false
     };
   },
   computed: {
@@ -62,11 +74,56 @@ export default {
       };
     }
   },
-  mounted() {},
+  mounted() {
+    this.syncMotorMode("velocity", { silent: true }).catch(() => {});
+  },
   beforeDestroy() {
     this.stopJoystick();
+    if (this.pushMappingEnabled) {
+      this.syncMotorMode("velocity", { silent: true });
+    }
   },
   methods: {
+    syncMotorMode(mode, options = {}) {
+      const { silent = false } = options;
+      return new Promise((resolve, reject) => {
+        if (typeof setMotorMode === "undefined") {
+          const error = new Error("set_motor_mode service unavailable");
+          if (!silent) {
+            this.$message.error("电机模式服务未初始化");
+          }
+          reject(error);
+          return;
+        }
+        const request = new ROSLIB.ServiceRequest({
+          data: mode
+        });
+        setMotorMode.callService(
+          request,
+          (result) => {
+            if (result && result.success) {
+              if (!silent && result.message) {
+                this.$message.success(result.message);
+              }
+              resolve(result);
+              return;
+            }
+            const message = (result && result.message) || "电机模式切换失败";
+            if (!silent) {
+              this.$message.error(message);
+            }
+            reject(new Error(message));
+          },
+          (error) => {
+            const message = String(error || "电机模式服务调用失败");
+            if (!silent) {
+              this.$message.error(message);
+            }
+            reject(new Error(message));
+          }
+        );
+      });
+    },
     publishCmdVel(linearX, angularZ) {
       const linear = {
         x: linearX,
@@ -103,7 +160,7 @@ export default {
       this.joystickTimer = null;
     },
     startJoystick(event) {
-      if (!this.$refs.joystick) {
+      if (this.pushMappingEnabled || !this.$refs.joystick) {
         return;
       }
       this.joystickPointerId = event.pointerId;
@@ -168,6 +225,20 @@ export default {
         y: 0
       };
       this.publishCmdVel(0, 0);
+    },
+    async onPushMappingChange(value) {
+      this.motorModeLoading = true;
+      if (value) {
+        this.stopJoystick();
+      }
+      try {
+        await this.syncMotorMode(value ? "torque" : "velocity", { silent: true });
+        this.$message.success(value ? "已开启手推建图" : "已关闭手推建图");
+      } catch (error) {
+        this.pushMappingEnabled = !value;
+      } finally {
+        this.motorModeLoading = false;
+      }
     },
     onOver () {
       this.$confirm(`<div>是否确认完成扫描，确认后将生成地图进入编辑</div><div>（无法返回）</div>`, '完成扫描', {
@@ -275,10 +346,39 @@ export default {
   align-items: center;
 }
 
-.joystickTitle {
-  font-size: 36px;
+.pushModeBox {
+  width: 300px;
+  padding: 20px 24px;
+  border-radius: 20px;
+  background: linear-gradient(
+    145deg,
+    rgba(27, 41, 88, 0.95) 0%,
+    rgba(59, 88, 149, 0.48) 100%
+  );
+  box-shadow: 0px 2px 10px 0px rgba(1, 29, 90, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pushModeText {
+  flex: 1;
+}
+
+.pushModeTitle {
+  font-size: 32px;
   line-height: 1.2;
 }
+
+.pushModeBox /deep/ .el-switch__label {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.pushModeBox /deep/ .el-switch__label.is-active {
+  color: #ffffff;
+}
+
 
 .joystickDesc {
   margin-top: 12px;

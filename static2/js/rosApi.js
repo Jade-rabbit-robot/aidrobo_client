@@ -80,6 +80,13 @@ const controlRobot = new ROSLIB.Topic({
   messageType: 'geometry_msgs/msg/Twist'
 });
 
+/** 电机模式切换 */
+const setMotorMode = new ROSLIB.Service({
+  ros: ros,
+  name: '/set_motor_mode',
+  serviceType: 'aid_robot_msgs/srv/SetString'
+});
+
 
 
 function publishControlTwist(message) {
