@@ -32,6 +32,7 @@ const store = new Vuex.Store({
     prepro_val:0,//孤立点大小值
     charge_po:[],//充电桩位置
     robotPoint:{x:0,y:0},
+    robotYaw: 0,
     mapSrc: '',
     help: false,//帮助栏开关
     map_img_w:0,//屏幕地图宽
@@ -42,6 +43,9 @@ const store = new Vuex.Store({
     linearCurveArr:[],//禁行线点位
     linearCurveArrP:[],//禁行线点位
     eraserArr:[],//橡皮擦点位
+    eraserArrP:[],//橡皮擦点位
+    navigationMapPoints: [],//定点导航的点位(地图所用点位) {x,y,name,id}
+    navigationImgPoints:[],//定点导航的点位(UI展示所用点位)
     mapData:{
       src: "",
       width: 1930,
@@ -56,7 +60,16 @@ const store = new Vuex.Store({
     patrol_arr_area:[],//图像坐标巡逻点
     patrol_arr: [],//地图坐标巡逻点
     IP:'',//ros链接ip
-    percentage: undefined
+    percentage: undefined,
+    robotTaskStatus: {
+      status: 0, // 接口原始值
+      task_type: 0, // 接口原始值
+
+      patrol: false, // 是否是巡逻行为
+      navigate: false, // 是否是单点导航行为
+      working: false, // 执行中
+      suspend: false, // 暂停中
+    }
   },
   getters: {
     mcode: state => state.mcode,
@@ -67,6 +80,35 @@ const store = new Vuex.Store({
     },
     rubber_chang_data1(state, e) {//构建修改值得方法
       e != undefined ? state.rubber_data1 = e : state.rubber_data1 = !state.rubber_data1;
+    },
+    resetNavigationMapPoints(state) {
+      state.navigationMapPoints = [];
+      state.navigationImgPoints = [];
+    },
+    changeRobotTaskStatus(state, payload) {
+      // status int32 任务状态：0 - idle（空闲）
+      //  1 - working（执行中）
+      //  2 - success（成功完成）
+      //  3 - failed（失败）
+      //  4 - suspend（暂停）
+      //  5 - cancel（取消）
+      // task_type int32 任务类型： 0 - 单点导航
+      // 1 - 巡视导航
+      state.robotTaskStatus.status = payload.status
+      state.robotTaskStatus.task_type = payload.task_type
+      // 先重置状态
+      for (const key in state.robotTaskStatus) {
+        if (typeof state.robotTaskStatus[key] === 'boolean') {
+          state.robotTaskStatus[key] = false
+        }
+      }
+      // 再记录当前状态
+      payload.task_type === 1 ? (state.robotTaskStatus.patrol = true) : (state.robotTaskStatus.navigate = true)
+      if (payload.status === 1) {
+        state.robotTaskStatus.working = true
+      } else if (payload.status === 4) {
+        state.robotTaskStatus.suspend = true
+      }
     }
   }
 })

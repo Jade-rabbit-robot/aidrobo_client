@@ -6,8 +6,8 @@
         <MiniMap />
       </div>
       <div class="extra">
-        <img src="@/assets/img/aid-logo1.png" alt="">
-        <img src="@/assets/img/aid-logo2.png" alt="">
+        <img src="@/assets/img/aid-logo1.png" alt="" />
+        <img src="@/assets/img/aid-logo2.png" alt="" />
       </div>
     </div>
   </div>
@@ -17,7 +17,7 @@
 import MiniMap from "../../components/map/miniMap.vue";
 
 export default {
-  components: {MiniMap},
+  components: { MiniMap },
   data() {
     return {};
   },
@@ -25,11 +25,15 @@ export default {
     this.initVideo();
   },
   beforeDestroy() {
-    stopCamera.callService(null, (res) => {
-      console.log('[ cam_stop ok]-61', res)
-    }, (res) => {
-      console.log('[ cam_stop ERR]-61', res)
-    });
+    stopCamera.callService(
+      null,
+      res => {
+        console.log("[ cam_stop ok]-61", res);
+      },
+      res => {
+        console.log("[ cam_stop ERR]-61", res);
+      }
+    );
     if (window.aidShowBridge && window.aidShowBridge.close) {
       window.aidShowBridge.close();
     }
@@ -38,22 +42,30 @@ export default {
     initVideo() {
       const rgbWidth = this.$route.query.w;
       const rgbHeight = this.$route.query.h;
-      const video = document.getElementById('video')
-      const top = video.getBoundingClientRect().top
-      const left = video.getBoundingClientRect().left
-      const width = video.getBoundingClientRect().width
-      const height = video.getBoundingClientRect().height
+      const video = document.getElementById("video");
+      const top = video.getBoundingClientRect().top;
+      const left = video.getBoundingClientRect().left;
+      const width = video.getBoundingClientRect().width;
+      const height = video.getBoundingClientRect().height;
       if (window.aidShowBridge && window.aidShowBridge.setSurfaceLocation) {
-        window.aidShowBridge.setSurfaceLocation(left, top, width, height, Number(rgbWidth), Number(rgbHeight), 1920);
+        window.aidShowBridge.setSurfaceLocation(
+          left,
+          top,
+          width,
+          height,
+          Number(rgbWidth),
+          Number(rgbHeight),
+          1920
+        );
       }
-    },
-  },
+    }
+  }
 };
 </script>
 
 <style lang="less" scoped>
 .screen-container {
-  --content-h: 1010px;
+  --content-h: calc(100% - 30px);
 
   box-sizing: border-box;
   display: flex;
@@ -81,9 +93,14 @@ export default {
   display: flex;
   flex-direction: column;
 }
-.map, .extra {
+.map,
+.extra {
   flex: 1;
-  background: linear-gradient(137deg, rgba(71,84,141,0.64) 19%, rgba(71,66,124,0.52) 94%);
+  background: linear-gradient(
+    137deg,
+    rgba(71, 84, 141, 0.64) 19%,
+    rgba(71, 66, 124, 0.52) 94%
+  );
   backdrop-filter: blur(10.88px);
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
 }

@@ -31,19 +31,29 @@
 export default {
   data() {
     return {
-      text: "Ver.0.7.4.2.a",
+      text: "Ver.0.9.5.5.a.s01",
       showTc: true,
     };
   },
+  beforeRouteEnter(to, from, next) {
+    if(to && to.query && to.query.reload) {
+      next(to.path)
+      window.location.reload();
+      return;
+    }
+    next();
+  },
   mounted() {
     this.$store.state.tool = "";
-    // 全局订阅机器人位置
-    robotPosition.subscribe((message) => {
-      if (message.pose) {
-        const position = message.pose.position;
-        this.$store.state.robotPoint = { x: position.x, y: position.y };
-      }
-    });
+    const quaternionToYawDeg = (orientation = {}) => {
+      const x = Number(orientation.x || 0);
+      const y = Number(orientation.y || 0);
+      const z = Number(orientation.z || 0);
+      const w = Number(orientation.w || 1);
+      const sinyCosp = 2 * (w * z + x * y);
+      const cosyCosp = 1 - 2 * (y * y + z * z);
+      return (Math.atan2(sinyCosp, cosyCosp) * 180) / Math.PI;
+    };
     // 获取当前地图id
     getCurrentMapId.callService(
       null,

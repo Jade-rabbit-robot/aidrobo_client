@@ -1,30 +1,41 @@
 <template>
   <div class="newMapBox">
-    <ShowMap :initData="initData" />
+    <ShowMap :initData="initData" :showPlan="true" :showScan="true" />
     <div class="right point">
       <div class="step1" v-if="step == 1">
         <div class="rText" v-if="!$store.state.patrol_arr.length">
           <p>选择位置点</p>
-          <p>请依次在地图中点击想巡逻的位置点</p>
+          <p>请依次在地图中点击位置，然后沿目标朝向滑动一小段距离</p>
         </div>
         <div class="titleBox" v-else>
           <p>选择位置点:</p>
           <div class="mapNameB">
-            <p v-for="(e, i) in $store.state.patrol_arr" :key="i" class="mapName" @click="onDelOne(i)">({{
-              (e.x).toFixed(2)
-            }},{{
-  (e.y).toFixed(2)
-}})</p>
+            <p
+              v-for="(e, i) in $store.state.patrol_arr"
+              :key="i"
+              class="mapName"
+              @click="onDelOne(i)"
+            >
+              点位 {{ i + 1 }}
+            </p>
           </div>
         </div>
-        <div class="goPoint" :class="{ goPointSure: $store.state.patrol_arr.length }" @click="onSave()">保存路线</div>
+        <div
+          class="goPoint"
+          :class="{ goPointSure: $store.state.patrol_arr.length }"
+          @click="onSave()"
+        >
+          保存路线
+        </div>
       </div>
       <div class="step2" v-if="step == 2">
         <div>
           <div class="goPoint stop" @click="editPatrolFun()">编辑路线</div>
           <div class="goPoint delList" @click="onDelList()">清除路线</div>
         </div>
-        <div class="goPoint action" @click="onBegin()" v-if="action > 0">开启巡逻</div>
+        <div class="goPoint action" @click="onBegin()" v-if="action > 0">
+          开启巡逻
+        </div>
         <div class="goPoint stop" @click="onStop()" v-else>关闭巡逻</div>
       </div>
     </div>
@@ -35,285 +46,274 @@
 import ShowMap from "@/components/map/pointMap";
 import { mapState, mapMutations } from "vuex";
 import fullscreenLoading from "@/components/fullscreenLoading.js";
+import { normalizePatrolPoints } from "@/assets/common";
 
 export default {
   components: {
     ShowMap
   },
   computed: {
-    ...mapState([
-      "actionStatus"
-    ])
+    ...mapState(["actionStatus"])
   },
-  data () {
+  data() {
     return {
-      text: '选择位置',
+      text: "选择位置",
       hasHistory: false,
       step: 1,
       initData: false,
-      patrolId:1,
+      patrolId: 1,
       action: 1
-    }
+    };
   },
   watch: {
-    actionStatus: function (n) {
-      if (n === 'patrolStart') {
+    actionStatus: function(n) {
+      if (n === "patrolStart") {
         this.action = 0;
-      } else if (n === 'patrolPause') {
+      } else if (n === "patrolPause") {
         this.action = 2;
       }
-    },
+    }
   },
-  mounted () {
+  mounted() {
     let loading = fullscreenLoading();
     setTimeout(() => {
       loading.close();
-    }, 5 * 1000)
-    if (this.actionStatus === 'patrolStart') {
+    }, 5 * 1000);
+    if (this.actionStatus === "patrolStart") {
       this.action = 0;
-    } else if (this.actionStatus === 'patrolPause') {
+    } else if (this.actionStatus === "patrolPause") {
       this.action = 2;
     }
     this.$store.state.hasSave = false;
     this.$store.state.patrol_arr = [];
     this.$store.state.patrol_arr_area = [];
     try {
-      this.getPoint()
+      this.getPoint();
     } catch (error) {
-      console.log('[ error ]-45', error)
+      console.log("[ error ]-45", error);
     }
     // 状态机
     const type = new ROSLIB.ServiceRequest({
-      action: 'patrol'
+      action: "patrol"
     });
-    robotMode.callService(type, (result) => {
-      console.log('[ robotMode OK]-61', result)
-      if (result.message !== 'ok') {
-        this.$message('状态切换失败');
+    robotMode.callService(
+      type,
+      result => {
+        console.log("[ robotMode OK]-61", result);
+        if (result.message !== "ok") {
+          this.$message("状态切换失败");
+        }
+      },
+      result => {
+        this.$message("状态切换失败");
+        console.log("[ robotMode ERR]-61", result);
       }
-    }, (result) => {
-      this.$message('状态切换失败');
-      console.log('[ robotMode ERR]-61', result)
-    });
+    );
   },
   methods: {
-    editPatrolFun () {
-      this.$store.state.tool = 'patrol'
-      this.step = 1
+    editPatrolFun() {
+      this.$store.state.tool = "patrol";
+      this.step = 1;
     },
-    addPoint (data) {
-      const data_ = data.map((e) => {
-        return { x: e.x, y: e.y, z: 0 }
-      })
-      const msg2 = new ROSLIB.ServiceRequest(
-        {
-          map_id: this.$store.state.nowMap.id,
-          data: JSON.stringify(data_),
-          frame_id: 'map',
-          data_type: 'waypoint'
-        }
-      );
-      OperationAdd.callService(msg2, (result) => {
-        console.log('[  addPoint OK]-61', result)
-      }, (result) => {
-        console.log('[  addPoint ERR]-61', result)
+    addPoint(data) {
+      const data_ = this.normalizePatrolPoints(data);
+      const msg2 = new ROSLIB.ServiceRequest({
+        map_id: this.$store.state.nowMap.id,
+        data: JSON.stringify(data_),
+        frame_id: "map",
+        data_type: "waypoint"
       });
-    },
-    updatePoint (data) {
-      const data_ = data.map((e) => {
-        return { x: e.x, y: e.y, z: 0 }
-      })
-      const msg2 = new ROSLIB.ServiceRequest(
-        {
-          id: this.patrolId,
-          data: JSON.stringify({
-            map_id: this.$store.state.nowMap.id,
-            frame_id: 'map',
-            point_list: JSON.stringify(data_)
-          }),
-          data_type: 'waypoint'
+      OperationAdd.callService(
+        msg2,
+        result => {
+          console.log("[  addPoint OK]-61", result);
+        },
+        result => {
+          console.log("[  addPoint ERR]-61", result);
         }
       );
-      OperationUpdate.callService(msg2, (result) => {
-        console.log('[  updatePoint OK]-61', result)
-      }, (result) => {
-        console.log('[  updatePoint ERR]-61', result)
-      });
     },
-    getPoint () {
-      const msg2 = new ROSLIB.ServiceRequest(
-        {
+    updatePoint(data) {
+      const data_ = this.normalizePatrolPoints(data);
+      const msg2 = new ROSLIB.ServiceRequest({
+        id: this.patrolId,
+        data: JSON.stringify({
           map_id: this.$store.state.nowMap.id,
-          data_type: 'waypoint'
+          frame_id: "map",
+          point_list: JSON.stringify(data_)
+        }),
+        data_type: "waypoint"
+      });
+      OperationUpdate.callService(
+        msg2,
+        result => {
+          console.log("[  updatePoint OK]-61", result);
+        },
+        result => {
+          console.log("[  updatePoint ERR]-61", result);
         }
       );
-      getMapLinkedDataList.callService(msg2, (result) => {
-        if (result.success) {
-          let msg = []
-          try {
-            msg = JSON.parse(result.message)
-            this.initData = true
-            this.patrolId = msg[0].id
-            this.$store.state.patrol_arr = JSON.parse(msg[0].point_list);
-            this.text = '开始巡逻'
-            this.hasHistory = true
-            this.step = 2
-          } catch (error) {
-            this.$message('获取巡逻点失败');
+    },
+    getPoint() {
+      const msg2 = new ROSLIB.ServiceRequest({
+        map_id: this.$store.state.nowMap.id,
+        data_type: "waypoint"
+      });
+      getMapLinkedDataList.callService(
+        msg2,
+        result => {
+          if (result.success) {
+            let msg = [];
+            try {
+              msg = JSON.parse(result.message);
+              this.initData = true;
+              this.patrolId = msg[0].id;
+              this.$store.state.patrol_arr = this.normalizePatrolPoints(JSON.parse(msg[0].point_list));
+              this.text = "开始巡逻";
+              this.hasHistory = true;
+              this.step = 2;
+            } catch (error) {
+              this.$message("获取巡逻点失败");
+            }
+            console.log(this.$store.state.patrol_arr);
+          } else {
+            this.$message("获取巡逻点失败");
           }
-          console.log(this.$store.state.patrol_arr)
-        } else {
-          this.$message('获取巡逻点失败');
+        },
+        result => {
+          console.log("[  getPoint ERR]-61", result);
         }
-      }, (result) => {
-        console.log('[  getPoint ERR]-61', result)
-      });
+      );
     },
-    onDelOne (i) {
-      this.$store.state.patrol_arr.splice(i, 1)
-      this.$store.state.patrol_arr_area.splice(i, 1)
+    onDelOne(i) {
+      this.$store.state.patrol_arr.splice(i, 1);
+      this.$store.state.patrol_arr_area.splice(i, 1);
     },
-    onDelList () {
-      this.$store.state.patrol_arr = []
-      this.$store.state.patrol_arr_area = []
+    onDelList() {
+      this.$store.state.patrol_arr = [];
+      this.$store.state.patrol_arr_area = [];
     },
-    onSave () {
+    onSave() {
       if (!this.$store.state.patrol_arr.length) {
-        return false
+        return false;
       }
       if (this.hasHistory) {
-        this.updatePoint(this.$store.state.patrol_arr)
+        this.updatePoint(this.$store.state.patrol_arr);
       } else {
-        this.addPoint(this.$store.state.patrol_arr)
+        this.addPoint(this.$store.state.patrol_arr);
       }
-      this.step = 2
-      this.action = 1
+      this.step = 2;
+      this.action = 1;
     },
-    onBegin () {
+    normalizePatrolPoints(points) {
+      return normalizePatrolPoints(points);
+    },
+    createPatrolPath(points) {
+      return {
+        poses: this.normalizePatrolPoints(points).map(point => ({
+          header: {
+            stamp: {
+              sec: 0,
+              nanosec: 0
+            },
+            frame_id: "map"
+          },
+          pose: {
+            position: {
+              x: point.x,
+              y: point.y,
+              z: point.z
+            },
+            orientation: point.orientation
+          }
+        }))
+      };
+    },
+    onBegin() {
       if (this.action === 2) {
         const type = new ROSLIB.ServiceRequest({
-          cmd: 'resume'
+          cmd: "resume"
         });
-        patrolState.callService(type, (res) => {
-          console.log('[ patrol_control ok]-61', res)
-        }, (res) => {
-          console.log('[ patrol_control ERR]-61', res)
-        });
+        patrolState.callService(
+          type,
+          res => {
+            console.log("[ patrol_control ok]-61", res);
+          },
+          res => {
+            console.log("[ patrol_control ERR]-61", res);
+          }
+        );
       } else {
-        const point = { poses: [] }
-        let mapPoint = this.$store.state.patrol_arr
-        mapPoint.map(e => {
-          point.poses.push(
-            {
-              header: {
-                stamp: {
-                  sec: 0,
-                  nanosec: 0
-                },
-                frame_id: "map"
-              },
-              pose: {
-                position: {
-                  x: e.x,
-                  y: e.y,
-                  z: 0.0
-                },
-                orientation: {
-                  x: 0.0,
-                  y: 0.0,
-                  z: 0.0,
-                  w: 1.0
-                }
-              }
-            }
-          )
-        })
-        const msg = new ROSLIB.Message(point);
+        const msg = new ROSLIB.Message(this.createPatrolPath(this.$store.state.patrol_arr));
         TalkerPoint.publish(msg);
       }
-      this.action = 0
-      this.$store.state.actionStatus = 'patrolStart'
+      this.action = 0;
+      this.$store.state.actionStatus = "patrolStart";
     },
-    onStop () {
+    onStop() {
       const type = new ROSLIB.ServiceRequest({
-        cmd: 'pause'
+        cmd: "pause"
       });
-      patrolState.callService(type, (res) => {
-        console.log('[ patrol_control ok]-61', res)
-      }, (res) => {
-        console.log('[ patrol_control ERR]-61', res)
-      });
-      this.action = 2
-      this.$store.state.actionStatus = 'patrolPause'
+      patrolState.callService(
+        type,
+        res => {
+          console.log("[ patrol_control ok]-61", res);
+        },
+        res => {
+          console.log("[ patrol_control ERR]-61", res);
+        }
+      );
+      this.action = 2;
+      this.$store.state.actionStatus = "patrolPause";
     },
-    onBegin2 () {
-      if (this.text === '选择位置') {
-        this.$store.state.tool = 'patrol'
-        this.text = '开始巡逻'
-      } else if (this.text === '开始巡逻') {
+    onBegin2() {
+      if (this.text === "选择位置") {
+        this.$store.state.tool = "patrol";
+        this.text = "开始巡逻";
+      } else if (this.text === "开始巡逻") {
         if (this.$store.state.patrol_arr.length < 2) {
           return false;
         }
         if (this.hasHistory) {
-          this.updatePoint(this.$store.state.patrol_arr)
+          this.updatePoint(this.$store.state.patrol_arr);
         } else {
-          this.addPoint(this.$store.state.patrol_arr)
+          this.addPoint(this.$store.state.patrol_arr);
         }
-        const point = { poses: [] }
-        this.$store.state.patrol_arr.map(e => {
-          point.poses.push(
-            {
-              header: {
-                stamp: {
-                  sec: 0,
-                  nanosec: 0
-                },
-                frame_id: "map"
-              },
-              pose: {
-                position: {
-                  x: e.x,
-                  y: e.y,
-                  z: 0.0
-                },
-                orientation: {
-                  x: 0.0,
-                  y: 0.0,
-                  z: 0.0,
-                  w: 1.0
-                }
-              }
-            }
-          )
-        })
-        const msg = new ROSLIB.Message(point);
+        const msg = new ROSLIB.Message(this.createPatrolPath(this.$store.state.patrol_arr));
         TalkerPoint.publish(msg);
-        this.text = '暂停巡逻'
-      } else if (this.text === '暂停巡逻') {
+        this.text = "暂停巡逻";
+      } else if (this.text === "暂停巡逻") {
         const type = new ROSLIB.ServiceRequest({
-          cmd: 'pause'
+          cmd: "pause"
         });
-        patrolState.callService(type, (res) => {
-          console.log('[ patrol_control ok]-61', res)
-        }, (res) => {
-          console.log('[ patrol_control ERR]-61', res)
-        });
-        this.text = '恢复巡逻'
-      } else if (this.text === '恢复巡逻') {
+        patrolState.callService(
+          type,
+          res => {
+            console.log("[ patrol_control ok]-61", res);
+          },
+          res => {
+            console.log("[ patrol_control ERR]-61", res);
+          }
+        );
+        this.text = "恢复巡逻";
+      } else if (this.text === "恢复巡逻") {
         const type = new ROSLIB.ServiceRequest({
-          cmd: 'resume'
+          cmd: "resume"
         });
-        patrolState.callService(type, (res) => {
-          console.log('[ patrol_control ok]-61', res)
-        }, (res) => {
-          console.log('[ patrol_control ERR]-61', res)
-        });
-        this.text = '暂停巡逻'
+        patrolState.callService(
+          type,
+          res => {
+            console.log("[ patrol_control ok]-61", res);
+          },
+          res => {
+            console.log("[ patrol_control ERR]-61", res);
+          }
+        );
+        this.text = "暂停巡逻";
       }
-    },
+    }
   }
-
-}
+};
 </script>
 
 <style lang="less" scoped>
@@ -327,16 +327,19 @@ export default {
 
 .right {
   width: 434px;
-  height: 1010px;
+  height: calc(100% - 70px);
   background-color: #ccc;
   border-radius: 5px;
-  background: linear-gradient(155deg, rgba(71, 84, 141, 0.64) 24%, rgba(71, 66, 124, 0.52) 98%);
+  background: linear-gradient(
+    155deg,
+    rgba(71, 84, 141, 0.64) 24%,
+    rgba(71, 66, 124, 0.52) 98%
+  );
   backdrop-filter: blur(10.88px);
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 1010px;
   line-height: 50px;
   margin-left: 30px;
   margin-top: 30px;
@@ -351,14 +354,14 @@ export default {
     padding: 20px;
   }
 
-  &>p {
+  & > p {
     text-align: center;
     text-align: center;
     line-height: 50px;
     padding: 0px 40px;
   }
 
-  &>div {
+  & > div {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -383,7 +386,7 @@ export default {
     height: 80px;
     border-radius: 10px;
     opacity: 1;
-    background: #2F3758;
+    background: #2f3758;
     backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
@@ -397,7 +400,7 @@ export default {
   width: 300px;
   height: 120px;
   border-radius: 10px;
-  background: #4F5478;
+  background: #4f5478;
   opacity: 1;
   display: flex;
   align-items: center;
@@ -406,27 +409,35 @@ export default {
 }
 
 .goPointSure {
-  background: #B04CF3;
+  background: #b04cf3;
 }
 
 .delList {
-  background: #D94040;
+  background: #d94040;
   margin-top: 30px;
 }
 
 .action {
   width: 300px;
   height: 120px;
-  background: linear-gradient(110deg, rgba(55, 89, 238, 0.64) 11%, rgba(30, 157, 244, 0.37) 89%);
+  background: linear-gradient(
+    110deg,
+    rgba(55, 89, 238, 0.64) 11%,
+    rgba(30, 157, 244, 0.37) 89%
+  );
 }
 
 .stop {
   width: 300px;
   height: 120px;
-  background: linear-gradient(110deg, #596AB5 11%, rgba(66, 82, 146, 0.53) 89%);
+  background: linear-gradient(110deg, #596ab5 11%, rgba(66, 82, 146, 0.53) 89%);
 }
 
 .readyBtn {
-  background: linear-gradient(110deg, rgba(55, 89, 238, 0.64) 11%, rgba(30, 157, 244, 0.37) 89%) !important;
+  background: linear-gradient(
+    110deg,
+    rgba(55, 89, 238, 0.64) 11%,
+    rgba(30, 157, 244, 0.37) 89%
+  ) !important;
 }
 </style>

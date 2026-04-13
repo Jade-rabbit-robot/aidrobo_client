@@ -16,21 +16,31 @@
         </div>
       </div>
       <div class="rowR">
-        <div class="show" @touchstart="routerStart()" @touchend="routerEnd()" :style="{ opacity: cmd ? 1 : 0 }">
+        <div
+          class="show"
+          @touchstart="routerStart()"
+          @touchend="routerEnd()"
+          :style="{ opacity: cmd ? 1 : 0 }"
+        >
           <img src="@/assets/img/home/patrol.png" />
           <span>{{ cmd }}</span>
         </div>
         <div class="show" ref="relocationRef" @click="relocation()">
           <img src="@/assets/img/home/mapName.png" />
-          <span>{{ this.$store.state.nowMap.name || '无地图' }}</span>
+          <span>{{ this.$store.state.nowMap.name || "无地图" }}</span>
         </div>
         <div class="electric">
           <img src="@/assets/img/home/electric.png" />
           <div>
-            <div :style="{ 'width': $store.state.percentage + '%' }"></div>
+            <div :style="{ width: $store.state.percentage + '%' }"></div>
           </div>
-          <span v-if="$store.state.percentage">{{ $store.state.percentage }}%</span>
+          <span v-if="$store.state.percentage"
+            >{{ $store.state.percentage }}%</span
+          >
         </div>
+<!--        <div class="chat">-->
+<!--          <img src="@/assets/img/home/chat.png" @click="openChat" />-->
+<!--        </div>-->
       </div>
     </div>
   </div>
@@ -38,58 +48,100 @@
 
 <script>
 import { mapState, mapMutations } from "vuex";
-import { routerObj } from '@/assets/common'
+import { routerObj } from "@/assets/common";
 export default {
   computed: {
-    ...mapState([
-      "showMsg",
-      "hasSave",
-      "actionStatus"
-    ])
+    ...mapState(["showMsg", "hasSave", "actionStatus", 'robotTaskStatus'])
   },
-  data () {
+  data() {
     return {
       showTc: false,
       set: null,
       luminance: 20,
-      cmd: '',
-      routerN: '',
-      routerTxt: '',
+      cmd: "",
+      routerN: "",
+      routerTxt: "",
       voice: 0,
-      reconnectFlag: false
+      reconnectStopped: false,
+      reconnectBegin: null,
+      taskStatusSubscribed: false
     };
   },
   watch: {
-    actionStatus: function (n) {
-      if (n === 'patrolStart') {
-        this.cmd = '巡逻中...';
-      } else if (n === 'patrolPause') {
-        this.cmd = '恢复巡逻';
-      }
-    },
-    $route (to, from) {
-      this.routerN = to.path
-      this.routerTxt = routerObj[to.name]
+    $route(to, from) {
+      this.routerN = to.path;
+      this.routerTxt = routerObj[to.name];
       // console.log('//从哪来',from.path);
       // console.log('//到哪去', to);
+    },
+    robotTaskStatus: {
+      handler(val) {
+        this.cmd = ''
+        if(val.working) {
+          this.cmd = val.patrol ? '巡逻中...': '导航中...'
+        } else if(val.suspend) {
+          this.cmd = val.patrol ?'恢复巡逻' : '恢复导航'
+        }
+      },
+      deep: true
     }
   },
   methods: {
-    refreshFun () {
+    ...mapMutations(["changeRobotTaskStatus"]),
+    getCurrentRosURL() {
+      if (window.AIDROBO_ROS_CONFIG && window.AIDROBO_ROS_CONFIG.getRosURL) {
+        return window.AIDROBO_ROS_CONFIG.getRosURL();
+      }
+      return rosURL;
+    },
+    isAndroid() {
+      return /Android/i.test(navigator.userAgent || '');
+    },
+    connectRos() {
+      const targetURL = this.getCurrentRosURL();
+      console.log("[ ros connect ]", targetURL);
+      // 安卓设备上 127.0.0.1 指向手机本身，无法连接机器人
+      if (this.isAndroid() && /127\.0\.0\.1/.test(targetURL)) {
+        this.$message({
+          message: '请先在"设置"页填写机器人的局域网 IP 地址',
+          type: 'warning',
+          duration: 0,
+          showClose: true
+        });
+        if (this.$router.history.current.path !== '/site') {
+          this.$router.push('/site');
+        }
+        return;
+      }
+      ros.connect(targetURL);
+    },
+    subscribeTaskStatus() {
+      RobotTaskStatus.subscribe(res => {
+        this.changeRobotTaskStatus(res)
+      });
+    },
+    refreshFun() {
       window.location.reload();
     },
-    relocation () {
-      console.log('头部点击定位')
+    resetLocalizationToOrigin(showMessage = false) {
       const modeMsg = new ROSLIB.ServiceRequest({
-        action: 'localization'
+        action: "localization"
       });
-      robotMode.callService(modeMsg, (result) => {
-        console.log('[ robotMode OK]-61', result)
-        this.$message('定位成功');
-      }, (result) => {
-        console.log('[ robotMode ERR]-61', result)
-        this.$message('定位失败');
-      });
+      robotMode.callService(
+        modeMsg,
+        result => {
+          console.log("[ robotMode OK]-61", result);
+          if (showMessage) {
+            this.$message("定位复位成功");
+          }
+        },
+        result => {
+          console.log("[ robotMode ERR]-61", result);
+          if (showMessage) {
+            this.$message("定位复位失败");
+          }
+        }
+      );
       const point = {
         header: {
           stamp: {
@@ -99,130 +151,168 @@ export default {
           frame_id: "map"
         },
         pose: {
-          position: {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0
+          pose: {
+            position: {
+              x: 0.0,
+              y: 0.0,
+              z: 0.0
+            },
+            orientation: {
+              x: 0.0,
+              y: 0.0,
+              z: 0.0,
+              w: 1.0
+            }
           },
-          orientation: {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-            w: 1.0
-          }
+          covariance: [
+            0.25, 0, 0, 0, 0, 0,
+            0, 0.25, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0.06853891945200942
+          ]
         }
       };
       var pose_msg = new ROSLIB.Message(point);
-      PoseStamped.publish(pose_msg);
+      InitialPose.publish(pose_msg);
     },
-    patrolAction () {
-      if (this.actionStatus === 'patrolStart') {
-        const type = new ROSLIB.ServiceRequest({
-          cmd: 'pause'
-        });
-        patrolState.callService(type, (res) => {
-          console.log('[ patrol_control ok]-61', res)
-        }, (res) => {
-          console.log('[ patrol_control ERR]-61', res)
-        });
-        this.$store.state.actionStatus = 'patrolPause'
-      } else {
-        this.$store.state.actionStatus = 'patrolStart'
-        const type = new ROSLIB.ServiceRequest({
-          cmd: 'resume'
-        });
-        patrolState.callService(type, (res) => {
-          console.log('[ patrol_control ok]-61', res)
-        }, (res) => {
-          console.log('[ patrol_control ERR]-61', res)
-        });
+    relocation() {
+      console.log("头部点击定位");
+      if (this.$route.path !== "/utility/relocation") {
+        this.$router.push({ name: "relocation" });
       }
     },
-    routerStart () {
-      this.patrolAction()
+    patrolAction() {
+      if (this.robotTaskStatus.working) {
+        const type = new ROSLIB.ServiceRequest({
+          cmd: "pause"
+        });
+        patrolState.callService(
+          type,
+          res => {
+            console.log("[ patrol_control ok]-61", res);
+          },
+          res => {
+            console.log("[ patrol_control ERR]-61", res);
+          }
+        );
+        this.$store.state.actionStatus = "patrolPause";
+      } else {
+        this.$store.state.actionStatus = "patrolStart";
+        const type = new ROSLIB.ServiceRequest({
+          cmd: "resume"
+        });
+        patrolState.callService(
+          type,
+          res => {
+            console.log("[ patrol_control ok]-61", res);
+          },
+          res => {
+            console.log("[ patrol_control ERR]-61", res);
+          }
+        );
+      }
+    },
+    routerStart() {
+      this.patrolAction();
       let num = 0;
       this.set = setInterval(() => {
-        num += 1
+        num += 1;
         if (num >= 3) {
-          if (this.actionStatus.includes('patrol')) {
-            this.$router.push('/utility/patrol')
+          if (this.actionStatus.includes("patrol")) {
+            this.$router.push("/utility/patrol");
           }
-          clearInterval(this.set)
+          clearInterval(this.set);
         }
-      }, 1000)
+      }, 1000);
     },
-    routerEnd () {
-      clearInterval(this.set)
+    routerEnd() {
+      clearInterval(this.set);
     },
-    routerFun (path) {
-      if (this.$router.history.current.path === '/utility/goPoint') {
+    routerFun(path) {
+      if (this.$router.history.current.path === "/utility/goPoint") {
         if (!this.hasSave) {
-          this.$confirm(`<div>是否确认退出</div><div>（已操作内容不会保存）</div>`, '退出', {
-            dangerouslyUseHTMLString: true,
-            center: true
-          }).then(() => {
-            if (path === '/') {
-              this.$router.push('/')
-            } else {
-              this.$router.go(-1)
+          this.$confirm(
+            `<div>是否确认退出</div><div>（已操作内容不会保存）</div>`,
+            "退出",
+            {
+              dangerouslyUseHTMLString: true,
+              center: true
             }
-          }).catch(() => {
-          });
+          )
+            .then(() => {
+              if (path === "/") {
+                this.$router.push("/");
+              } else {
+                this.$router.go(-1);
+              }
+            })
+            .catch(() => {});
         }
       } else {
-        if (path === '/') {
-          this.$router.push('/')
+        if (path === "/") {
+          this.$router.push("/");
         } else {
-          this.$router.go(-1)
+          this.$router.go(-1);
         }
       }
     },
-    add (type, fun) {
-      this.$store.state.showMsg = true
+    add(type, fun) {
+      this.$store.state.showMsg = true;
       this[type] < 100 && (this[type] += 1);
     },
-    minus (type, fun) {
+    minus(type, fun) {
       this[type] > 0 && (this[type] -= 1);
+    },
+    openChat() {
+      if (window.aidShowBridge && window.aidShowBridge.chatWithAidbot) {
+        window.aidShowBridge.chatWithAidbot();
+      }
     }
   },
   created() {
     const _this = this;
-    ros.connect(rosURL);
+    this.connectRos();
 
     // 重连
-    let reconnectBegin; // 重连的开始时间
-    ros.on('close', () => {
-      if(_this.reconnectFlag) return;
+    ros.on("close", () => {
+      if (_this.reconnectStopped) return;
 
-      if(!reconnectBegin) {
-        reconnectBegin = Date.now();
+      if (!_this.reconnectBegin) {
+        _this.reconnectBegin = Date.now();
       }
       const LimitTime = 30 * 1000; // 限制重连时间为30s
-      const gap = (Date.now() - reconnectBegin)
-      if(gap > LimitTime) {
-        _this.reconnectFlag = true;
-        reconnectBegin = null;
-        console.log('重连失败，已断开连接');
-        _this.$message.error({message:'机器人启动失败', center: true});
+      const gap = Date.now() - _this.reconnectBegin;
+      if (gap > LimitTime) {
+        _this.reconnectStopped = true;
+        _this.reconnectBegin = null;
+        console.log("重连失败，已断开连接");
+        _this.$message.error({ message: "机器人启动失败", center: true });
       } else {
-        console.log('正在重连...', gap);
-        ros.connect(rosURL);
-      }
-    })
-
-    ros.on('connection', function () {
-      console.log('rosOk!!!');
-      if(!_this.reconnectFlag) {
-        _this.reconnectFlag = true;
-        _this.$nextTick(() => {
-          _this.$refs.relocationRef.click();
-        })
+        console.log("正在重连...", gap);
+        window.setTimeout(() => {
+          _this.connectRos();
+        }, 300);
       }
     });
+
+    ros.on("connection", function() {
+      console.log("rosOk!!!");
+      _this.reconnectStopped = false;
+      _this.reconnectBegin = null;
+      _this.$nextTick(() => {
+        _this.resetLocalizationToOrigin(false);
+        if (!_this.taskStatusSubscribed) {
+          _this.subscribeTaskStatus();
+          _this.taskStatusSubscribed = true;
+        }
+      });
+    });
   },
-  mounted () {
+  mounted() {
     console.log("[  ]-45", this.$router.history.current.path);
-    this.routerN = this.$router.history.current.path
+    this.routerN = this.$router.history.current.path;
   }
 };
 </script>
@@ -232,12 +322,12 @@ export default {
   position: absolute;
   left: 0px;
   top: 0px;
-  width: 1920px;
+  width: 100vw;
   height: 120px;
   opacity: 1;
   z-index: 10;
   color: #fff;
-  background: #495BAF;
+  background: #495baf;
   backdrop-filter: blur(10.88px);
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
 }
@@ -249,7 +339,7 @@ export default {
   .home {
     width: 80px;
     height: 80px;
-    background: #2F3758;
+    background: #2f3758;
     border-radius: 10px;
     margin: 20px;
     position: absolute;
@@ -264,15 +354,15 @@ export default {
   }
 
   .rowR {
-    width: 57%;
+    width: 65%;
     height: 100%;
-    margin-left: 42%;
+    margin-left: 35%;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
 
-    &>div {
+    & > div {
       height: 80px;
     }
 
@@ -291,7 +381,7 @@ export default {
       align-items: center;
       justify-content: center;
 
-      &>span {
+      & > span {
         margin-left: 20px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -308,16 +398,16 @@ export default {
       align-items: center;
       width: 177px;
 
-      &>img {
+      & > img {
         margin-right: 10px;
       }
 
-      &>div {
+      & > div {
         right: 98px;
         width: 66px;
         position: absolute;
 
-        &>div {
+        & > div {
           height: 25px;
           background: #c6cfe9;
           right: 6px;
@@ -325,6 +415,10 @@ export default {
           position: absolute;
         }
       }
+    }
+    .chat {
+      margin-left: 10px;
+      margin-right: 50px;
     }
 
     .Tool {
@@ -405,7 +499,7 @@ export default {
       background: #bfc9f9;
       position: relative;
 
-      &>div {
+      & > div {
         position: absolute;
         width: 53.83px;
         bottom: 0;

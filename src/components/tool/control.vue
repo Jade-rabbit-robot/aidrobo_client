@@ -91,7 +91,7 @@ export default {
       }
       var map_edit_msg = new ROSLIB.Message({ linear, angular });
       console.log('[ map_edit_msg ]-86', map_edit_msg)
-      controlRobot.publish(map_edit_msg);
+      // controlRobot.publish(map_edit_msg);
     },
     touchend(e) {
       e.currentTarget.classList.remove("cli_box");
@@ -108,7 +108,7 @@ export default {
             z: 0.0
           }
         });
-        controlRobot.publish(map_edit_msg);
+        // controlRobot.publish(map_edit_msg);
       }, 3000);
     }
   },

@@ -33,44 +33,49 @@ export default {
   components: {
     ShowMap
   },
-  data () {
+  data() {
     return {
       isUse: false
-    }
+    };
   },
-  mounted(){
+  mounted() {
     if (this.$store.state.nowMap.id === this.$route.query.id) {
-      this.isUse = true
+      this.isUse = true;
     }
   },
-  created () {
-
-
-  },
+  created() {},
   methods: {
-    onUse () {
+    onUse() {
       // 设置使用地图
       const msg = new ROSLIB.ServiceRequest({
-        id: this.$route.query.id*1
+        id: this.$route.query.id * 1
       });
-      setCurrentMapId.callService(msg, (result) => {
-        this.$store.state.nowMap.id=this.$route.query.id
-        this.$message('设置成功');
-        console.log('[ setCurrentMapId OK]-61', result)
-      }, (result) => {
-        this.$message('设置失败');
-        console.log('[ setCurrentMapId ERR]-61', result)
-      });
+      setCurrentMapId.callService(
+        msg,
+        result => {
+          this.$store.state.nowMap.id = this.$route.query.id;
+          this.$message("设置成功");
+          console.log("[ setCurrentMapId OK]-61", result);
+        },
+        result => {
+          this.$message("设置失败");
+          console.log("[ setCurrentMapId ERR]-61", result);
+        }
+      );
       // 状态控制
-    this.$store.state.actionStatus='localization'
+      this.$store.state.actionStatus = "localization";
       const modeMsg = new ROSLIB.ServiceRequest({
-        action: 'localization'
+        action: "localization"
       });
-      robotMode.callService(modeMsg, (result) => {
-        console.log('[ robotMode OK]-61', result)
-      }, (result) => {
-        console.log('[ robotMode ERR]-61', result)
-      });
+      robotMode.callService(
+        modeMsg,
+        result => {
+          console.log("[ robotMode OK]-61", result);
+        },
+        result => {
+          console.log("[ robotMode ERR]-61", result);
+        }
+      );
       // 重定位
       const point = {
         header: {
@@ -81,52 +86,74 @@ export default {
           frame_id: "map"
         },
         pose: {
-          position: {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0
+          pose: {
+            position: {
+              x: 0.0,
+              y: 0.0,
+              z: 0.0
+            },
+            orientation: {
+              x: 0.0,
+              y: 0.0,
+              z: 0.0,
+              w: 1.0
+            }
           },
-          orientation: {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-            w: 1.0
-          }
+          covariance: [
+            0.25, 0, 0, 0, 0, 0,
+            0, 0.25, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0.06853891945200942
+          ]
         }
       };
       var pose_msg = new ROSLIB.Message(point);
-      PoseStamped.publish(pose_msg);
+      InitialPose.publish(pose_msg);
     },
-    onEdit(){
-      this.$router.push({ name: 'editMap', query: {id: this.$route.query.id } })
-    },
-    onDel () {
-      this.$confirm(`<div>是否确认删除地图</div><div>（本操作无法恢复）</div>`, '删除地图', {
-        dangerouslyUseHTMLString: true,
-        center: true
-      }).then(() => {
-        const msg = new ROSLIB.ServiceRequest({
-          id: this.$route.query.id*1,
-          data_type:'map'
-        });
-        deleteMap.callService(msg, (result) => {
-          if(result.success){
-            this.$message('删除成功');
-            this.$router.push({ name: 'map' })
-          }else{
-            this.$message('删除失败');
-          }
-          console.log('[ deleteMap OK]-61', result)
-        }, (result) => {
-          console.log('[ deleteMap ERR]-61', result)
-        });
-      }).catch(() => {
-        console.log('[  ]-72',)
+    onEdit() {
+      this.$router.push({
+        name: "editMap",
+        query: { id: this.$route.query.id }
       });
+    },
+    onDel() {
+      this.$confirm(
+        `<div>是否确认删除地图</div><div>（本操作无法恢复）</div>`,
+        "删除地图",
+        {
+          dangerouslyUseHTMLString: true,
+          center: true
+        }
+      )
+        .then(() => {
+          const msg = new ROSLIB.ServiceRequest({
+            id: this.$route.query.id * 1,
+            data_type: "map"
+          });
+          deleteMap.callService(
+            msg,
+            result => {
+              if (result.success) {
+                this.$message("删除成功");
+                this.$router.push({ name: "map" });
+              } else {
+                this.$message("删除失败");
+              }
+              console.log("[ deleteMap OK]-61", result);
+            },
+            result => {
+              console.log("[ deleteMap ERR]-61", result);
+            }
+          );
+        })
+        .catch(() => {
+          console.log("[  ]-72");
+        });
     }
   }
-
-}
+};
 </script>
 
 <style lang="less" scoped>
@@ -142,17 +169,20 @@ export default {
 
 .right {
   width: 434px;
-  height: 1010px;
+  height: calc(100% - 70px);
   background-color: #ccc;
   border-radius: 5px;
-  background: linear-gradient(155deg, rgba(71, 84, 141, 0.64) 24%, rgba(71, 66, 124, 0.52) 98%);
+  background: linear-gradient(
+    155deg,
+    rgba(71, 84, 141, 0.64) 24%,
+    rgba(71, 66, 124, 0.52) 98%
+  );
   backdrop-filter: blur(10.88px);
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-evenly;
-  height: 1010px;
 }
 
 .iconBtn {
@@ -163,11 +193,14 @@ export default {
   height: 120px;
   border-radius: 10px;
   opacity: 1;
-  background: linear-gradient(110deg, rgba(71, 84, 141, 0.64) 11%, rgba(53, 81, 119, 0.15) 88%, rgba(53, 92, 119, 0.14) 89%);
+  background: linear-gradient(
+    110deg,
+    rgba(71, 84, 141, 0.64) 11%,
+    rgba(53, 81, 119, 0.15) 88%,
+    rgba(53, 92, 119, 0.14) 89%
+  );
   backdrop-filter: blur(10.88px);
   box-shadow: 0px 2px 10px 0px rgba(1, 29, 90, 0.72);
-
-
 }
 
 .titleBox {
@@ -181,7 +214,7 @@ export default {
     height: 80px;
     border-radius: 10px;
     opacity: 1;
-    background: #2F3758;
+    background: #2f3758;
     backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
@@ -194,13 +227,17 @@ export default {
   height: 120px;
   border-radius: 10px;
   opacity: 1;
-  background: #D94040;
+  background: #d94040;
   box-shadow: 0px 2px 10px 0px rgba(1, 29, 90, 0.72);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.usemap{
-  background: linear-gradient(110deg, rgba(55,89,238,0.64) 11%, rgba(30,157,244,0.37) 89%);
+.usemap {
+  background: linear-gradient(
+    110deg,
+    rgba(55, 89, 238, 0.64) 11%,
+    rgba(30, 157, 244, 0.37) 89%
+  );
 }
 </style>

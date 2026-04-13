@@ -10,6 +10,7 @@ import Utility from '@/views/utility/index'
 
 import relocation from '@/views/utility/relocation'
 import goPoint from '@/views/utility/goPoint'
+import navigation from '@/views/utility/navigation'
 import patrol from '@/views/utility/patrol'
 import charge from '@/views/utility/charge'
 import telecontrol from '@/views/utility/telecontrol'
@@ -17,6 +18,7 @@ import following from '@/views/utility/following'
 import gesture from '@/views/utility/gesture'
 import objectRecognition from '@/views/utility/objectRecognition'
 import screen from '@/views/utility/screen'
+import calibration from '@/views/utility/calibration'
 
 import Site from '@/views/site'
 import Map from '@/views/map/index'
@@ -99,6 +101,11 @@ export default new Router({
       component: goPoint,
     },
     {
+      path: '/utility/navigation',
+      name:'navigation',
+      component: navigation,
+    },
+    {
       path: '/utility/patrol',
       name:'patrol',
       component: patrol,
@@ -128,6 +135,11 @@ export default new Router({
       path: '/utility/screen',
       name: 'screen',
       component: screen,
+    },
+    {
+      path: '/utility/calibration',
+      name: 'calibration',
+      component: calibration,
     },
   ]
 })

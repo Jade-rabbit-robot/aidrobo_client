@@ -1,6 +1,68 @@
 const ros = new ROSLIB.Ros();
-const rosURL = 'ws://192.168.1.120:9090'
-// const rosURL = 'ws://192.168.111.237:9090'
+const defaultRosURL = 'ws://127.0.0.1:9090';
+const appConfig = window.AIDROBO_APP_CONFIG || {};
+const rosURLStorageKey = 'aidrobo.rosURL';
+
+function normalizeRosURL(url) {
+  const value = (url || '').trim();
+  if (!value) {
+    return '';
+  }
+  if (/^wss?:\/\//i.test(value)) {
+    return value;
+  }
+  return `ws://${value}`;
+}
+
+function getRosURL() {
+  return normalizeRosURL(window.localStorage.getItem(rosURLStorageKey) || appConfig.rosURL || defaultRosURL) || defaultRosURL;
+}
+
+function setRosURL(url) {
+  const nextURL = normalizeRosURL(url);
+  if (!nextURL) {
+    return getRosURL();
+  }
+  window.localStorage.setItem(rosURLStorageKey, nextURL);
+  return nextURL;
+}
+
+function resetRosURL() {
+  window.localStorage.removeItem(rosURLStorageKey);
+  return getRosURL();
+}
+
+function reconnectRos(url) {
+  if (url !== undefined) {
+    setRosURL(url);
+  }
+  const nextURL = getRosURL();
+  try {
+    ros.close();
+  } catch (error) {
+    console.warn('[ ros close warn ]', error);
+  }
+  window.setTimeout(() => {
+    try {
+      ros.connect(nextURL);
+    } catch (error) {
+      console.error('[ ros reconnect err ]', error);
+    }
+  }, 150);
+  return nextURL;
+}
+
+window.AIDROBO_ROS_CONFIG = {
+  defaultRosURL,
+  getRosURL,
+  setRosURL,
+  resetRosURL,
+  reconnectRos,
+  normalizeRosURL,
+};
+
+const rosURL = getRosURL();
+// const rosURL = 'ws://192.168.111.52:9090'
 
 /* ros 的 connect 连接逻辑移动到 headArea.vue 组件中进行 */
 
@@ -14,9 +76,24 @@ const robotMode = new ROSLIB.Service({
 /** 指令控制 */
 const controlRobot = new ROSLIB.Topic({
   ros: ros,
-  name: '/cmd_vel',
+  name: '/cmd_vel_remote_ctrl',
   messageType: 'geometry_msgs/msg/Twist'
 });
+
+/** 电机模式切换 */
+const setMotorMode = new ROSLIB.Service({
+  ros: ros,
+  name: '/set_motor_mode',
+  serviceType: 'aid_robot_msgs/srv/SetString'
+});
+
+
+
+function publishControlTwist(message) {
+  controlRobot.publish(message);
+}
+
+window.publishControlTwist = publishControlTwist;
 
 /** 建图订阅 */
 const robotMap = new ROSLIB.Topic({
@@ -84,17 +161,31 @@ const getCurrentMapId = new ROSLIB.Service({
   name: '/get_current_map_id',
   serviceType: 'aid_robot_msgs/srv/GetCurrentMap'
 });
-/** 机器人在地图中位置*/
-const robotPosition = new ROSLIB.Topic({
+
+
+/** 激光扫描 */
+const RobotScan = new ROSLIB.Topic({
   ros: ros,
-  name: '/base_link_pose',
-  messageType: 'geometry_msgs/msg/PoseStamped'
+  name: '/scan',
+  messageType: 'sensor_msgs/msg/LaserScan'
+});
+/** TF 动态变换 */
+const RobotTF = new ROSLIB.Topic({
+  ros: ros,
+  name: '/tf',
+  messageType: 'tf2_msgs/msg/TFMessage'
+});
+/** TF 静态变换 */
+const RobotTFStatic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/tf_static',
+  messageType: 'tf2_msgs/msg/TFMessage'
 });
 /** 重定位*/
-const PoseStamped = new ROSLIB.Topic({
+const InitialPose = new ROSLIB.Topic({
   ros: ros,
-  name: '/goal_pose',
-  messageType: 'geometry_msgs/msg/PoseStamped'
+  name: '/initialpose',
+  messageType: 'geometry_msgs/msg/PoseWithCovarianceStamped'
 });
 /** 获取巡逻点列表 */
 const getMapLinkedDataList = new ROSLIB.Service({
@@ -157,7 +248,48 @@ const patrolState = new ROSLIB.Service({
   name: '/patrol_control',
   serviceType: 'aid_robot_msgs/srv/PatrolControl'
 });
-
+/*新增定点导航点位*/
+const NavigationPointAdd = new ROSLIB.Service({
+  ros: ros,
+  name: '/add_point',
+  serviceType: 'aid_robot_msgs/srv/OperationAdd'
+});
+/*修改定点导航点位*/
+const NavigationPointUpdate = new ROSLIB.Service({
+  ros: ros,
+  name: '/update_point',
+  serviceType: 'aid_robot_msgs/srv/OperationUpdate'
+});
+/*删除定点导航点位*/
+const NavigationPointDelete = new ROSLIB.Service({
+  ros: ros,
+  name: '/delete_point',
+  serviceType: 'aid_robot_msgs/srv/OperationDelete'
+});
+/*获取定点导航点位列表*/
+const NavigationPointsGet = new ROSLIB.Service({
+  ros: ros,
+  name: '/get_map_point_list',
+  serviceType: 'aid_robot_msgs/srv/MapLinkedDataList'
+});
+/*开始定点导航*/
+const StartNavigation = new ROSLIB.Topic({
+  ros: ros,
+  name: '/nav_to_pose',
+  messageType: 'geometry_msgs/msg/PoseStamped'
+})
+/*导航规划路径*/
+const NavigationPlan = new ROSLIB.Topic({
+  ros: ros,
+  name: '/plan',
+  messageType: 'nav_msgs/msg/Path'
+})
+/*机器人任务状态*/
+const RobotTaskStatus = new ROSLIB.Topic({
+  ros: ros,
+  name: '/task_status',
+  messageType: 'aid_robot_msgs/msg/AidTaskStatus'
+})
 
 
 
@@ -179,6 +311,18 @@ const getFollowStatus = new ROSLIB.Topic({
   name: '/follow_status',
   messageType: 'std_msgs/msg/Bool'
 })
+/** 后置相机图像 */
+const rearCameraImageTopic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/rear_camera/image_raw/compressed',
+  messageType: 'sensor_msgs/msg/CompressedImage'
+});
+/** 标签检测图像 */
+const tagDetectionsImageTopic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/tag_detections_image/compressed',
+  messageType: 'sensor_msgs/msg/CompressedImage'
+});
 /** 特征跟随-开始跟随 */
 const startFollow = new ROSLIB.Service({
   ros: ros,
@@ -200,7 +344,57 @@ const GetStrings = new ROSLIB.Service({
 /** 获取电量信息 */
 const BatteryState = new ROSLIB.Topic({
   ros: ros,
-  name: '/battery_data',
+  name: '/battery_state',
   serviceType: 'sensor_msgs/msg/BatteryState'
+});
+/** 编辑地图 */
+const MapEditor = new ROSLIB.Service({
+  ros: ros,
+  name: '/map_editor',
+  serviceType: 'aid_robot_msgs/srv/DrawPicture'
+});
+
+/** rgbd下标定服务 */
+const DownCalibService = new ROSLIB.Service({
+  ros: ros,
+  name: '/calibrate_down_rgbd',
+  serviceType: 'std_srvs/srv/Trigger'
+});
+/** rgbd上标定服务 */
+const UpCalibService = new ROSLIB.Service({
+  ros: ros,
+  name: '/calibrate_up_rgbd',
+  serviceType: 'std_srvs/srv/Trigger'
+});
+/* 上标定的状态 */
+const rgbdCalibStatusTopic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/rgbd_calib_status',
+  messageType: 'std_msgs/UInt8'
+});
+
+/**回充接口*/
+const dockService = new ROSLIB.Service({
+  ros: ros,
+  name: '/cmd_dock',
+  serviceType: 'aid_robot_msgs/srv/SetString'
+});
+/**获取充电桩位置*/
+const getDockPoseService = new ROSLIB.Service({
+  ros: ros,
+  name: '/get_dock_pose',
+  serviceType: 'aid_robot_msgs/srv/GetDockPose'
+});
+// 充电状态监听
+const dockStateTopic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/dock_state',
+  messageType: 'std_msgs/msg/String'
+});
+/**充电结果订阅*/
+const dockResultTopic = new ROSLIB.Topic({
+  ros: ros,
+  name: '/dock_result',
+  messageType: 'std_msgs/msg/String'
 });
 

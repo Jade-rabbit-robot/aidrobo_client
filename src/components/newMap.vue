@@ -7,10 +7,12 @@
         <div class="robot" v-bind:style="{
           transform:
             'translate(' +
-            (robotXY.x * scale - 6) +
+            (robotXY.x * scale - 10) +
             'px,' +
-            (robotXY.y * scale - 6) +
-            'px)',
+            (robotXY.y * scale - 10) +
+            'px) rotate(' +
+            (90 - robotYaw) +
+            'deg)',
         }">
         </div>
         <div class="charge" v-bind:style="{
@@ -98,6 +100,7 @@ export default {
   computed: {
     ...mapState([
       "robotPoint",
+      "robotYaw",
       "mcode",
       "rubber_data1",
       "rubber_data2",
@@ -165,7 +168,7 @@ export default {
 .map {
   position: relative;
   top: 0;
-  height: 1010px;
+  height: calc(100% - 70px);
   width: 1380px;
   border-radius: 5px;
   background: #526CAD;
@@ -328,16 +331,18 @@ export default {
 
 .robot {
   position: absolute;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  width: 20px;
+  height: 20px;
   top: 0;
   left: 0;
   z-index: 11;
-  background: linear-gradient(95deg,
-      rgba(71, 84, 141, 0.64) 9%,
-      rgba(53, 81, 119, 0.15) 86%,
-      rgba(53, 92, 119, 0.14) 88%);
+  transform-origin: 50% 50%;
+  background: linear-gradient(
+    180deg,
+    rgb(255, 239, 133) 0%,
+    rgb(255, 84, 84) 100%
+  );
+  clip-path: polygon(50% 0%, 100% 100%, 50% 74%, 0% 100%);
   box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
 }
 

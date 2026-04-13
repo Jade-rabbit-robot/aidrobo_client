@@ -22,13 +22,13 @@
 
 <script>
 import Tc from "@/components/tc";
-import { mapState } from "vuex";
+import {mapMutations, mapState} from "vuex";
 
 export default {
   components: {
     Tc
   },
-  data () {
+  data() {
     return {
       showAdd: false,
       showDel: false,
@@ -36,78 +36,107 @@ export default {
       isSel: null
     };
   },
-  mounted () {
-    this.getMap()
+  mounted() {
+    this.getMap();
+    this.resetNavigationMapPoints();
   },
   methods: {
-    getMap () {
-      getMapList.callService(null, (result) => {
-        try {
-          this.data = JSON.parse(result.map_list)
-        } catch (error) {
-          console.log('[  finishMap ERR]-61', error)
+    ...mapMutations(["resetNavigationMapPoints"]),
+    getMap() {
+      getMapList.callService(
+        null,
+        result => {
+          try {
+            this.data = JSON.parse(result.map_list);
+          } catch (error) {
+            console.log("[  finishMap ERR]-61", error);
+          }
+          console.log("[  finishMap OK]-61", result);
+        },
+        result => {
+          console.log("[  finishMap ERR]-61", result);
         }
-        console.log('[  finishMap OK]-61', result)
-      }, (result) => {
-        console.log('[  finishMap ERR]-61', result)
-      });
+      );
     },
-    addMap () {
-      const addInp = document.querySelector("#addInp")
-      addInp && (addInp.value = "")
-      this.$confirm(`<div> 名称：
+    addMap() {
+      const addInp = document.querySelector("#addInp");
+      addInp && (addInp.value = "");
+      this.$confirm(
+        `<div> 名称：
         <input id="addInp" placeholder=" 请输入内容" style="height: 70px;"></input>
-        </div>`, '地图命名', {
-        dangerouslyUseHTMLString: true,
-        center: true
-      }).then((e) => {
-        const addInp = document.querySelector("#addInp")
+        </div>`,
+        "地图命名",
+        {
+          dangerouslyUseHTMLString: true,
+          center: true
+        }
+      ).then(e => {
+        const addInp = document.querySelector("#addInp");
         const mapName = addInp.value;
-        this.$router.push({ name: 'newMap', query: { mapName } })
+        this.$router.push({ name: "newMap", query: { mapName } });
         // 建图模式
         const msg = new ROSLIB.ServiceRequest({
-          action: 'mapping'
+          action: "mapping"
         });
-        robotMode.callService(msg, (result) => {
-          console.log('[ robotMode OK]-61', result)
-        }, (result) => {
-          console.log('[ robotMode ERR]-61', result)
-        });
+        robotMode.callService(
+          msg,
+          result => {
+            console.log("[ robotMode OK]-61", result);
+          },
+          result => {
+            console.log("[ robotMode ERR]-61", result);
+          }
+        );
         // 遥控模式
-        this.$store.state.actionStatus = 'remote'
+        this.$store.state.actionStatus = "remote";
         const msg2 = new ROSLIB.ServiceRequest({
-          action: 'remote_control'
+          action: "remote_control"
         });
-        robotMode.callService(msg2, (result) => {
-          console.log('[ robotMode OK]-61', result)
-        }, (result) => {
-          console.log('[ robotMode ERR]-61', result)
-        });
+        robotMode.callService(
+          msg2,
+          result => {
+            console.log("[ robotMode OK]-61", result);
+          },
+          result => {
+            console.log("[ robotMode ERR]-61", result);
+          }
+        );
       });
     },
-    onSel (e) {
-      this.$router.push({ name: 'seeMap', query: { mapName: e.name, id: e.id } })
+    onSel(e) {
+      this.$router.push({
+        name: "seeMap",
+        query: { mapName: e.name, id: e.id }
+      });
     },
-    onDel (event, e) {
-      event.stopPropagation()
-      this.$confirm(`<div> 地图名：${e.name}</div><div>（本操作无法恢复）</div>`, '删除地图', {
-        dangerouslyUseHTMLString: true,
-        center: true
-      }).then(() => {
+    onDel(event, e) {
+      event.stopPropagation();
+      this.$confirm(
+        `<div> 地图名：${e.name}</div><div>（本操作无法恢复）</div>`,
+        "删除地图",
+        {
+          dangerouslyUseHTMLString: true,
+          center: true
+        }
+      ).then(() => {
         const msg = new ROSLIB.ServiceRequest({
           id: e.id * 1,
-          data_type: 'map'
+          data_type: "map"
         });
-        deleteMap.callService(msg, (result) => {
-          if (result.success) {
-            this.$message('删除成功');
-            this.getMap()
-          } else {
-            this.$message('删除失败');
+        deleteMap.callService(
+          msg,
+          result => {
+            if (result.success) {
+              this.$message("删除成功");
+              this.getMap();
+            } else {
+              this.$message("删除失败");
+            }
+          },
+          result => {
+            console.log("[ deleteMap ERR]-61", result);
           }
-        }, (result) => {
-          console.log('[ deleteMap ERR]-61', result)
-        });
+        );
       });
     }
   }
@@ -137,8 +166,7 @@ export default {
 .list {
   width: 1740px;
   overflow: auto;
-  margin-left: 100px;
-  margin-top: 100px;
+  margin: 100px auto 0 auto;
   height: 100%;
   padding: 20px 0 0 20px;
 
@@ -151,10 +179,12 @@ export default {
     height: 158px;
     border-radius: 20px;
     margin-bottom: 100px;
-    background: linear-gradient(95deg,
-        rgba(71, 84, 141, 0.64) 9%,
-        rgba(53, 81, 119, 0.15) 86%,
-        rgba(53, 92, 119, 0.14) 88%);
+    background: linear-gradient(
+      95deg,
+      rgba(71, 84, 141, 0.64) 9%,
+      rgba(53, 81, 119, 0.15) 86%,
+      rgba(53, 92, 119, 0.14) 88%
+    );
     backdrop-filter: blur(10.88px);
     box-shadow: 0px 2px 31px 0px rgba(1, 29, 90, 0.72);
 
@@ -166,7 +196,7 @@ export default {
       width: 165px;
       height: 58px;
       border-radius: 6px;
-      background: #C061FF;
+      background: #c061ff;
       text-align: center;
       line-height: 58px;
       margin-left: 2rem;
